@@ -1,0 +1,95 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://ui/gold_ui.tres" type="Texture" id=1]
+[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://ui/label_bg.tres" type="Texture" id=3]
+[ext_resource path="res://ui/panel_bg1.tres" type="Texture" id=4]
+[ext_resource path="res://ui/panel_bg2.tres" type="Texture" id=5]
+[ext_resource path="res://ui/wood_tile.tres" type="Texture" id=6]
+
+[sub_resource type="AtlasTexture" id=1]
+flags = 4
+atlas = ExtResource( 4 )
+region = Rect2( 10, 20, 593.842, 668.682 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 40
+extra_spacing_char = 2
+font_data = ExtResource( 2 )
+
+[node name="Summary" type="Control"]
+margin_right = 600.0
+margin_bottom = 771.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BG" type="TextureRect" parent="."]
+margin_top = 68.0
+margin_right = 593.0
+margin_bottom = 736.0
+texture = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="TextureRect" parent="."]
+margin_left = 22.0
+margin_top = 16.0
+margin_right = 584.0
+margin_bottom = 160.0
+texture = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GoldBG" type="TextureRect" parent="."]
+margin_left = 88.0
+margin_top = 407.0
+margin_right = 505.0
+margin_bottom = 586.0
+texture = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Gold" type="Control" parent="GoldBG"]
+margin_left = 76.0
+margin_top = 40.0
+margin_right = 376.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LabelBG" type="TextureRect" parent="GoldBG/Gold"]
+margin_left = 50.0
+margin_top = 15.0
+margin_right = 252.0
+margin_bottom = 86.0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="GoldBG/Gold/LabelBG"]
+anchor_left = 0.3
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 2 )
+text = "321"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CoinIcon" type="TextureRect" parent="GoldBG/Gold"]
+margin_right = 40.0
+margin_bottom = 40.0
+rect_scale = Vector2( 0.9, 0.9 )
+texture = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
@@ -8,15 +8,13 @@
 [ext_resource path="res://binary/images/bg/tree/bg_forest_3.png" type="Texture" id=6]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_5.png" type="Texture" id=7]
 [ext_resource path="res://tileset/outside.tres" type="TileSet" id=8]
-[ext_resource path="res://binary/images/objects/building/tower.png" type="Texture" id=9]
-[ext_resource path="res://binary/images/objects/building/well.png" type="Texture" id=10]
+[ext_resource path="res://objects/building.tscn" type="PackedScene" id=9]
 [ext_resource path="res://binary/images/objects/vegetable/tree_3.png" type="Texture" id=11]
 [ext_resource path="res://binary/images/objects/vegetable/tree_1.png" type="Texture" id=12]
 [ext_resource path="res://binary/images/objects/vegetable/tree_2.png" type="Texture" id=13]
 [ext_resource path="res://binary/images/objects/vegetable/stone_2.png" type="Texture" id=14]
 [ext_resource path="res://binary/images/objects/vegetable/grass_5.png" type="Texture" id=15]
 [ext_resource path="res://objects/character.tscn" type="PackedScene" id=16]
-[ext_resource path="res://anim_sprite/paohui.tres" type="SpriteFrames" id=17]
 [ext_resource path="res://ui/chara_gen.tscn" type="PackedScene" id=18]
 [ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=19]
 [ext_resource path="res://sys/fx_mgr.tscn" type="PackedScene" id=20]
@@ -24,10 +22,14 @@
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
 char_res = ExtResource( 16 )
+build_res = ExtResource( 9 )
 char_root_path = NodePath("Charas")
 spawn1_path = NodePath("Team1Spawn")
 spawn2_path = NodePath("Team2Spawn")
 chara_gen_ui_path = NodePath("CanvasLayer/CharaGen")
+base1_path = NodePath("Foreground/Base1Pos")
+base2_path = NodePath("Foreground/Base2Pos")
+foreground_path = NodePath("Foreground")
 
 [node name="Camera2D" parent="." instance=ExtResource( 3 )]
 anchor_mode = 0
@@ -77,14 +79,6 @@ centered = false
 
 [node name="Foreground" type="Node2D" parent="."]
 
-[node name="Base1" type="Sprite" parent="Foreground"]
-position = Vector2( 441, 552 )
-texture = ExtResource( 9 )
-
-[node name="Base2" type="Sprite" parent="Foreground"]
-position = Vector2( 3431, 628 )
-texture = ExtResource( 10 )
-
 [node name="Tree" type="Sprite" parent="Foreground"]
 position = Vector2( 1516, 358 )
 texture = ExtResource( 11 )
@@ -107,14 +101,13 @@ texture = ExtResource( 15 )
 position = Vector2( 2513, 748 )
 texture = ExtResource( 14 )
 
-[node name="Charas" type="Node2D" parent="."]
+[node name="Base1Pos" type="Node2D" parent="Foreground"]
+position = Vector2( 427, 690 )
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="Charas"]
-visible = false
-position = Vector2( 724, 770 )
-frames = ExtResource( 17 )
-animation = "idle"
-offset = Vector2( 0, -75 )
+[node name="Base2Pos" type="Node2D" parent="Foreground"]
+position = Vector2( 3497, 696 )
+
+[node name="Charas" type="Node2D" parent="."]
 
 [node name="FxMgr" parent="." instance=ExtResource( 20 )]
 

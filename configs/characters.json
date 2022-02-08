@@ -1,8 +1,8 @@
 {
     "paohui":
     {
-        "id":0,
         "name":"炮灰",
+        "type":"chara",
         "attrs":{
             "1":{
                 "hp":100,
@@ -29,6 +29,50 @@
             "file_name":"paohui",
             "y_offset":-70,
             "atk_frame":6
+        }
+    },
+    "base1":
+    {
+        "name":"基地1",
+        "type":"base",
+        "attrs":{
+            "1":{
+                "hp":1000,
+                "atk":10,
+                "mov_spd":3,
+                "atk_spd":2,
+                "atk_num":1,
+                "cost":20,
+                "gen_time":2,
+                "gold":0
+            }
+        },
+        "appearance":{
+            "file_name":"base1",
+            "y_offset":-165,
+            "atk_frame":0
+        }
+    },
+    "base2":
+    {
+        "name":"基地2",
+        "type":"base",
+        "attrs":{
+            "1":{
+                "hp":1000,
+                "atk":10,
+                "mov_spd":3,
+                "atk_spd":2,
+                "atk_num":1,
+                "cost":20,
+                "gen_time":2,
+                "gold":0
+            }
+        },
+        "appearance":{
+            "file_name":"base2",
+            "y_offset":-145,
+            "atk_frame":0
         }
     }
 }

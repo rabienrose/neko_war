@@ -1,9 +1,9 @@
 extends Node2D
+class_name Character
 #path
 export (NodePath) var sprite_anim_path
 export (NodePath) var hp_bar_path
 export (NodePath) var fct_mgr_path
-export (NodePath) var coin_efx_path
 
 #node
 var anim_sprite
@@ -112,11 +112,14 @@ func _on_AnimatedSprite_frame_changed():
 func set_anim(anim_data, info):
     atk_frame=info["atk_frame"]
     anim_sprite.frames=anim_data
-    anim_sprite.animation="mov"
+    anim_sprite.animation="idle"
     anim_sprite.play()
     anim_sprite.offset.y=info["y_offset"]
     position.y=ground_y
     anim_sprite.material = anim_sprite.material.duplicate()
+
+func play_anim(anim_name):
+    anim_sprite.animation=anim_name
 
 func set_team(_team_id):
     team_id=_team_id
@@ -153,8 +156,8 @@ func _physics_process(delta):
                 play_atk()
         check_atk_countdown=check_atk_countdown-delta
 
-func on_die(chara):
-    if team_id==1:
+func on_die(_chara):
+    if team_id==1 and gold>0:
         game.change_gold(gold)
         var coin_ef_num=int(gold/10)+1
         if coin_ef_num>10:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
@@ -19,6 +19,7 @@
 [ext_resource path="res://anim_sprite/paohui.tres" type="SpriteFrames" id=17]
 [ext_resource path="res://ui/chara_gen.tscn" type="PackedScene" id=18]
 [ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=19]
+[ext_resource path="res://sys/fx_mgr.tscn" type="PackedScene" id=20]
 
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
@@ -81,7 +82,7 @@ position = Vector2( 441, 552 )
 texture = ExtResource( 9 )
 
 [node name="Base2" type="Sprite" parent="Foreground"]
-position = Vector2( 6700, 626 )
+position = Vector2( 3431, 628 )
 texture = ExtResource( 10 )
 
 [node name="Tree" type="Sprite" parent="Foreground"]
@@ -103,14 +104,8 @@ position = Vector2( 802, 749 )
 texture = ExtResource( 15 )
 
 [node name="Stone" type="Sprite" parent="Foreground"]
-position = Vector2( 6560, 750 )
+position = Vector2( 2513, 748 )
 texture = ExtResource( 14 )
-
-[node name="TileMap" type="TileMap" parent="."]
-tile_set = ExtResource( 8 )
-cell_size = Vector2( 256, 256 )
-format = 1
-tile_data = PoolIntArray( 196608, 1, 0, 196609, 1, 0, 196610, 3, 0, 196611, 1, 0, 196612, 0, 0, 196613, 1, 0, 196614, 3, 0, 196615, 0, 0, 196616, 1, 0, 196617, 3, 0, 196618, 0, 0, 196619, 3, 0, 196620, 3, 0, 196621, 3, 0, 196622, 0, 0, 196623, 1, 0, 196624, 0, 0, 196625, 1, 0, 196626, 3, 0, 196627, 0, 0, 196628, 3, 0, 196629, 3, 0, 196630, 3, 0, 196631, 1, 0, 196632, 0, 0, 196633, 3, 0, 196634, 3, 0, 196635, 1, 0, 262144, 2, 0, 262145, 2, 0, 262146, 2, 0, 262147, 2, 0, 262148, 2, 0, 262149, 2, 0, 262150, 2, 0, 262151, 2, 0, 262152, 2, 0, 262153, 2, 0, 262154, 2, 0, 262155, 2, 0, 262156, 2, 0, 262157, 2, 0, 262158, 2, 0, 262159, 2, 0, 262160, 2, 0, 262161, 2, 0, 262162, 2, 0, 262163, 2, 0, 262164, 2, 0, 262165, 2, 0, 262166, 2, 0, 262167, 2, 0, 262168, 2, 0, 262169, 2, 0, 262170, 2, 0, 262171, 2, 0 )
 
 [node name="Charas" type="Node2D" parent="."]
 
@@ -121,14 +116,24 @@ frames = ExtResource( 17 )
 animation = "idle"
 offset = Vector2( 0, -75 )
 
+[node name="FxMgr" parent="." instance=ExtResource( 20 )]
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource( 8 )
+cell_size = Vector2( 256, 256 )
+format = 1
+tile_data = PoolIntArray( 196608, 1, 0, 196609, 1, 0, 196610, 3, 0, 196611, 1, 0, 196612, 0, 0, 196613, 1, 0, 196614, 3, 0, 196615, 0, 0, 196616, 1, 0, 196617, 3, 0, 196618, 0, 0, 196619, 3, 0, 196620, 3, 0, 196621, 3, 0, 196622, 0, 0, 196623, 1, 0, 196624, 0, 0, 196625, 1, 0, 196626, 3, 0, 196627, 0, 0, 196628, 3, 0, 196629, 3, 0, 196630, 3, 0, 196631, 1, 0, 196632, 0, 0, 196633, 3, 0, 196634, 3, 0, 196635, 1, 0, 262144, 2, 0, 262145, 2, 0, 262146, 2, 0, 262147, 2, 0, 262148, 2, 0, 262149, 2, 0, 262150, 2, 0, 262151, 2, 0, 262152, 2, 0, 262153, 2, 0, 262154, 2, 0, 262155, 2, 0, 262156, 2, 0, 262157, 2, 0, 262158, 2, 0, 262159, 2, 0, 262160, 2, 0, 262161, 2, 0, 262162, 2, 0, 262163, 2, 0, 262164, 2, 0, 262165, 2, 0, 262166, 2, 0, 262167, 2, 0, 262168, 2, 0, 262169, 2, 0, 262170, 2, 0, 262171, 2, 0 )
+
 [node name="Team1Spawn" type="Node2D" parent="."]
 position = Vector2( 219, 695 )
 
 [node name="Team2Spawn" type="Node2D" parent="."]
-position = Vector2( 6883, 671 )
+position = Vector2( 3592, 695 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="CharaGen" parent="CanvasLayer" instance=ExtResource( 18 )]
+margin_top = -260.0
+margin_bottom = -60.0
 
 [node name="Status" parent="CanvasLayer" instance=ExtResource( 19 )]

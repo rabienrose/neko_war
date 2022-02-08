@@ -53,6 +53,9 @@ func _on_CharaUIItem_gui_input(event:InputEvent):
             if cost_mask_node.visible==false and progress_node.value==0:
                 start_gen()
 
+func shake_box():
+    $AnimationPlayer.play("shake")
+
 func _process(_delta):
     if gen_countdown>0:
         gen_countdown=gen_countdown-_delta
@@ -62,5 +65,6 @@ func _process(_delta):
             in_gen=false
             Global.emit_signal("request_spawn_chara", chara_info)
             progress_node.value=0
+            shake_box()
 
 

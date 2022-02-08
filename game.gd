@@ -6,19 +6,18 @@ export (NodePath) var spawn1_path
 export (NodePath) var spawn2_path
 export (NodePath) var chara_gen_ui_path
 
+var fx_mgr
 var team_charas=[[],[]]
 var char_root
 var spawn_nodes=[]
 var chara_gen_ui
 var auto_spawn_countdown=0
-var rng
 var scene_min=440
-var scene_max=6700
+var scene_max=3300
 var gold=100
 
 func _ready():
-    rng = RandomNumberGenerator.new()
-    rng.randomize()
+    fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
     spawn_nodes.append(get_node(spawn2_path))
     char_root=get_node(char_root_path)

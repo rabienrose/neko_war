@@ -9,7 +9,7 @@
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":1,
-                "atk_num":3,
+                "atk_num":1,
                 "cost":20,
                 "gen_time":2,
                 "gold":20
@@ -19,7 +19,7 @@
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":2,
-                "atk_num":3,
+                "atk_num":1,
                 "cost":20,
                 "gen_time":2,
                 "gold":20

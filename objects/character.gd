@@ -3,11 +3,14 @@ extends Node2D
 export (NodePath) var sprite_anim_path
 export (NodePath) var hp_bar_path
 export (NodePath) var fct_mgr_path
+export (NodePath) var coin_efx_path
 
 #node
 var anim_sprite
 var hp_bar
 var fct_mgr
+var fx_pos_node
+var anim_player
 
 #resource
 export (Resource) var bar_red
@@ -35,6 +38,7 @@ var mov_spd_coef=100
 #temp_status
 var init_atk=true
 var atk_targets=[]
+var check_atk_countdown=0
 
 var mov_dir=1
 var cur_anim
@@ -42,6 +46,8 @@ var cur_anim
 var game
 
 func _ready():
+    anim_player=get_node("AnimationPlayer")
+    fx_pos_node=get_node("FxPos")
     anim_sprite=get_node(sprite_anim_path)
     hp_bar=get_node(hp_bar_path)
     fct_mgr=get_node(fct_mgr_path)
@@ -55,7 +61,8 @@ func set_attr_data(data):
     atk = data["atk"]
     mov_spd = data["mov_spd"]
     atk_spd = data["atk_spd"]
-    gold=data["gold"]
+    gold = data["gold"]
+    atk_num = data["atk_num"]
     hp_bar.max_value=max_hp
     hp_bar.value=atk
     update_chara_panel()
@@ -88,7 +95,7 @@ func update_atk_targets():
         init_atk=true
         for i in range(atk_num):
             if i<len(chars_in_range):
-                atk_targets.append(chars_in_range[i])
+                atk_targets.append(chars_in_range[len(chars_in_range)-i-1])
 
 func _on_AnimatedSprite_animation_finished():
     if anim_sprite.animation=="atk":
@@ -109,6 +116,7 @@ func set_anim(anim_data, info):
     anim_sprite.play()
     anim_sprite.offset.y=info["y_offset"]
     position.y=ground_y
+    anim_sprite.material = anim_sprite.material.duplicate()
 
 func set_team(_team_id):
     team_id=_team_id
@@ -138,24 +146,38 @@ func _physics_process(delta):
         if team_id==1 and position.x<game.scene_min or team_id==0 and position.x>game.scene_max:
             game.remove_chara(self)
             return
-        update_atk_targets()
-        if len(atk_targets)>0:
-            play_atk()
+        if check_atk_countdown<0:
+            check_atk_countdown=rand_range(0.1,0.5)
+            update_atk_targets()
+            if len(atk_targets)>0:
+                play_atk()
+        check_atk_countdown=check_atk_countdown-delta
 
 func on_die(chara):
     if team_id==1:
         game.change_gold(gold)
+        var coin_ef_num=int(gold/10)+1
+        if coin_ef_num>10:
+            coin_ef_num=10
+        game.fx_mgr.play_coin_fx(coin_ef_num, fx_pos_node.position+position)
     game.remove_chara(self)
 
 func change_hp(val, chara):
     if team_id==1:
         fct_mgr.show_value(str(val))
+    else:
+        fct_mgr.show_value(str(val), true)
     hp=hp+val
     if hp>max_hp:
         hp=max_hp
     if hp<=0:
         on_die(chara)
         hp=0
+    if val<0:
+        if team_id==1:
+            anim_player.play("white")
+        else:
+            anim_player.play("red")
     update_chara_panel()
 
 func update_chara_panel():

@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://sys/fx_mgr.gd" type="Script" id=1]
+[ext_resource path="res://effect/coin_fly.tscn" type="PackedScene" id=2]
+
+[node name="FxMgr" type="Node2D"]
+script = ExtResource( 1 )
+coin_fx_res = ExtResource( 2 )

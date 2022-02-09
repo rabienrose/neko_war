@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
@@ -9,12 +9,14 @@
 [ext_resource path="res://binary/images/bg/tree/bg_forest_5.png" type="Texture" id=7]
 [ext_resource path="res://tileset/outside.tres" type="TileSet" id=8]
 [ext_resource path="res://objects/building.tscn" type="PackedScene" id=9]
+[ext_resource path="res://binary/images/objects/building/crystal_2.png" type="Texture" id=10]
 [ext_resource path="res://binary/images/objects/vegetable/tree_3.png" type="Texture" id=11]
 [ext_resource path="res://binary/images/objects/vegetable/tree_1.png" type="Texture" id=12]
 [ext_resource path="res://binary/images/objects/vegetable/tree_2.png" type="Texture" id=13]
 [ext_resource path="res://binary/images/objects/vegetable/stone_2.png" type="Texture" id=14]
 [ext_resource path="res://binary/images/objects/vegetable/grass_5.png" type="Texture" id=15]
 [ext_resource path="res://objects/character.tscn" type="PackedScene" id=16]
+[ext_resource path="res://ui/summary.tscn" type="PackedScene" id=17]
 [ext_resource path="res://ui/chara_gen.tscn" type="PackedScene" id=18]
 [ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=19]
 [ext_resource path="res://sys/fx_mgr.tscn" type="PackedScene" id=20]
@@ -30,6 +32,8 @@ chara_gen_ui_path = NodePath("CanvasLayer/CharaGen")
 base1_path = NodePath("Foreground/Base1Pos")
 base2_path = NodePath("Foreground/Base2Pos")
 foreground_path = NodePath("Foreground")
+summary_path = NodePath("CanvasLayer/CenterContainer/Summary")
+game_status_path = NodePath("CanvasLayer/Status")
 
 [node name="Camera2D" parent="." instance=ExtResource( 3 )]
 anchor_mode = 0
@@ -107,6 +111,10 @@ position = Vector2( 427, 690 )
 [node name="Base2Pos" type="Node2D" parent="Foreground"]
 position = Vector2( 3497, 696 )
 
+[node name="Cristal" type="Sprite" parent="Foreground"]
+position = Vector2( 1848, 678 )
+texture = ExtResource( 10 )
+
 [node name="Charas" type="Node2D" parent="."]
 
 [node name="FxMgr" parent="." instance=ExtResource( 20 )]
@@ -130,3 +138,24 @@ margin_top = -260.0
 margin_bottom = -60.0
 
 [node name="Status" parent="CanvasLayer" instance=ExtResource( 19 )]
+margin_left = -996.0
+margin_top = 10.0
+margin_right = 1004.0
+margin_bottom = 110.0
+
+[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 0.9
+margin_top = 35.0
+margin_bottom = -87.7999
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Summary" parent="CanvasLayer/CenterContainer" instance=ExtResource( 17 )]
+pause_mode = 2
+visible = false
+margin_left = 832.0
+margin_top = 45.0
+margin_right = 1532.0
+margin_bottom = 895.0

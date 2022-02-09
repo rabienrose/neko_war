@@ -2,8 +2,8 @@
 
 [ext_resource path="res://ui/game_status_ui.gd" type="Script" id=1]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
-[ext_resource path="res://ui/label_bg.tres" type="Texture" id=3]
-[ext_resource path="res://ui/gold_ui.tres" type="Texture" id=4]
+[ext_resource path="res://ui/texture/label_bg.tres" type="Texture" id=3]
+[ext_resource path="res://ui/texture/gold_ui.tres" type="Texture" id=4]
 
 [sub_resource type="DynamicFont" id=1]
 size = 40

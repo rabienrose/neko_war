@@ -9,6 +9,8 @@ export (NodePath) var chara_gen_ui_path
 export (NodePath) var base1_path
 export (NodePath) var base2_path
 export (NodePath) var foreground_path
+export (NodePath) var summary_path
+export (NodePath) var game_status_path
 
 var fx_mgr
 var team_charas=[[],[]]
@@ -23,6 +25,9 @@ var stop=false
 
 func stop_game():
     get_tree().paused = true
+    get_node(summary_path).show_summary(1,true,400)
+    get_node(chara_gen_ui_path).visible=false
+    get_node(game_status_path).visible=false
 
 func _ready():
     fx_mgr=get_node("FxMgr")
@@ -36,6 +41,7 @@ func _ready():
     Global.emit_signal("money_change",100)
     Global.connect("request_spawn_chara", self, "on_request_spawn_chara")
     Global.connect("expend_gold", self, "expend_gold")
+    get_node(summary_path).show_summary(1,true,400)
 
 func get_charas_in_range(team_id, min_x, max_x):
     var temp_chars=team_charas[team_id]

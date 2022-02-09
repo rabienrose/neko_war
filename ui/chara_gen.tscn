@@ -19,19 +19,29 @@ __meta__ = {
 path_list = [ NodePath("CharaUIItem"), NodePath("CharaUIItem2"), NodePath("CharaUIItem3"), NodePath("CharaUIItem4"), NodePath("CharaUIItem5") ]
 
 [node name="CharaUIItem" parent="." instance=ExtResource( 1 )]
+margin_top = 12.0
+margin_bottom = 188.0
 
 [node name="CharaUIItem2" parent="." instance=ExtResource( 1 )]
 margin_left = 200.0
-margin_right = 380.0
+margin_top = 12.0
+margin_right = 382.0
+margin_bottom = 188.0
 
 [node name="CharaUIItem3" parent="." instance=ExtResource( 1 )]
 margin_left = 401.0
-margin_right = 581.0
+margin_top = 12.0
+margin_right = 583.0
+margin_bottom = 188.0
 
 [node name="CharaUIItem4" parent="." instance=ExtResource( 1 )]
 margin_left = 602.0
-margin_right = 782.0
+margin_top = 12.0
+margin_right = 784.0
+margin_bottom = 188.0
 
 [node name="CharaUIItem5" parent="." instance=ExtResource( 1 )]
 margin_left = 803.0
-margin_right = 983.0
+margin_top = 12.0
+margin_right = 985.0
+margin_bottom = 188.0

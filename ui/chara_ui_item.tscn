@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://ui/chara_box.tres" type="Texture" id=1]
+[ext_resource path="res://ui/texture/chara_box.tres" type="Texture" id=1]
 [ext_resource path="res://binary/images/ui/chara_item_cost_mask.png" type="Texture" id=2]
 [ext_resource path="res://ui/chara_ui_item.gd" type="Script" id=3]
 [ext_resource path="res://binary/images/ui/chara_item_mask.png" type="Texture" id=4]

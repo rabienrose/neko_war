@@ -2,34 +2,34 @@
     {
         "lv":0,
         "title":"Small Val",
-        "gold":1000,
+        "gold":100,
         "star3_time":10,
-        "star2_time":30,
+        "star2_time":50,
         "star1_time":60,
-        "lossless":2,
+        "spawn_delay_min":9,
+        "spawn_delay_max":20,
         "rand_pool":[
-            ["paohui",1,10],
-            ["paohui",2,3]
+            {"name":"paohui","lv":1,"chance":0.8},
+            {"name":"paohui","lv":2,"chance":0.2}
         ],
         "boss":[
-            ["paohui",10,30],
-            ["paohui",20,40]
+            {"name":"paohui","lv":1,"time":30},
+            {"name":"paohui","lv":2,"time":40}
         ],
         "desc":"La la la la la."
     },
     {
         "lv":1,
         "title":"Big Val",
-        "star1_gold":100,
-        "star2_gold":1000,
-        "star3_gold":10000,
+        "gold":200,
         "star1_time":60,
         "star2_time":30,
         "star3_time":10,
-        "lossless":2,
+        "spawn_delay_min":1,
+        "spawn_delay_max":9,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":10},
-            {"name":"paohui","lv":2,"chance":2}
+            {"name":"paohui","lv":1,"chance":0.8},
+            {"name":"paohui","lv":2,"chance":0.2}
         ],
         "boss":[
             {"name":"paohui","lv":1,"time":30},
@@ -40,16 +40,15 @@
     {
         "lv":2,
         "title":"Huge Val",
-        "star1_gold":100,
-        "star2_gold":1000,
-        "star3_gold":10000,
+        "gold":300,
         "star1_time":60,
         "star2_time":30,
         "star3_time":10,
-        "lossless":2,
+        "spawn_delay_min":0,
+        "spawn_delay_max":1,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":10},
-            {"name":"paohui","lv":2,"chance":2}
+            {"name":"paohui","lv":1,"chance":0.1},
+            {"name":"paohui","lv":2,"chance":0.9}
         ],
         "boss":[
             {"name":"paohui","lv":1,"time":30},

@@ -6,7 +6,7 @@ var travel = Vector2(0, -180)
 var duration = 2
 var spread = PI/4
 
-func show_value(value, crit=false):
+func show_value(value, color):
     var fct = fct_res.instance()
     add_child(fct)
-    fct.show_value(str(value), travel, duration, spread, crit)
+    fct.show_value(str(value), travel, duration, spread, color)

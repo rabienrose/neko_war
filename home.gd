@@ -12,7 +12,8 @@ export (NodePath) var chara_hotkey_path
 export (NodePath) var item_hotkey_path
 export (NodePath) var drag_icon_path
 export (NodePath) var drag_icon_bg_path
-
+export (NodePath) var upgrade_btn_path
+export (NodePath) var upgrade_btn_bg_path
 export (NodePath) var level_label_path
 export (NodePath) var chara_label_path
 export (NodePath) var item_label_path
@@ -70,22 +71,6 @@ func _ready():
     update_status()
     update_lottery_ui()
 
-func update_levels_ui():
-    var last_pass_lv=0
-    for lv_info in Global.levels_tb:
-        var level_item = level_item_res.instance()
-        level_item.container=level_grid
-        var lv_num=str(lv_info["lv"])
-        if lv_num in Global.user_data["levels"]:
-            level_item.set_lock(false, int(lv_num), Global.user_data["levels"][lv_num]["star"])
-            last_pass_lv=lv_num
-        else:
-            if int(last_pass_lv)==int(lv_num)-1:
-                level_item.set_lock(false, int(lv_num), -1)
-            else:
-                level_item.set_lock(true, -1, -1)
-        level_grid.add_child(level_item)
-
 func on_show_level_info(lv):
     cur_sel_level=lv
     var str_temp=""
@@ -97,23 +82,28 @@ func on_show_level_info(lv):
 func chara_item_click_cb(chara_name):
     var chara_db = Global.chara_tb[chara_name]
     var str_temp=""
-    var my_chara_info = Global.find_my_chara_info(chara_name)
+    var my_chara_info = Global.get_my_chara_info(chara_name)
     cur_sel_chara=chara_name
     str_temp=str_temp+chara_db["name"]+"\n\n"
     str_temp=str_temp+"Description:\n"+chara_db["desc"]+"\n\n"
     chara_info.text=str_temp
     clear_grid_highlight(chara_grid)
     clear_grid_highlight(chara_hotkey)
+    var upgrage_price=Global.get_upgrade_price(chara_name, my_chara_info["lv"])
+    if upgrage_price>0:
+        get_node(upgrade_btn_bg_path).visible=true
+        get_node(upgrade_btn_path).text=str("UP  ("+str(upgrage_price)+")")
+    else:
+        get_node(upgrade_btn_bg_path).visible=false
 
 func item_item_click_cb(item_name):
     var item_db = Global.items_tb[item_name]
     var str_temp=""
-    var my_item_info = Global.find_my_item_info(item_name)
+    var my_item_info = Global.get_my_item_info(item_name)
     cur_sel_item=item_name
     str_temp=str_temp+item_db["name"]+"\n\n"
     str_temp=str_temp+"Price: "+str(item_db["price"])+"\n\n"
     str_temp=str_temp+"Description:\n"+item_db["desc"]+"\n\n"
-    print(str_temp)
     item_info.text=str_temp
     clear_grid_highlight(item_grid)
     clear_grid_highlight(item_hotkey)
@@ -127,7 +117,7 @@ func set_chara_hk_slot(slot_id, chara_name):
     var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
     var icon_texture=load(icon_file_path)
     item.set_icon(icon_texture)
-    var info = Global.find_my_chara_info(chara_name)
+    var info = Global.get_my_chara_info(chara_name)
     if info==null:
         return
     item.set_num(info["lv"])
@@ -135,18 +125,40 @@ func set_chara_hk_slot(slot_id, chara_name):
     Global.user_data["equip"]["chara"][slot_id]=chara_name
     Global.save_user_data()
 
+func clear_item_hk_slot(slot_id):
+    var item = item_hotkey.get_child(slot_id)
+    item.clear()
+    Global.user_data["equip"]["item"][slot_id]=""
+    Global.save_user_data()
+
 func set_item_hk_slot(slot_id, item_name):
     var item = item_hotkey.get_child(slot_id)
     var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
     var icon_texture=load(icon_file_path)
     item.set_icon(icon_texture)
-    var info = Global.find_my_item_info(item_name)
+    var info = Global.get_my_item_info(item_name)
     if info==null:
         return
     item.set_num(info["num"])
     item.set_data(item_name)
     Global.user_data["equip"]["item"][slot_id]=item_name
     Global.save_user_data()
+
+func update_levels_ui():
+    var last_pass_lv=-1
+    for lv_info in Global.levels_tb:
+        var level_item = level_item_res.instance()
+        level_item.container=level_grid
+        var lv_num=str(lv_info["lv"])
+        if lv_num in Global.user_data["levels"]:
+            level_item.set_lock(false, int(lv_num), Global.user_data["levels"][lv_num]["star"])
+            last_pass_lv=lv_num
+        else:
+            if int(last_pass_lv)==int(lv_num)-1:
+                level_item.set_lock(false, int(lv_num), -1)
+            else:
+                level_item.set_lock(true, -1, -1)
+        level_grid.add_child(level_item)
 
 func update_characters_ui():
     var click_cb = funcref(self, "chara_item_click_cb")
@@ -169,6 +181,8 @@ func update_characters_ui():
         if chara_name=="":
             continue
         set_chara_hk_slot(i, chara_name)
+    if cur_sel_chara!="":
+        chara_item_click_cb(cur_sel_chara)
 
 func update_items_ui():
     var click_cb = funcref(self, "item_item_click_cb")
@@ -191,8 +205,6 @@ func update_items_ui():
         if item_name=="":
             continue
         set_item_hk_slot(i, item_name)
-    if cur_sel_chara!="":
-        chara_item_click_cb(cur_sel_chara)
 
 func update_lottery_ui():
     get_node(lottery_price_path).text=str(Global.lottery_price)+" Gold"  
@@ -207,7 +219,7 @@ func drag_chara_icon_cb(chara_name, pos):
 func set_icon(icon_node, b_item, name):
     var icon_file_path=Global.item_img_file_path+name+"/icon.png"
     if b_item==false:
-        icon_file_path=Global.chara_img_file_path+name+"/icon.png"
+        icon_file_path=Global.char_img_file_path+name+"/icon.png"
     var icon_texture=load(icon_file_path)
     icon_node.texture=icon_texture
 
@@ -233,6 +245,9 @@ func _input(event):
                     if cur_drag_chara!="":
                         set_chara_hk_slot(c.get_index(), cur_drag_chara)
                     if cur_drag_item!="":
+                        for i in range(len(Global.user_data["equip"]["item"])):
+                            if Global.user_data["equip"]["item"][i]==cur_drag_item:
+                                clear_item_hk_slot(i)
                         set_item_hk_slot(c.get_index(), cur_drag_item)
             cur_drag_chara=""
             cur_drag_item=""
@@ -279,7 +294,7 @@ func _on_Buy_gui_input(event:InputEvent):
                 var item_sell_price=Global.items_tb[cur_sel_item]["price"]
                 if Global.expend_user_money(item_sell_price)==false:
                     return
-                var my_item_info = Global.find_my_item_info(cur_sel_item)
+                var my_item_info = Global.get_my_item_info(cur_sel_item)
                 my_item_info["num"]=my_item_info["num"]+1
                 update_items_ui()
 
@@ -287,13 +302,12 @@ func _on_Upgrade_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed==true:
             if cur_sel_chara!="":
-                var my_chara_info = Global.find_my_chara_info(cur_sel_chara)
+                var my_chara_info = Global.get_my_chara_info(cur_sel_chara)
                 var chara_lv=my_chara_info["lv"]
-                var next_lv=chara_lv+1
-                if next_lv>Global.chara_tb[cur_sel_chara]["max_lv"]:
+                var upgrade_price=Global.get_upgrade_price(cur_sel_chara, chara_lv)
+                if upgrade_price<0:
                     return
-                var upgrade_gold=Global.chara_tb[cur_sel_chara]["attrs"][str(next_lv)]["price"]
-                if Global.expend_user_money(upgrade_gold)==false:
+                if Global.expend_user_money(upgrade_price)==false:
                     return
                 my_chara_info["lv"]=my_chara_info["lv"]+1
                 update_characters_ui()

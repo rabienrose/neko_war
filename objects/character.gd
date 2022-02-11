@@ -61,7 +61,7 @@ func set_attr_data(data):
     atk = data["atk"]
     mov_spd = data["mov_spd"]
     atk_spd = data["atk_spd"]
-    gold = data["gold"]
+    gold = data["drop_gold"]
     atk_num = data["atk_num"]
     hp_bar.max_value=max_hp
     hp_bar.value=atk
@@ -166,21 +166,27 @@ func on_die(_chara):
     game.remove_chara(self)
 
 func change_hp(val, chara):
-    if team_id==1:
-        fct_mgr.show_value(str(val))
-    else:
-        fct_mgr.show_value(str(val), true)
-    hp=hp+val
-    if hp>max_hp:
-        hp=max_hp
-    if hp<=0:
+    var new_hp=hp+val
+    if new_hp>max_hp:
+        new_hp=max_hp
+    elif new_hp<=0:
         on_die(chara)
-        hp=0
+        new_hp=0
+    var actual_val=new_hp-hp
+    hp=new_hp
+    if actual_val==0:
+        return
     if val<0:
+        if team_id==1:
+            fct_mgr.show_value(str(actual_val), Color.white)
+        else:
+            fct_mgr.show_value(str(actual_val), Color.red)
         if team_id==1:
             anim_player.play("white")
         else:
             anim_player.play("red")
+    else:
+        fct_mgr.show_value(str(actual_val), Color.green)
     update_chara_panel()
 
 func update_chara_panel():

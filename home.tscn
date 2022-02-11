@@ -17,7 +17,7 @@
 [ext_resource path="res://binary/font/Xolonium-Regular.ttf" type="DynamicFontData" id=15]
 [ext_resource path="res://ui/level_item.tscn" type="PackedScene" id=16]
 [ext_resource path="res://ui/texture/bg3.tres" type="Texture" id=17]
-[ext_resource path="res://grid_container.gd" type="Script" id=18]
+[ext_resource path="res://ui/grid_container.gd" type="Script" id=18]
 [ext_resource path="res://ui/drag_box_item.tscn" type="PackedScene" id=19]
 [ext_resource path="res://ui/hotkey_item.tscn" type="PackedScene" id=20]
 [ext_resource path="res://ui/texture/level_unlock_bg.tres" type="Texture" id=21]
@@ -65,6 +65,8 @@ chara_hotkey_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/
 item_hotkey_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer")
 drag_icon_path = NodePath("NinePatchRect/DragIcon/Icon")
 drag_icon_bg_path = NodePath("NinePatchRect/DragIcon")
+upgrade_btn_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Upgrade/Label")
+upgrade_btn_bg_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Upgrade")
 level_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Level/Label")
 chara_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Character/Label")
 item_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Item/Label")
@@ -353,6 +355,7 @@ __meta__ = {
 }
 
 [node name="Upgrade" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer"]
+visible = false
 margin_left = 80.0
 margin_top = 634.0
 margin_right = 480.0
@@ -563,7 +566,7 @@ custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
 custom_constants/shadow_offset_x = 10
 custom_constants/shadow_offset_y = 10
 custom_fonts/font = SubResource( 5 )
-text = "TRY"
+text = "DRAW"
 align = 1
 valign = 1
 __meta__ = {

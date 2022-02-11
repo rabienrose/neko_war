@@ -18,6 +18,11 @@ func set_num(num):
 func set_data(chara_name):
     custom_data=chara_name
 
+func clear():
+    custom_data=""
+    get_node(num_path).text=""
+    get_node(icon_path).texture=null
+
 func set_cb(chara_item_click_cb):
     click_cb=chara_item_click_cb
 

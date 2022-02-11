@@ -2,8 +2,10 @@ extends Node
 
 signal money_change(val)
 signal request_spawn_chara(chara_info)
+signal request_use_item(item_info)
 signal expend_gold(val)
 signal request_battle(lv)
+signal request_go_home
 signal show_level_info(lv)
 
 
@@ -14,11 +16,16 @@ var items_info_path="res://configs/items.json"
 var char_img_file_path="res://binary/images/charas/"
 var item_img_file_path="res://binary/images/items/"
 
+var game_scene="res://game.tscn"
+var home_scene="res://home.tscn"
+
 var user_data={}
 var chara_tb={}
 var levels_tb=[]
 var items_tb={}
 var chara_anim={}
+
+var sel_level=-1
 
 var lottery_price=70
 
@@ -65,6 +72,7 @@ func _ready():
     items_tb = JSON.parse(content).result
     f.close()
     connect("request_battle",self,"on_request_start_battle")
+    connect("request_go_home",self,"on_request_go_home")
 
 func save_user_data():
     var f=File.new()
@@ -72,21 +80,6 @@ func save_user_data():
     var temp_json_str=JSON.print(user_data)
     f.store_string(temp_json_str)
     f.close()
-
-func find_my_chara_info(chara_name):
-    for item in Global.user_data["characters"]:
-        if item["name"]==chara_name:
-            return item
-    return null
-
-func find_my_item_info(item_name):
-    for item in Global.user_data["items"]:
-        if item["name"]==item_name:
-            return item
-    return null
-
-func get_char_attr(char_name, lv):
-    return chara_tb[char_name]["attrs"][str(lv)]
 
 func get_char_anim_info(char_name):
     return chara_tb[char_name]["appearance"]
@@ -98,11 +91,22 @@ func get_char_anim(char_name):
     return chara_anim[anim_file]
 
 func on_request_start_battle(lv):
-    pass
+    sel_level=lv
+    get_tree().change_scene(game_scene)
 
+func on_request_go_home():
+    get_tree().change_scene(home_scene)
+
+    
 func delete_children(node):
     for n in node.get_children():
         node.remove_child(n)
+
+func get_upgrade_price(chara_name, cur_lv):
+    var next_lv=cur_lv+1
+    if next_lv>chara_tb[chara_name]["max_lv"]:
+        return -1
+    return Global.chara_tb[chara_name]["attrs"][str(next_lv)]["price"]
 
 func expend_user_money(val):
     if user_data["gold"]-val<0:
@@ -110,3 +114,24 @@ func expend_user_money(val):
     user_data["gold"]=user_data["gold"]-val
     emit_signal("money_change", user_data["gold"])
     save_user_data()
+
+func get_my_chara_info(chara_name):
+    for item in user_data["characters"]:
+        if item["name"]==chara_name:
+            return item
+    return null
+
+func get_my_item_info(item_name):
+    for item in user_data["items"]:
+        if item["name"]==item_name:
+            return item
+    return null
+
+func get_level_info(lv):
+    for dat in levels_tb:
+        if dat["lv"]==lv:
+            return dat
+    return null
+
+func get_max_level():
+    return levels_tb[len(levels_tb)-1]["lv"]

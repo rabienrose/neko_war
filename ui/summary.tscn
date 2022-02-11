@@ -3,7 +3,6 @@
 [ext_resource path="res://ui/texture/gold_ui.tres" type="Texture" id=1]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://ui/texture/label_bg.tres" type="Texture" id=3]
-[ext_resource path="res://ui/texture/panel_bg1.tres" type="Texture" id=4]
 [ext_resource path="res://ui/texture/panel_bg2.tres" type="Texture" id=5]
 [ext_resource path="res://ui/texture/wood_tile.tres" type="Texture" id=6]
 [ext_resource path="res://ui/texture/s_bg_blue.tres" type="Texture" id=7]
@@ -17,9 +16,11 @@
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=15]
 [ext_resource path="res://ui/summary.gd" type="Script" id=16]
 
+[sub_resource type="StreamTexture" id=4]
+load_path = "res://.import/UI.png-452850c329804f1db8806640c5b2bd4e.stex"
+
 [sub_resource type="AtlasTexture" id=1]
-flags = 4
-atlas = ExtResource( 4 )
+atlas = SubResource( 4 )
 region = Rect2( 10, 20, 593.842, 668.682 )
 
 [sub_resource type="DynamicFont" id=2]
@@ -50,6 +51,7 @@ title_text_path = NodePath("BG/Title/Label")
 star_path = NodePath("BG/CenterContainer/Control")
 ske_head_path = NodePath("BG/CenterContainer/SkeHead")
 gold_head_path = NodePath("BG/GoldBG/Gold/LabelBG/Label")
+next_btn_path = NodePath("BG/HBoxContainer/Next")
 
 [node name="BG" type="TextureRect" parent="."]
 anchor_left = 0.5
@@ -131,7 +133,7 @@ __meta__ = {
 }
 
 [node name="Home" type="TextureRect" parent="BG/HBoxContainer"]
-margin_right = 191.0
+margin_right = 197.0
 margin_bottom = 127.0
 size_flags_horizontal = 6
 texture = ExtResource( 7 )
@@ -154,8 +156,8 @@ __meta__ = {
 }
 
 [node name="Replay" type="TextureRect" parent="BG/HBoxContainer"]
-margin_left = 211.0
-margin_right = 403.0
+margin_left = 217.0
+margin_right = 409.0
 margin_bottom = 127.0
 size_flags_horizontal = 6
 texture = ExtResource( 14 )
@@ -179,9 +181,10 @@ margin_bottom = 105.0
 texture = ExtResource( 8 )
 
 [node name="Next" type="TextureRect" parent="BG/HBoxContainer"]
-margin_left = 423.0
-margin_right = 613.0
+margin_left = 429.0
+margin_right = 619.0
 margin_bottom = 127.0
+mouse_filter = 0
 size_flags_horizontal = 6
 texture = ExtResource( 9 )
 __meta__ = {
@@ -191,6 +194,7 @@ __meta__ = {
 [node name="CenterContainer" type="CenterContainer" parent="BG/HBoxContainer/Next"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -315,4 +319,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[connection signal="gui_input" from="BG/HBoxContainer/Home" to="." method="_on_Home_gui_input"]
 [connection signal="gui_input" from="BG/HBoxContainer/Replay" to="." method="_on_Replay_gui_input"]
+[connection signal="gui_input" from="BG/HBoxContainer/Next" to="." method="_on_Next_gui_input"]

@@ -3,9 +3,15 @@
     {
         "name":"paohui",
         "type":"chara",
-        "chance":1000,
+        "chance":0.5,
         "desc":"La la la la la.",
         "max_lv":2,
+        "build_cost":20,
+        "build_time":2,
+        "only_atk_building":false,
+        "bullet":"",
+        "atk_buf":["stun"],
+        "drop_gold":20,
         "attrs":{
             "1":{
                 "hp":100,
@@ -14,30 +20,16 @@
                 "atk_spd":1,
                 "atk_num":1,
                 "range":100,
-                "bullet":"",
-                "atk_buf":["stun"],
-                "only_atk_building":false,
-                "global_buf":[],
-                "cost":20,
-                "gen_time":2,
-                "gold":20,
-                "price":10
+                "upgrade_cost":10
             },
             "2":{
                 "hp":120,
-                "atk":15,
+                "atk":20,
                 "mov_spd":3,
                 "atk_spd":1,
                 "atk_num":1,
                 "range":100,
-                "bullet":"",
-                "atk_buf":["stun"],
-                "only_atk_building":false,
-                "global_buf":[],
-                "cost":20,
-                "gen_time":2,
-                "gold":20,
-                "price":10
+                "upgrade_cost":20
             }
         },
         "appearance":{
@@ -53,14 +45,11 @@
         "type":"base",
         "attrs":{
             "1":{
-                "hp":1000,
+                "hp":100,
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":2,
-                "atk_num":1,
-                "cost":20,
-                "gen_time":2,
-                "gold":0
+                "atk_num":1
             }
         },
         "appearance":{
@@ -75,14 +64,11 @@
         "type":"base",
         "attrs":{
             "1":{
-                "hp":1000,
+                "hp":100,
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":2,
-                "atk_num":1,
-                "cost":20,
-                "gen_time":2,
-                "gold":0
+                "atk_num":1
             }
         },
         "appearance":{

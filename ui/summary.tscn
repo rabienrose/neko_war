@@ -133,6 +133,7 @@ __meta__ = {
 [node name="Home" type="TextureRect" parent="BG/HBoxContainer"]
 margin_right = 191.0
 margin_bottom = 127.0
+size_flags_horizontal = 6
 texture = ExtResource( 7 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -156,6 +157,7 @@ __meta__ = {
 margin_left = 211.0
 margin_right = 403.0
 margin_bottom = 127.0
+size_flags_horizontal = 6
 texture = ExtResource( 14 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -180,6 +182,7 @@ texture = ExtResource( 8 )
 margin_left = 423.0
 margin_right = 613.0
 margin_bottom = 127.0
+size_flags_horizontal = 6
 texture = ExtResource( 9 )
 __meta__ = {
 "_edit_use_anchors_": false

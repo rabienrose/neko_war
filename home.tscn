@@ -1,0 +1,827 @@
+[gd_scene load_steps=27 format=2]
+
+[ext_resource path="res://ui/texture/s_bg_yellow.tres" type="Texture" id=1]
+[ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=2]
+[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://ui/texture/s_bg_blue.tres" type="Texture" id=4]
+[ext_resource path="res://ui/texture/s_bg_green.tres" type="Texture" id=5]
+[ext_resource path="res://ui/texture/s_bg_red.tres" type="Texture" id=6]
+[ext_resource path="res://home.gd" type="Script" id=7]
+[ext_resource path="res://ui/texture/s_bg_gray.tres" type="Texture" id=8]
+[ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=9]
+[ext_resource path="res://binary/images/items/hp_recover/icon.png" type="Texture" id=10]
+[ext_resource path="res://ui/texture/tab_arrow_left.tres" type="Texture" id=11]
+[ext_resource path="res://ui/texture/tab_arrow_right.tres" type="Texture" id=12]
+[ext_resource path="res://ui/tab_dot.tscn" type="PackedScene" id=13]
+[ext_resource path="res://ui/texture/panel_bg2.tres" type="Texture" id=14]
+[ext_resource path="res://binary/font/Xolonium-Regular.ttf" type="DynamicFontData" id=15]
+[ext_resource path="res://ui/level_item.tscn" type="PackedScene" id=16]
+[ext_resource path="res://ui/texture/bg3.tres" type="Texture" id=17]
+[ext_resource path="res://grid_container.gd" type="Script" id=18]
+[ext_resource path="res://ui/drag_box_item.tscn" type="PackedScene" id=19]
+[ext_resource path="res://ui/hotkey_item.tscn" type="PackedScene" id=20]
+[ext_resource path="res://ui/texture/level_unlock_bg.tres" type="Texture" id=21]
+
+[sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 15 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 70
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=4]
+size = 80
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=5]
+size = 160
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=1]
+size = 60
+font_data = ExtResource( 3 )
+
+[node name="Home" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -3.0
+margin_top = -3.0
+margin_right = -3.0
+margin_bottom = -3.0
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+level_grid_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/GridContainer")
+level_info_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/Label")
+chara_grid_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/Control/GridContainer")
+chara_info_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Label")
+item_grid_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items/Control/GridContainer")
+item_info_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer/Label")
+lottory_item_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery/Control/CenterContainer/IconBG/Icon")
+lottory_info_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery/LevelInfo/VBoxContainer/Label")
+chara_hotkey_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer")
+item_hotkey_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer")
+drag_icon_path = NodePath("NinePatchRect/DragIcon/Icon")
+drag_icon_bg_path = NodePath("NinePatchRect/DragIcon")
+level_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Level/Label")
+chara_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Character/Label")
+item_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Item/Label")
+lottery_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Lottery/Label")
+level_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels")
+chara_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters")
+item_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items")
+lottery_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery")
+lottery_price_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn/Label")
+level_item_res = ExtResource( 16 )
+drop_item_res = ExtResource( 19 )
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 220.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_min_size = Vector2( 1800, 900 )
+texture = ExtResource( 2 )
+patch_margin_left = 34
+patch_margin_top = 33
+patch_margin_right = 30
+patch_margin_bottom = 33
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 20.0
+margin_bottom = -20.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Status" parent="NinePatchRect/VBoxContainer" instance=ExtResource( 9 )]
+anchor_left = 0.0
+anchor_right = 0.0
+margin_left = 0.0
+margin_top = 0.0
+margin_right = 2364.0
+rect_min_size = Vector2( 0, 120 )
+
+[node name="MidContent" type="Control" parent="NinePatchRect/VBoxContainer"]
+margin_top = 124.0
+margin_right = 2364.0
+margin_bottom = 958.0
+size_flags_vertical = 3
+
+[node name="Levels" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 50.0
+margin_right = -50.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LevelGrid" type="Control" parent="NinePatchRect/VBoxContainer/MidContent/Levels"]
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 1600, 0 )
+
+[node name="GridContainer" type="GridContainer" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 100.0
+margin_right = -100.0
+margin_bottom = -50.0
+custom_constants/vseparation = 60
+custom_constants/hseparation = 50
+columns = 6
+script = ExtResource( 18 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Left" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+margin_left = -21.0
+margin_top = 370.0
+margin_right = 51.0
+margin_bottom = 484.0
+texture = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Right" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+margin_left = 1535.0
+margin_top = 370.0
+margin_right = 1608.0
+margin_bottom = 486.0
+texture = ExtResource( 12 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Dots" type="CenterContainer" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+margin_left = 622.0
+margin_top = 767.0
+margin_right = 1122.0
+margin_bottom = 807.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Dots"]
+margin_left = 230.0
+margin_right = 270.0
+margin_bottom = 40.0
+
+[node name="TabDot" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Dots/HBoxContainer" instance=ExtResource( 13 )]
+size_flags_horizontal = 0
+size_flags_vertical = 6
+
+[node name="LevelInfo" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels"]
+margin_left = 1604.0
+margin_right = 2264.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+texture = ExtResource( 14 )
+patch_margin_left = 43
+patch_margin_top = 44
+patch_margin_right = 41
+patch_margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 40.0
+margin_top = 40.0
+margin_right = -40.0
+margin_bottom = -40.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer"]
+margin_right = 580.0
+margin_bottom = 624.0
+size_flags_vertical = 7
+custom_fonts/font = SubResource( 2 )
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Start" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer"]
+margin_left = 90.0
+margin_top = 634.0
+margin_right = 490.0
+margin_bottom = 754.0
+rect_min_size = Vector2( 400, 120 )
+size_flags_horizontal = 6
+texture = ExtResource( 17 )
+expand = true
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/Start"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.576471, 0.823529, 0.945098, 1 )
+custom_colors/font_color_shadow = Color( 0.00784314, 0.027451, 0.109804, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 9
+custom_fonts/font = SubResource( 3 )
+text = "START"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Characters" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 70.0
+margin_right = -50.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Characters"]
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 1600, 0 )
+
+[node name="GridContainer" type="GridContainer" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control"]
+margin_right = 1600.0
+margin_bottom = 580.0
+size_flags_vertical = 3
+custom_constants/vseparation = 10
+custom_constants/hseparation = 10
+columns = 7
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control"]
+margin_top = 584.0
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 0, 250 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ItemItem" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 63.0
+margin_top = 30.0
+margin_right = 253.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem2" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 383.0
+margin_top = 30.0
+margin_right = 573.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem3" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 704.0
+margin_top = 30.0
+margin_right = 894.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem4" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 1025.0
+margin_top = 30.0
+margin_right = 1215.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem5" parent="NinePatchRect/VBoxContainer/MidContent/Characters/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 1346.0
+margin_top = 30.0
+margin_right = 1536.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="LevelInfo" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/Characters"]
+margin_left = 1604.0
+margin_right = 2244.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+texture = ExtResource( 14 )
+patch_margin_left = 43
+patch_margin_top = 44
+patch_margin_right = 41
+patch_margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 40.0
+margin_top = 40.0
+margin_right = -40.0
+margin_bottom = -40.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer"]
+margin_right = 560.0
+margin_bottom = 624.0
+size_flags_vertical = 7
+custom_fonts/font = SubResource( 2 )
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Upgrade" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer"]
+margin_left = 80.0
+margin_top = 634.0
+margin_right = 480.0
+margin_bottom = 754.0
+rect_min_size = Vector2( 400, 120 )
+size_flags_horizontal = 6
+texture = ExtResource( 17 )
+expand = true
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Upgrade"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.576471, 0.823529, 0.945098, 1 )
+custom_colors/font_color_shadow = Color( 0.00784314, 0.027451, 0.109804, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 9
+custom_fonts/font = SubResource( 3 )
+text = "UPGRADE"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Items" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 70.0
+margin_right = -50.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Items"]
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 1600, 0 )
+
+[node name="GridContainer" type="GridContainer" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control"]
+margin_right = 1600.0
+margin_bottom = 580.0
+size_flags_vertical = 3
+custom_constants/vseparation = 10
+custom_constants/hseparation = 10
+columns = 7
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control"]
+margin_top = 584.0
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 0, 250 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ItemItem" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 63.0
+margin_top = 30.0
+margin_right = 253.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem2" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 383.0
+margin_top = 30.0
+margin_right = 573.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem3" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 704.0
+margin_top = 30.0
+margin_right = 894.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem4" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 1025.0
+margin_top = 30.0
+margin_right = 1215.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="ItemItem5" parent="NinePatchRect/VBoxContainer/MidContent/Items/Control/HBoxContainer" instance=ExtResource( 20 )]
+margin_left = 1346.0
+margin_top = 30.0
+margin_right = 1536.0
+margin_bottom = 220.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+
+[node name="LevelInfo" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/Items"]
+margin_left = 1604.0
+margin_right = 2244.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+texture = ExtResource( 14 )
+patch_margin_left = 43
+patch_margin_top = 44
+patch_margin_right = 41
+patch_margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 40.0
+margin_top = 40.0
+margin_right = -40.0
+margin_bottom = -40.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer"]
+margin_right = 560.0
+margin_bottom = 624.0
+size_flags_vertical = 7
+custom_fonts/font = SubResource( 2 )
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Buy" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer"]
+margin_left = 80.0
+margin_top = 634.0
+margin_right = 480.0
+margin_bottom = 754.0
+rect_min_size = Vector2( 400, 120 )
+size_flags_horizontal = 6
+texture = ExtResource( 17 )
+expand = true
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer/Buy"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.576471, 0.823529, 0.945098, 1 )
+custom_colors/font_color_shadow = Color( 0.00784314, 0.027451, 0.109804, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 9
+custom_fonts/font = SubResource( 3 )
+text = "BUY"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Lottery" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 70.0
+margin_right = -50.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Lottery"]
+margin_right = 1600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 1600, 0 )
+
+[node name="TryBtn" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control"]
+margin_top = 167.0
+margin_right = 500.0
+margin_bottom = 667.0
+rect_min_size = Vector2( 500, 500 )
+mouse_filter = 0
+size_flags_horizontal = 0
+size_flags_vertical = 6
+texture = ExtResource( 4 )
+patch_margin_left = 17
+patch_margin_top = 18
+patch_margin_right = 19
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 200.0
+custom_colors/font_color = Color( 0.67451, 0.823529, 0.968627, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 10
+custom_constants/shadow_offset_y = 10
+custom_fonts/font = SubResource( 4 )
+text = "60 Gold"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -50.0
+custom_colors/font_color = Color( 0.67451, 0.823529, 0.968627, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 10
+custom_constants/shadow_offset_y = 10
+custom_fonts/font = SubResource( 5 )
+text = "TRY"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CenterContainer" type="CenterContainer" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control"]
+margin_left = 504.0
+margin_right = 1600.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+
+[node name="IconBG" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/CenterContainer"]
+margin_left = 248.0
+margin_top = 117.0
+margin_right = 848.0
+margin_bottom = 717.0
+rect_min_size = Vector2( 600, 600 )
+texture = ExtResource( 21 )
+expand = true
+
+[node name="Icon" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/CenterContainer/IconBG"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 100.0
+margin_top = 100.0
+margin_right = -100.0
+margin_bottom = -100.0
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LevelInfo" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/Lottery"]
+margin_left = 1604.0
+margin_right = 2244.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+texture = ExtResource( 14 )
+patch_margin_left = 43
+patch_margin_top = 44
+patch_margin_right = 41
+patch_margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/LevelInfo"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 40.0
+margin_top = 40.0
+margin_right = -40.0
+margin_bottom = -40.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Lottery/LevelInfo/VBoxContainer"]
+margin_right = 560.0
+margin_bottom = 754.0
+size_flags_vertical = 7
+custom_fonts/font = SubResource( 2 )
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Buttons" type="HBoxContainer" parent="NinePatchRect/VBoxContainer"]
+margin_top = 962.0
+margin_right = 2364.0
+margin_bottom = 1142.0
+rect_min_size = Vector2( 0, 180 )
+
+[node name="Control" type="Control" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_right = 50.0
+margin_bottom = 180.0
+rect_min_size = Vector2( 50, 0 )
+
+[node name="Level" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 78.0
+margin_top = 25.0
+margin_right = 478.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 400, 130 )
+mouse_filter = 0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 6 )
+patch_margin_left = 15
+patch_margin_top = 17
+patch_margin_right = 15
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Level"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 1, 0.419608, 0.419608, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 7
+custom_fonts/font = SubResource( 1 )
+text = "LEVELS"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Character" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 530.0
+margin_top = 25.0
+margin_right = 930.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 400, 130 )
+mouse_filter = 0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 5 )
+patch_margin_left = 15
+patch_margin_top = 17
+patch_margin_right = 15
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Character"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.807843, 0.807843, 0.807843, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 7
+custom_fonts/font = SubResource( 1 )
+text = "CHARACTER"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 982.0
+margin_top = 25.0
+margin_right = 1382.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 400, 130 )
+mouse_filter = 0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 4 )
+patch_margin_left = 15
+patch_margin_top = 17
+patch_margin_right = 15
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Item"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.807843, 0.807843, 0.807843, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 7
+custom_fonts/font = SubResource( 1 )
+text = "ITEM"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Lottery" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 1434.0
+margin_top = 25.0
+margin_right = 1834.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 400, 130 )
+mouse_filter = 0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 1 )
+patch_margin_left = 15
+patch_margin_top = 17
+patch_margin_right = 15
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Lottery"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.807843, 0.807843, 0.807843, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 7
+custom_fonts/font = SubResource( 1 )
+text = "LOTTERY"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Rank" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 1886.0
+margin_top = 25.0
+margin_right = 2286.0
+margin_bottom = 155.0
+rect_min_size = Vector2( 400, 130 )
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 8 )
+patch_margin_left = 15
+patch_margin_top = 17
+patch_margin_right = 15
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Rank"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color = Color( 0.486275, 0.486275, 0.486275, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 7
+custom_constants/shadow_offset_y = 7
+custom_fonts/font = SubResource( 1 )
+text = "RANK"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control2" type="Control" parent="NinePatchRect/VBoxContainer/Buttons"]
+margin_left = 2314.0
+margin_right = 2364.0
+margin_bottom = 180.0
+rect_min_size = Vector2( 50, 0 )
+
+[node name="DragIcon" type="TextureRect" parent="NinePatchRect"]
+visible = false
+margin_right = 193.0
+margin_bottom = 190.0
+rect_min_size = Vector2( 190, 190 )
+texture = ExtResource( 21 )
+
+[node name="Icon" type="TextureRect" parent="NinePatchRect/DragIcon"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 30.0
+margin_top = 30.0
+margin_right = -30.0
+margin_bottom = -30.0
+texture = ExtResource( 10 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/Start" to="." method="_on_Start_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Upgrade" to="." method="_on_Upgrade_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer/Buy" to="." method="_on_Buy_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn" to="." method="_on_TryBtn_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Level" to="." method="_on_Level_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Character" to="." method="_on_Character_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Item" to="." method="_on_Item_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Lottery" to="." method="_on_Lottery_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Rank" to="." method="_on_Rank_gui_input"]

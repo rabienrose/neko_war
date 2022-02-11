@@ -26,29 +26,29 @@ func show_summary(star_num, b_show, gold):
                 get_node(star1e_path).visible=true
                 get_node(star2_path).visible=false
                 get_node(star2e_path).visible=true
-                get_node(star2_path).visible=false
-                get_node(star2e_path).visible=true
+                get_node(star3_path).visible=false
+                get_node(star3e_path).visible=true
             elif star_num==1:
                 get_node(star1_path).visible=true
                 get_node(star1e_path).visible=false
                 get_node(star2_path).visible=false
                 get_node(star2e_path).visible=true
-                get_node(star2_path).visible=false
-                get_node(star2e_path).visible=true
+                get_node(star3_path).visible=false
+                get_node(star3e_path).visible=true
             elif star_num==2:
                 get_node(star1_path).visible=true
                 get_node(star1e_path).visible=false
                 get_node(star2_path).visible=true
                 get_node(star2e_path).visible=false
-                get_node(star2_path).visible=false
-                get_node(star2e_path).visible=true
+                get_node(star3_path).visible=false
+                get_node(star3e_path).visible=true
             elif star_num==3:
                 get_node(star1_path).visible=true
                 get_node(star1e_path).visible=false
                 get_node(star2_path).visible=true
                 get_node(star2e_path).visible=false
-                get_node(star2_path).visible=true
-                get_node(star2e_path).visible=false
+                get_node(star3_path).visible=true
+                get_node(star3e_path).visible=false
         else:
             get_node(star_path).visible=false
             get_node(ske_head_path).visible=true
@@ -59,4 +59,4 @@ func show_summary(star_num, b_show, gold):
 func _on_Replay_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            print("aaaaa")
+            pass

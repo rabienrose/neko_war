@@ -1,8 +1,11 @@
 {
     "paohui":
     {
-        "name":"炮灰",
+        "name":"paohui",
         "type":"chara",
+        "chance":1000,
+        "desc":"La la la la la.",
+        "max_lv":2,
         "attrs":{
             "1":{
                 "hp":100,
@@ -10,25 +13,38 @@
                 "mov_spd":3,
                 "atk_spd":1,
                 "atk_num":1,
+                "range":100,
+                "bullet":"",
+                "atk_buf":["stun"],
+                "only_atk_building":false,
+                "global_buf":[],
                 "cost":20,
                 "gen_time":2,
-                "gold":20
+                "gold":20,
+                "price":10
             },
             "2":{
                 "hp":120,
-                "atk":10,
+                "atk":15,
                 "mov_spd":3,
-                "atk_spd":2,
+                "atk_spd":1,
                 "atk_num":1,
+                "range":100,
+                "bullet":"",
+                "atk_buf":["stun"],
+                "only_atk_building":false,
+                "global_buf":[],
                 "cost":20,
                 "gen_time":2,
-                "gold":20
+                "gold":20,
+                "price":10
             }
         },
         "appearance":{
             "file_name":"paohui",
             "y_offset":-70,
-            "atk_frame":6
+            "atk_frame":6,
+            "atk_fx":"hit"
         }
     },
     "base1":

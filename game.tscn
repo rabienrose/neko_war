@@ -134,7 +134,15 @@ position = Vector2( 3592, 695 )
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="CharaGen" parent="CanvasLayer" instance=ExtResource( 18 )]
+margin_left = -1040.0
 margin_top = -260.0
+margin_right = -40.0
+margin_bottom = -60.0
+
+[node name="Items" parent="CanvasLayer" instance=ExtResource( 18 )]
+margin_left = 68.0
+margin_top = -260.0
+margin_right = 1068.0
 margin_bottom = -60.0
 
 [node name="Status" parent="CanvasLayer" instance=ExtResource( 19 )]

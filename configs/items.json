@@ -1,0 +1,10 @@
+{
+    "hp_recover":{
+        "name":"hp_recover",
+        "price":10,
+        "chance":1000,
+        "max_per_battle":1000,
+        "delay":1,
+        "desc":"Recover all characters 10 hp."
+    }
+}

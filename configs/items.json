@@ -2,9 +2,36 @@
     "hp_recover":{
         "name":"hp_recover",
         "price":10,
-        "chance":1000,
-        "max_per_battle":1000,
+        "chance":0.1,
         "delay":1,
+        "target":{
+            "group":["self"],
+            "amount":1,
+            "sel_type":["min"]
+        },
+        "info":{
+            "types":["instance","attr"],
+            "attr":"hp",
+            "val":10
+        },
+        "desc":"Recover all characters 10 hp."
+    },
+    "add_atk":{
+        "name":"add_atk",
+        "price":10,
+        "chance":0.1,
+        "delay":1,
+        "target":{
+            "group":["self"],
+            "amount":-1
+        },
+        "info":{
+            "types":["buf","attr"],
+            "last":3,
+            "attr":"atk",
+            "val":10,
+            "max_level":1
+        },
         "desc":"Recover all characters 10 hp."
     }
 }

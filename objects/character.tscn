@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://objects/character.gd" type="Script" id=1]
 [ext_resource path="res://ui/fct_mgr.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://binary/images/ui/barHorizontal_green.png" type="Texture" id=4]
 [ext_resource path="res://binary/images/ui/barHorizontal_yellow.png" type="Texture" id=5]
 [ext_resource path="res://binary/images/ui/barHorizontal_red.png" type="Texture" id=6]
+[ext_resource path="res://binary/images/ui/barHorizontal_frame_narrow.png" type="Texture" id=7]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -85,11 +86,11 @@ bar_yellow = ExtResource( 5 )
 material = SubResource( 5 )
 
 [node name="ProgressBar" type="TextureProgress" parent="."]
-visible = false
 margin_left = -30.0
-margin_top = -200.0
-margin_right = 30.0
-margin_bottom = -190.0
+margin_top = 6.0
+margin_bottom = 14.0
+value = 50.0
+texture_over = ExtResource( 7 )
 texture_progress = ExtResource( 4 )
 nine_patch_stretch = true
 __meta__ = {

@@ -44,11 +44,11 @@
         "star1_time":60,
         "star2_time":30,
         "star3_time":10,
-        "spawn_delay_min":0,
-        "spawn_delay_max":1,
+        "spawn_delay_min":1,
+        "spawn_delay_max":5,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":0.1},
-            {"name":"paohui","lv":2,"chance":0.9}
+            {"name":"paohui","lv":1,"chance":0.9},
+            {"name":"paohui","lv":2,"chance":0.1}
         ],
         "boss":[
             {"name":"paohui","lv":1,"time":30},

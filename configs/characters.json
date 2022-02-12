@@ -14,7 +14,7 @@
         "drop_gold":20,
         "attrs":{
             "1":{
-                "hp":100,
+                "hp":200,
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":1,
@@ -23,7 +23,7 @@
                 "upgrade_cost":10
             },
             "2":{
-                "hp":120,
+                "hp":220,
                 "atk":20,
                 "mov_spd":3,
                 "atk_spd":1,

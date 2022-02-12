@@ -215,6 +215,12 @@ func update_timer_ui():
     var str_time=m+" : "+s
     get_node(timer_label_path).text=str_time
 
+func use_item_cb(info):
+    pass
+
+func build_chara_cb(info):
+    pass
+
 func _physics_process(delta):
     timer_update_delay=timer_update_delay-delta
     if timer_update_delay<0:

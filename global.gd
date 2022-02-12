@@ -106,7 +106,7 @@ func get_upgrade_price(chara_name, cur_lv):
     var next_lv=cur_lv+1
     if next_lv>chara_tb[chara_name]["max_lv"]:
         return -1
-    return Global.chara_tb[chara_name]["attrs"][str(next_lv)]["price"]
+    return Global.chara_tb[chara_name]["attrs"][str(next_lv)]["upgrade_cost"]
 
 func expend_user_money(val):
     if user_data["gold"]-val<0:

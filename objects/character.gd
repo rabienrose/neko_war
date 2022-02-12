@@ -1,5 +1,11 @@
 extends Node2D
 class_name Character
+
+class Buf:
+    var countdown
+    var time_remain
+    var is_time_limit
+
 #path
 export (NodePath) var sprite_anim_path
 export (NodePath) var hp_bar_path
@@ -40,6 +46,8 @@ var init_atk=true
 var atk_targets=[]
 var check_atk_countdown=0
 
+var bufs=[]
+
 var mov_dir=1
 var cur_anim
 
@@ -51,6 +59,7 @@ func _ready():
     anim_sprite=get_node(sprite_anim_path)
     hp_bar=get_node(hp_bar_path)
     fct_mgr=get_node(fct_mgr_path)
+    hp_bar.rect_position.y=hp_bar.rect_position.y+rand_range(0,190)
 
 func on_create(_game):
     game=_game
@@ -73,7 +82,11 @@ func attack():
         if is_instance_valid(chara)==false:
             continue
         if chara.dead==false:
-            chara.change_hp(-atk,self)
+            var temp_atk=atk
+            for buf in bufs:
+                if buf["type"]=="attr": 
+                    temp_atk=temp_atk+buf["val"]
+            chara.change_hp(-temp_atk,self)
 
 func get_enemy_team_id():
     if team_id==0:
@@ -143,7 +156,17 @@ func play_atk():
     var fps=frame_num/atk_period
     anim_sprite.frames.set_animation_speed("atk", fps)
 
+func reduce_buf_count(buf):
+    buf["countdown"]=buf["countdown"]-1
+    if buf["countdown"]<=0:
+        bufs.erase(buf)
+
 func _physics_process(delta):
+    for buf in bufs:
+        if buf["is_time_limit"]==true:
+            buf["time_remain"]=buf["time_remain"]-delta
+            if buf["time_remain"]<=0:
+                bufs.erase(buf)
     if anim_sprite.animation=="mov":
         position.x = position.x + mov_dir*delta*mov_spd*mov_spd_coef
         if team_id==1 and position.x<game.scene_min or team_id==0 and position.x>game.scene_max:

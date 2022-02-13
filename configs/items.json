@@ -7,11 +7,11 @@
         "target":{
             "group":["self"],
             "amount":1,
-            "sel_type":["min"]
+            "sel_type":"min_hp"
         },
         "info":{
-            "types":["instance","attr"],
-            "attr":"hp",
+            "type_duration":"instance",
+            "type":"hp",
             "val":10
         },
         "desc":"Recover all characters 10 hp."

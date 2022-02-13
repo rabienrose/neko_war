@@ -1,9 +1,6 @@
 extends Node
 
 signal money_change(val)
-signal request_spawn_chara(chara_info)
-signal request_use_item(item_info)
-signal expend_gold(val)
 signal request_battle(lv)
 signal request_go_home
 signal show_level_info(lv)

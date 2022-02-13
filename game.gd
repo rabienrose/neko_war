@@ -47,9 +47,6 @@ func _ready():
     spawn_building("base1", 0)
     spawn_building("base2", 1)
     Global.emit_signal("money_change",100)
-    Global.connect("request_use_item", self, "on_request_use_item")
-    Global.connect("request_spawn_chara", self, "on_request_spawn_chara")
-    Global.connect("expend_gold", self, "expend_gold")
     level_data=Global.get_level_info(Global.sel_level)
     var cancel_cb = funcref(self, "cancel_cb")
     var go_home_cb = funcref(self, "go_home_cb")
@@ -58,28 +55,6 @@ func _ready():
     update_hotkey_ui()
     update_timer_ui()
     get_node(lv_name_label_path).text="Lv: "+str(level_data["lv"])
-
-func update_hotkey_ui():
-    for i in range(len(Global.user_data["equip"]["chara"])):
-        var chara_name=Global.user_data["equip"]["chara"][i]
-        if chara_name=="":
-            continue
-        var my_chara_info = Global.get_my_chara_info(chara_name)
-        var lv=my_chara_info["lv"]
-        var build_cost=Global.chara_tb[chara_name]["build_cost"]
-        var build_time=Global.chara_tb[chara_name]["build_time"]
-        var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
-        var icon_texture=load(icon_file_path)
-        chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, true)
-    for i in range(len(Global.user_data["equip"]["item"])):
-        var item_name=Global.user_data["equip"]["item"][i]
-        if item_name=="":
-            continue
-        var my_item_info = Global.get_my_item_info(item_name)
-        var num=my_item_info["num"]
-        var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
-        var icon_texture=load(icon_file_path)
-        item_use_ui.get_child(i).on_create(icon_texture, 1, num, {"name":item_name},false)
 
 func cancel_cb():
     get_tree().paused = false
@@ -163,10 +138,32 @@ func init_object(res, spawn_pos, chara_name, lv, team_id, b_chara):
     res.set_team(team_id)
     res.set_x_pos(spawn_pos.position.x)
 
-func on_request_use_item(item_info):
-    if item_info["name"]=="hp_recover":
-        for chara in team_charas[0]:
-            chara.change_hp(30,null)
+func request_use_item(item_name):
+    if item_name=="done_at_once":
+        for item in chara_gen_ui.get_items():
+            item.set_done()
+    var item_dat=Global.items_tb[item_name]
+    var targets=[]
+    if "self" in item_dat["target"]["group"]:
+        targets = team_charas[0]
+    if "enemy" in item_dat["target"]["group"]:
+        targets = targets+team_charas[1]
+    if item_dat["target"]["amount"]!=-1:
+        var new_targets=[]
+        if item_dat["target"]["sel_type"]=="min_hp":
+            pass
+        elif item_dat["target"]["sel_type"]=="rand":
+            pass
+        targets=new_targets
+    if "instance" in item_dat["info"]["types"]:
+        if "attr" in item_dat["info"]["types"]:
+            if item_dat["attr"]=="hp":
+                for chara in targets:
+                    chara.change_hp(item_dat["info"]["val"],null)
+            else:
+                pass
+    elif "buf" in item_dat["info"]["types"]:
+        pass
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)
@@ -215,11 +212,50 @@ func update_timer_ui():
     var str_time=m+" : "+s
     get_node(timer_label_path).text=str_time
 
-func use_item_cb(info):
-    pass
+func use_item_cb(item):
+    request_use_item(item.custom_info["name"])
+    item.set_val(item.custom_val-1)
+    var my_item_info = Global.get_my_item_info(item.custom_info["name"])
+    my_item_info["num"]=item.custom_val
+    Global.save_user_data()
 
-func build_chara_cb(info):
-    pass
+func start_chara_cb(item):
+    return expend_gold(item.custom_val)
+
+func end_chara_cb(item):
+    on_request_spawn_chara(item.custom_info)
+
+func on_money_change(val):
+    for c in chara_gen_ui.get_items():
+        if c.has_item==false:
+            continue
+        c.set_mask(c.custom_val>val)
+
+func update_hotkey_ui():
+    for i in range(len(Global.user_data["equip"]["chara"])):
+        var chara_name=Global.user_data["equip"]["chara"][i]
+        if chara_name=="":
+            continue
+        var my_chara_info = Global.get_my_chara_info(chara_name)
+        var lv=my_chara_info["lv"]
+        var build_cost=Global.chara_tb[chara_name]["build_cost"]
+        var build_time=Global.chara_tb[chara_name]["build_time"]
+        var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
+        var icon_texture=load(icon_file_path)
+        var click_cb = funcref(self, "start_chara_cb")
+        var delay_cb = funcref(self, "end_chara_cb")
+        chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb, delay_cb)
+    for i in range(len(Global.user_data["equip"]["item"])):
+        var item_name=Global.user_data["equip"]["item"][i]
+        if item_name=="":
+            continue
+        var my_item_info = Global.get_my_item_info(item_name)
+        var item_db=Global.items_tb[item_name]
+        var num=my_item_info["num"]
+        var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
+        var icon_texture=load(icon_file_path)
+        var click_cb = funcref(self, "use_item_cb")
+        item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,null)
 
 func _physics_process(delta):
     timer_update_delay=timer_update_delay-delta

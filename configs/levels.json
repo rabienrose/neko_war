@@ -6,7 +6,7 @@
         "star3_time":10,
         "star2_time":50,
         "star1_time":60,
-        "spawn_delay_min":9,
+        "spawn_delay_min":20,
         "spawn_delay_max":20,
         "rand_pool":[
             {"name":"paohui","lv":1,"chance":0.8},

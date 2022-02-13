@@ -2,9 +2,14 @@ extends Node2D
 class_name Character
 
 class Buf:
-    var countdown
-    var time_remain
-    var is_time_limit
+    var countdown=-1
+    var time_remain=1
+    var is_time_limit=true
+    var name=""
+    var data={}
+    var max_layer=100
+    var type=""
+
 
 #path
 export (NodePath) var sprite_anim_path
@@ -37,6 +42,9 @@ var team_id=0
 var dead=false
 var gold=20
 
+#static status
+var type=""
+
 #constant
 var ground_y=771
 var mov_spd_coef=100
@@ -46,7 +54,7 @@ var init_atk=true
 var atk_targets=[]
 var check_atk_countdown=0
 
-var bufs=[]
+var bufs={}
 
 var mov_dir=1
 var cur_anim
@@ -73,8 +81,16 @@ func set_attr_data(data):
     gold = data["drop_gold"]
     atk_num = data["atk_num"]
     hp_bar.max_value=max_hp
-    hp_bar.value=atk
+    hp_bar.value=max_hp
+    type="chara"
     update_chara_panel()
+
+func add_buf(buf):
+    if buf.name in bufs:
+        if len(bufs[buf.name])<buf.max_layer:
+            bufs[buf.name].append(buf)
+    else:
+        bufs[buf.name]=[buf]
 
 func attack():
     init_atk=false
@@ -83,9 +99,11 @@ func attack():
             continue
         if chara.dead==false:
             var temp_atk=atk
-            for buf in bufs:
-                if buf["type"]=="attr": 
-                    temp_atk=temp_atk+buf["val"]
+            for buf_name in bufs:
+                for buf in bufs[buf_name]:
+                    if buf.type=="attr" and buf.data["attr"]=="atk":
+                        if buf.data["op"]=="add":
+                            temp_atk=temp_atk+buf.data["val"]
             chara.change_hp(-temp_atk,self)
 
 func get_enemy_team_id():
@@ -159,14 +177,22 @@ func play_atk():
 func reduce_buf_count(buf):
     buf["countdown"]=buf["countdown"]-1
     if buf["countdown"]<=0:
-        bufs.erase(buf)
+        bufs[buf.name].erase(buf)
+        if len(bufs[buf.name])==0:
+            bufs.erase(buf.name)
 
 func _physics_process(delta):
-    for buf in bufs:
-        if buf["is_time_limit"]==true:
-            buf["time_remain"]=buf["time_remain"]-delta
-            if buf["time_remain"]<=0:
-                bufs.erase(buf)
+    for buf_name in bufs:
+        if bufs[buf_name][0]["is_time_limit"]==true:
+            for buf in bufs[buf_name]:
+                buf.time_remain=buf.time_remain-delta
+                if buf.time_remain<=0:
+                    bufs[buf_name].erase(buf)
+                    if len(bufs[buf_name])==0:
+                        bufs.erase(buf_name)
+    # if team_id==0 and type=="chara":
+    #     if "add_atk" in bufs:
+    #         print(bufs["add_atk"][0].time_remain)
     if anim_sprite.animation=="mov":
         position.x = position.x + mov_dir*delta*mov_spd*mov_spd_coef
         if team_id==1 and position.x<game.scene_min or team_id==0 and position.x>game.scene_max:

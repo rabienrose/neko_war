@@ -28,7 +28,7 @@ func _ready():
 
 func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb, _delay_cb):
     delay_time=_delay_time
-    custom_val=val
+    set_val(val)
     has_item=true
     cost_label_node.text=str(custom_val)
     icon_node.texture=icon_tex

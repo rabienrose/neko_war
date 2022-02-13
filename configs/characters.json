@@ -7,14 +7,14 @@
         "desc":"La la la la la.",
         "max_lv":2,
         "build_cost":20,
-        "build_time":2,
+        "build_time":0.2,
         "only_atk_building":false,
         "bullet":"",
         "atk_buf":["stun"],
         "drop_gold":20,
         "attrs":{
             "1":{
-                "hp":200,
+                "hp":2000,
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":1,
@@ -23,7 +23,7 @@
                 "upgrade_cost":10
             },
             "2":{
-                "hp":220,
+                "hp":2200,
                 "atk":20,
                 "mov_spd":3,
                 "atk_spd":1,
@@ -41,15 +41,11 @@
     },
     "base1":
     {
-        "name":"基地1",
-        "type":"base",
+        "name":"base1",
+        "type":"building",
         "attrs":{
             "1":{
-                "hp":100,
-                "atk":10,
-                "mov_spd":3,
-                "atk_spd":2,
-                "atk_num":1
+                "hp":100
             }
         },
         "appearance":{
@@ -60,15 +56,11 @@
     },
     "base2":
     {
-        "name":"基地2",
-        "type":"base",
+        "name":"base2",
+        "type":"building",
         "attrs":{
             "1":{
-                "hp":100,
-                "atk":10,
-                "mov_spd":3,
-                "atk_spd":2,
-                "atk_num":1
+                "hp":100
             }
         },
         "appearance":{

@@ -104,39 +104,36 @@ func spawn_building(build_name, team_id):
     var temp_pos_node=get_node(base1_path)
     if team_id==1:
         temp_pos_node=get_node(base2_path)
-    init_object(new_build, temp_pos_node, build_name, 1, team_id, false)
+    init_object(new_build, temp_pos_node, build_name, 1, team_id)
 
 func spawn_chara(chara_name, lv, team_id):
     var new_char = char_res.instance()
     char_root.add_child(new_char)
     var spawn_pos = spawn_nodes[team_id]
-    init_object(new_char, spawn_pos, chara_name, lv, team_id, true)
+    init_object(new_char, spawn_pos, chara_name, lv, team_id)
     new_char.play_anim("mov")
 
-func init_object(res, spawn_pos, chara_name, lv, team_id, b_chara):
+func init_object(res, spawn_pos, chara_name, lv, team_id):
     res.on_create(self)
     team_charas[team_id].append(res)
     var chara_dat = Global.chara_tb[chara_name]
     var create_info={}
     lv=str(lv)
     create_info["hp"]=chara_dat["attrs"][lv]["hp"]
-    if b_chara:
+    if chara_dat["type"]=="chara":
         create_info["atk"]=chara_dat["attrs"][lv]["atk"]
         create_info["mov_spd"]=chara_dat["attrs"][lv]["mov_spd"]
         create_info["atk_spd"]=chara_dat["attrs"][lv]["atk_spd"]
         create_info["drop_gold"]=chara_dat["drop_gold"]
         create_info["atk_num"]=chara_dat["attrs"][lv]["atk_num"]
-    else:
-        create_info["atk"]=0
-        create_info["mov_spd"]=0
-        create_info["atk_spd"]=0
-        create_info["drop_gold"]=0
-        create_info["atk_num"]=0
     res.set_attr_data(create_info)
     var anim_data=Global.get_char_anim(chara_name)
     res.set_anim(anim_data, Global.get_char_anim_info(chara_name))
     res.set_team(team_id)
     res.set_x_pos(spawn_pos.position.x)
+
+func customComparison(a, b):
+    return a.hp/a.max_hp > b.hp/b.max_hp
 
 func request_use_item(item_name):
     if item_name=="done_at_once":
@@ -144,26 +141,42 @@ func request_use_item(item_name):
             item.set_done()
     var item_dat=Global.items_tb[item_name]
     var targets=[]
-    if "self" in item_dat["target"]["group"]:
-        targets = team_charas[0]
-    if "enemy" in item_dat["target"]["group"]:
-        targets = targets+team_charas[1]
+    if item_dat["target"]["group"]=="self_chara":
+        for c in team_charas[0]:
+            if c["type"] == "chara":
+                targets.append(c)
+    if item_dat["target"]["group"]=="enemy_chara":
+        for c in team_charas[1]:
+            if c["type"] == "chara":
+                targets.append(c)
     if item_dat["target"]["amount"]!=-1:
         var new_targets=[]
         if item_dat["target"]["sel_type"]=="min_hp":
-            pass
+            targets.sort_custom(self, "customComparison")
+            for c in targets:
+                if len(new_targets)>item_dat["target"]["amount"]:
+                    break
+                new_targets.append(c)
+                print(c.hp)
         elif item_dat["target"]["sel_type"]=="rand":
             pass
         targets=new_targets
-    if "instance" in item_dat["info"]["types"]:
-        if "attr" in item_dat["info"]["types"]:
-            if item_dat["attr"]=="hp":
+    if item_dat["info"]["type_duration"] == "instance":
+        if item_dat["info"]["type"] == "hp":
+            if item_dat["info"]["op"]=="add":
                 for chara in targets:
                     chara.change_hp(item_dat["info"]["val"],null)
-            else:
-                pass
-    elif "buf" in item_dat["info"]["types"]:
-        pass
+    elif item_dat["info"]["type_duration"] == "buf":
+        if item_dat["info"]["type"] == "attr":
+            var buf=Character.Buf.new()
+            buf.name=item_dat["info"]["buf_name"]
+            buf.type=item_dat["info"]["type"]
+            buf.data={"attr":item_dat["info"]["attr"],"val":item_dat["info"]["val"],"op":item_dat["info"]["op"]}
+            buf.is_time_limit=true
+            buf.max_layer=item_dat["info"]["max_layer"]
+            buf.time_remain=item_dat["info"]["duration"]
+            for chara in targets:
+                chara.add_buf(buf)
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)
@@ -214,10 +227,13 @@ func update_timer_ui():
 
 func use_item_cb(item):
     request_use_item(item.custom_info["name"])
+    if item.custom_val-1<0:
+        return false
     item.set_val(item.custom_val-1)
     var my_item_info = Global.get_my_item_info(item.custom_info["name"])
     my_item_info["num"]=item.custom_val
     Global.save_user_data()
+    return true
 
 func start_chara_cb(item):
     return expend_gold(item.custom_val)

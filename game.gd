@@ -153,13 +153,12 @@ func request_use_item(item_name):
         var new_targets=[]
         if item_dat["target"]["sel_type"]=="min_hp":
             targets.sort_custom(self, "customComparison")
-            for c in targets:
-                if len(new_targets)>item_dat["target"]["amount"]:
-                    break
-                new_targets.append(c)
-                print(c.hp)
         elif item_dat["target"]["sel_type"]=="rand":
-            pass
+            targets.shuffle()
+        for c in targets:
+            if len(new_targets)>item_dat["target"]["amount"]:
+                break
+            new_targets.append(c)
         targets=new_targets
     if item_dat["info"]["type_duration"] == "instance":
         if item_dat["info"]["type"] == "hp":

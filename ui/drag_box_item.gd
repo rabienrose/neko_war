@@ -40,5 +40,5 @@ func _on_ItemItem_gui_input(event):
                 set_highlight(true)
     if event is InputEventScreenDrag:
         if drag_cb!=null:
-            drag_cb.call_func(custom_data, event.position)
+            drag_cb.call_func(custom_data, get_global_transform().xform(event.position))
             

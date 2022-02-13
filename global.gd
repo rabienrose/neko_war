@@ -118,6 +118,12 @@ func get_my_chara_info(chara_name):
             return item
     return null
 
+func get_my_charas_dict():
+    var chara_dict={}
+    for item in user_data["characters"]:
+        chara_dict[item["name"]]=item
+    return chara_dict
+
 func get_my_item_info(item_name):
     for item in user_data["items"]:
         if item["name"]==item_name:

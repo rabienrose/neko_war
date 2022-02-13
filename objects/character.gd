@@ -92,18 +92,25 @@ func add_buf(buf):
     else:
         bufs[buf.name]=[buf]
 
+func apply_attr_buf(attr):
+    var temp_val=get(attr)
+    for buf_name in bufs:
+        for buf in bufs[buf_name]:
+            if buf.type=="attr" and buf.data["attr"]==attr:
+                if buf.data["op"]=="add":
+                    temp_val=temp_val+buf.data["val"]
+                elif buf.data["op"]=="mul":
+                    temp_val=temp_val*buf.data["val"]
+    return temp_val
+
+
 func attack():
     init_atk=false
     for chara in atk_targets:
         if is_instance_valid(chara)==false:
             continue
         if chara.dead==false:
-            var temp_atk=atk
-            for buf_name in bufs:
-                for buf in bufs[buf_name]:
-                    if buf.type=="attr" and buf.data["attr"]=="atk":
-                        if buf.data["op"]=="add":
-                            temp_atk=temp_atk+buf.data["val"]
+            var temp_atk=apply_attr_buf("atk")
             chara.change_hp(-temp_atk,self)
 
 func get_enemy_team_id():
@@ -124,7 +131,8 @@ func update_atk_targets():
     atk_targets=[]
     if len(chars_in_range)>0:
         init_atk=true
-        for i in range(atk_num):
+        var temp_atk_num=apply_attr_buf("atk_num")
+        for i in range(temp_atk_num):
             if i<len(chars_in_range):
                 atk_targets.append(chars_in_range[len(chars_in_range)-i-1])
 
@@ -169,7 +177,10 @@ func play_atk():
     anim_sprite.animation="atk"
     anim_sprite.frame=0
     var frame_num = anim_sprite.frames.get_frame_count("atk")
-    var atk_period=1/atk_spd
+    var temp_atk_spd=apply_attr_buf("atk_spd")
+    if temp_atk_spd<0.1:
+        temp_atk_spd=0.1
+    var atk_period=1/temp_atk_spd
     anim_sprite.speed_scale=1
     var fps=frame_num/atk_period
     anim_sprite.frames.set_animation_speed("atk", fps)

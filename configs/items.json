@@ -2,7 +2,7 @@
     "hp_recover":{
         "name":"hp_recover",
         "price":10,
-        "chance":0.1,
+        "chance":0.9,
         "delay":1,
         "target":{
             "group":"self_chara",
@@ -37,5 +37,56 @@
             "val":10
         },
         "desc":"Increase atk 10 points for all characters."
+    },
+    "add_atk_num":{
+        "name":"add_atk_num",
+        "price":10,
+        "chance":0.1,
+        "delay":0.2,
+        "target":{
+            "group":"self_chara",
+            "amount":1,
+            "sel_type":"rand"
+        },
+        "info":{
+            "type_duration":"buf",
+            "buf_name":"add_atk_num",
+            "max_layer":10,
+            "duration":5,
+            "type":"attr",
+            "attr":"atk_num",
+            "op":"mul",
+            "val":2
+        },
+        "desc":"Double attack area for a random character."
+    },
+    "add_atk_spd":{
+        "name":"add_atk_spd",
+        "price":10,
+        "chance":0.1,
+        "delay":0.2,
+        "target":{
+            "group":"self_chara",
+            "amount":-1,
+            "sel_type":"rand"
+        },
+        "info":{
+            "type_duration":"buf",
+            "buf_name":"add_atk_spd",
+            "max_layer":10,
+            "duration":5,
+            "type":"attr",
+            "attr":"atk_spd",
+            "op":"mul",
+            "val":2
+        },
+        "desc":"Increase attack speed for all characters."
+    },
+    "done_at_once":{
+        "name":"done_at_once",
+        "price":10,
+        "chance":0.01,
+        "delay":5,
+        "desc":"Finish all ongoing task."
     }
 }

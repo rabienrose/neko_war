@@ -214,7 +214,7 @@ func drag_chara_icon_cb(chara_name, pos):
         cur_drag_chara=chara_name
         set_icon(drag_icon, false, chara_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_global_position(pos)
+    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
 func set_icon(icon_node, b_item, name):
     var icon_file_path=Global.item_img_file_path+name+"/icon.png"
@@ -228,7 +228,7 @@ func drag_item_icon_cb(item_name, pos):
         cur_drag_item=item_name
         set_icon(drag_icon, true, item_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_global_position(pos)
+    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
 func hide_drag_icon():
     drag_icon_bg.visible=false
@@ -240,7 +240,7 @@ func _input(event):
     if event is InputEventScreenTouch:
         if event.pressed==false:
             for c in chara_hotkey.get_children():
-                var t_pos=Vector2(event.position.x, event.position.y-100)
+                var t_pos=Vector2(event.position.x, event.position.y)
                 if check_in_control(t_pos, c):
                     if cur_drag_chara!="":
                         set_chara_hk_slot(c.get_index(), cur_drag_chara)
@@ -317,8 +317,65 @@ func _on_TryBtn_gui_input(event:InputEvent):
         if event.pressed==true:
             if Global.expend_user_money(Global.lottery_price)==false:
                 return
-            var result_item="hp_recover"
-            set_icon(get_node(lottory_item_path), true, result_item)
+            #draw chara
+            var temp_my_charas=Global.get_my_charas_dict()
+            var remain_charas=[]
+            var result_chara=null
+            for chara_name in Global.chara_tb:
+                var chara=Global.chara_tb[chara_name]
+                if chara_name in temp_my_charas:
+                    continue
+                if chara["type"]!="chara":
+                    continue
+                var t_rand = rand_range(0,1)
+                if t_rand<chara["chance"]:
+                    remain_charas.append(chara)
+            if len(remain_charas)>1:
+                var rand_i = floor(rand_range(0,len(remain_charas)))
+                result_chara=remain_charas[rand_i]
+            elif len(remain_charas)==1:
+                result_chara=remain_charas[0]
+            if result_chara!=null:
+                var my_chara_info = Global.get_my_chara_info(result_chara["name"])
+                if my_chara_info==null:
+                    var chara_info_t={}
+                    chara_info_t["name"]=result_chara["name"]
+                    chara_info_t["lv"]=1
+                    Global.user_data["characters"].append(chara_info_t)
+                    set_icon(get_node(lottory_item_path), false, result_chara["name"])
+                    Global.save_user_data()
+                    update_characters_ui()
+            else:
+                #draw item
+                var result_item=null
+                var remain_items=[]
+                for item_name in Global.items_tb:
+                    var item = Global.items_tb[item_name]
+                    var t_rand = rand_range(0,1)
+                    if t_rand<item["chance"]:
+                        remain_items.append(item)
+                    if len(remain_items)==0:
+                        var temp_items=[]
+                        for item_name_1 in Global.items_tb:
+                            temp_items.append(Global.items_tb[item_name_1])
+                        var rand_i = floor(rand_range(0,len(temp_items)))
+                        result_item=temp_items[rand_i]
+                    elif len(remain_items)>1:
+                        var rand_i = floor(rand_range(0,len(remain_items)))
+                        result_item=remain_items[rand_i]
+                    else:
+                        result_item=remain_items[0]
+                var my_item_info = Global.get_my_item_info(result_item["name"])
+                if my_item_info==null:
+                    var item_info_t={}
+                    item_info_t["name"]=result_item["name"]
+                    item_info_t["num"]=1
+                    Global.user_data["items"].append(item_info_t)
+                else:
+                    my_item_info["num"]=my_item_info["num"]+1
+                set_icon(get_node(lottory_item_path), true, result_item["name"])
+                Global.save_user_data()
+                update_items_ui()
     
 func _on_Level_gui_input(event):
     on_tab_button("level", event)

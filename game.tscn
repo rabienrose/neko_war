@@ -135,8 +135,6 @@ position = Vector2( 3497, 696 )
 position = Vector2( 1848, 678 )
 texture = ExtResource( 10 )
 
-[node name="FxMgr" parent="." instance=ExtResource( 20 )]
-
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource( 8 )
 cell_size = Vector2( 256, 256 )
@@ -145,11 +143,13 @@ tile_data = PoolIntArray( 196608, 1, 0, 196609, 1, 0, 196610, 3, 0, 196611, 1, 0
 
 [node name="Charas" type="Node2D" parent="."]
 
+[node name="FxMgr" parent="." instance=ExtResource( 20 )]
+
 [node name="Team1Spawn" type="Node2D" parent="."]
 position = Vector2( 219, 695 )
 
 [node name="Team2Spawn" type="Node2D" parent="."]
-position = Vector2( 3592, 695 )
+position = Vector2( 1658, 664 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

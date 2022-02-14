@@ -52,7 +52,7 @@ func set_done():
 func _on_CharaUIItem_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed:
-            if avia_mask_node.visible==false and progress_node.value==0:
+            if has_item and avia_mask_node.visible==false and progress_node.value==0:
                 var go_on=true
                 if click_cb!=null:
                     go_on = click_cb.call_func(self)

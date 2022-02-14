@@ -1,0 +1,18 @@
+{
+    "teleport":{
+        "name":"teleport",
+        "distance":100
+    },
+    "push":{
+        "name":"push",
+        "distance":100
+    },
+    "heal":{
+        "name":"heal",
+        "instance":{
+            "attr":"hp",
+            "op":"add",
+            "val":20
+        }
+    }
+}

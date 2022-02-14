@@ -1,16 +1,24 @@
 {
-    "paohui":
+    "sword":
     {
-        "name":"paohui",
+        "name":"sword",
         "type":"chara",
         "chance":0.5,
         "desc":"La la la la la.",
         "max_lv":2,
-        "build_cost":20,
-        "build_time":2,
+        "build_cost":30,
+        "build_time":0.2,
         "only_atk_building":false,
-        "bullet":"",
-        "atk_buf":["stun"],
+        "atk_buf":[
+        ],
+        "skills":[
+        ],
+        "target_scheme":{
+            "group":["enemy"],
+            "type":["chara","building"],
+            "amount":1,
+            "sel_type":"new"
+        },
         "drop_gold":20,
         "attrs":{
             "1":{
@@ -18,25 +26,79 @@
                 "atk":10,
                 "mov_spd":3,
                 "atk_spd":1,
-                "atk_num":1,
                 "range":100,
+                "luk":0.1,
+                "deff":0.1,
+                "cri":0.1,
+                "flee":0.1,
                 "upgrade_cost":10
             },
             "2":{
-                "hp":2200,
-                "atk":20,
+                "hp":2000,
+                "atk":10,
                 "mov_spd":3,
                 "atk_spd":1,
-                "atk_num":1,
                 "range":100,
+                "luk":0.1,
+                "deff":0.9,
+                "cri":0.1,
+                "flee":0.8,
                 "upgrade_cost":20
             }
         },
         "appearance":{
-            "file_name":"paohui",
+            "file_name":"sword",
             "y_offset":-70,
-            "atk_frame":6,
-            "atk_fx":"hit"
+            "atk_frame":[5,5,9],
+            "shoot_fx":"",
+            "atk_fx":"",
+            "bullet_fx":"",
+            "hit_fx":[{"res":"impact","anim":"fx_1"},{"res":"impact","anim":"fx_2"}]
+        }
+    },
+    "skeleton_mage":
+    {
+        "name":"skeleton_mage",
+        "type":"chara",
+        "chance":0.5,
+        "desc":"La la la la la.",
+        "max_lv":1,
+        "build_cost":30,
+        "build_time":0.2,
+        "only_atk_building":false,
+        "atk_buf":[
+        ],
+        "skills":[
+        ],
+        "target_scheme":{
+            "group":["enemy"],
+            "type":["chara","building"],
+            "amount":1,
+            "sel_type":"new"
+        },
+        "drop_gold":20,
+        "attrs":{
+            "1":{
+                "hp":2000,
+                "atk":10,
+                "mov_spd":2,
+                "atk_spd":0.5,
+                "range":500,
+                "luk":0.1,
+                "deff":0.1,
+                "cri":0.1,
+                "flee":0.1,
+                "upgrade_cost":10
+            }
+        },
+        "appearance":{
+            "file_name":"skeleton_mage",
+            "y_offset":-105,
+            "atk_frame":[12,9],
+            "shoot_fx":"",
+            "atk_fx":"",
+            "bullet_fx":"",
+            "hit_fx":[{"res":"impact","anim":"fx_1"},{"res":"impact","anim":"fx_2"}]
         }
     },
     "base1":
@@ -51,7 +113,11 @@
         "appearance":{
             "file_name":"base1",
             "y_offset":-165,
-            "atk_frame":0
+            "atk_frame":[],
+            "shoot_fx":"",
+            "atk_fx":"",
+            "bullet_fx":"",
+            "hit_fx":[]
         }
     },
     "base2":
@@ -66,7 +132,11 @@
         "appearance":{
             "file_name":"base2",
             "y_offset":-145,
-            "atk_frame":0
+            "atk_frame":[],
+            "shoot_fx":"",
+            "atk_fx":"",
+            "bullet_fx":"",
+            "hit_fx":""
         }
     }
 }

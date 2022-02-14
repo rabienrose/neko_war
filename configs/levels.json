@@ -9,12 +9,12 @@
         "spawn_delay_min":20,
         "spawn_delay_max":20,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":0.8},
-            {"name":"paohui","lv":2,"chance":0.2}
+            {"name":"sword","lv":1,"chance":0.8},
+            {"name":"sword","lv":1,"chance":0.2}
         ],
         "boss":[
-            {"name":"paohui","lv":1,"time":30},
-            {"name":"paohui","lv":2,"time":40}
+            {"name":"sword","lv":1,"time":30},
+            {"name":"sword","lv":2,"time":40}
         ],
         "desc":"La la la la la."
     },
@@ -28,12 +28,12 @@
         "spawn_delay_min":1,
         "spawn_delay_max":9,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":0.8},
-            {"name":"paohui","lv":2,"chance":0.2}
+            {"name":"sword","lv":1,"chance":0.8},
+            {"name":"sword","lv":1,"chance":0.2}
         ],
         "boss":[
-            {"name":"paohui","lv":1,"time":30},
-            {"name":"paohui","lv":2,"time":40}
+            {"name":"sword","lv":1,"time":30},
+            {"name":"sword","lv":2,"time":40}
         ],
         "desc":"La1 la1 la1 la la."
     },
@@ -47,12 +47,12 @@
         "spawn_delay_min":1,
         "spawn_delay_max":5,
         "rand_pool":[
-            {"name":"paohui","lv":1,"chance":0.9},
-            {"name":"paohui","lv":2,"chance":0.1}
+            {"name":"sword","lv":1,"chance":0.9},
+            {"name":"sword","lv":1,"chance":0.1}
         ],
         "boss":[
-            {"name":"paohui","lv":1,"time":30},
-            {"name":"paohui","lv":2,"time":40}
+            {"name":"sword","lv":1,"time":30},
+            {"name":"sword","lv":2,"time":40}
         ],
         "desc":"La1 la1 la1 la la."
     }

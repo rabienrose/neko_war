@@ -16,3 +16,8 @@ func set_attr_data(data):
     hp_bar.value=max_hp
     type="builing"
     update_chara_panel()
+
+func set_anim(anim_data, info):
+    .set_anim(anim_data, info)
+    anim_sprite.animation="idle"
+    status="idle"

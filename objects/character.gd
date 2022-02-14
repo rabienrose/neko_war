@@ -10,7 +10,6 @@ class Buf:
     var max_layer=100
     var type=""
 
-
 #path
 export (NodePath) var sprite_anim_path
 export (NodePath) var hp_bar_path
@@ -36,30 +35,41 @@ var def=0
 var atk_spd=1
 var mov_spd=1
 var atk_range=200
-var atk_frame=0
-var atk_num=1
+var deff=0.1
+var flee=0.1
+var luk=0.1
+var cri=0.1
 var team_id=0
 var dead=false
 var gold=20
+var target_scheme=null
 
 #static status
 var type=""
+var atk_anim_name=""
+var mov_dir=1
+var chara_index=-1
+var atk_frame=0 
 
 #constant
 var ground_y=771
 var mov_spd_coef=100
 
 #temp_status
-var init_atk=true
-var atk_targets=[]
 var check_atk_countdown=0
+var status="mov"
 
+#list status
 var bufs={}
-
-var mov_dir=1
-var cur_anim
+var skills={}
+var atk_buf={}
 
 var game
+var atk_timer
+var shoot_fx
+var atk_fx
+var bullet_fx
+var hit_fx
 
 func _ready():
     anim_player=get_node("AnimationPlayer")
@@ -68,6 +78,7 @@ func _ready():
     hp_bar=get_node(hp_bar_path)
     fct_mgr=get_node(fct_mgr_path)
     hp_bar.rect_position.y=hp_bar.rect_position.y+rand_range(0,190)
+    atk_timer=get_node("AtkTimer")
 
 func on_create(_game):
     game=_game
@@ -79,11 +90,19 @@ func set_attr_data(data):
     mov_spd = data["mov_spd"]
     atk_spd = data["atk_spd"]
     gold = data["drop_gold"]
-    atk_num = data["atk_num"]
+    atk_range=data["range"]
+    target_scheme=data["target_scheme"]
     hp_bar.max_value=max_hp
     hp_bar.value=max_hp
     type="chara"
     update_chara_panel()
+    chara_index=data["index"]
+    skills=data["skills"]
+    atk_buf=data["atk_buf"]
+    deff=data["deff"]
+    flee=data["flee"]
+    luk=data["luk"]
+    cri=data["cri"]
 
 func add_buf(buf):
     if buf.name in bufs:
@@ -97,21 +116,47 @@ func apply_attr_buf(attr):
     for buf_name in bufs:
         for buf in bufs[buf_name]:
             if buf.type=="attr" and buf.data["attr"]==attr:
-                if buf.data["op"]=="add":
-                    temp_val=temp_val+buf.data["val"]
-                elif buf.data["op"]=="mul":
-                    temp_val=temp_val*buf.data["val"]
+                temp_val = game.apply_op(buf.data["op"], buf.data["val"], temp_val)
     return temp_val
 
-
-func attack():
-    init_atk=false
+func attack(atk_targets):
     for chara in atk_targets:
         if is_instance_valid(chara)==false:
             continue
         if chara.dead==false:
+            for b in atk_buf:
+                if Global.check_prob_pass(b["chance"]*luk):
+                    var buf_data=Global.atk_buf_tb[b["name"]]
+                    if buf_data["name"]=="":
+                        pass
+                    else:
+                        game.apply_skill(buf_data, [chara], chara.team_id)
+            
+            var cri_ok = Global.check_prob_pass(cri)
             var temp_atk=apply_attr_buf("atk")
+            if cri_ok==false:
+                var flee_ok = Global.check_prob_pass(chara.flee)
+                if flee_ok==true:
+                    show_miss()
+                    continue
+                else:
+                    temp_atk=temp_atk*(1-chara.def)
             chara.change_hp(-temp_atk,self)
+            chara.play_hit()
+
+func play_hit():
+    var fx=Global.rand_in_list(hit_fx)
+    var g_pos=fx_pos_node.global_position
+    game.fx_mgr.play_frame_fx(fx["res"], fx["anim"], g_pos)
+    anim_sprite.animation="hit"
+    status="hit"
+    atk_timer.stop()
+
+func show_miss():
+    if team_id==0:
+        fct_mgr.show_value("Miss!", Color.red)
+    else:
+        fct_mgr.show_value("Miss!", Color.white)
 
 func get_enemy_team_id():
     if team_id==0:
@@ -126,42 +171,58 @@ func get_min_max_atk_range():
         return [position.x-atk_range, position.x]
 
 func update_atk_targets():
+    var targets=game.get_charas_by_group(target_scheme["group"],target_scheme["type"], team_id)
     var range_atk=get_min_max_atk_range()
-    var chars_in_range=game.get_charas_in_range(get_enemy_team_id(), range_atk[0], range_atk[1])
-    atk_targets=[]
-    if len(chars_in_range)>0:
-        init_atk=true
-        var temp_atk_num=apply_attr_buf("atk_num")
-        for i in range(temp_atk_num):
-            if i<len(chars_in_range):
-                atk_targets.append(chars_in_range[len(chars_in_range)-i-1])
+    var chars_in_range=game.get_charas_in_range(range_atk[0], range_atk[1],targets)
+    return game.filter_targets(target_scheme, chars_in_range)
+
+func play_continue():
+    var atk_targets = update_atk_targets()
+    if len(atk_targets)==0:
+        play_move()
+    else:
+        play_atk()
+
+func on_atk_timeout():
+    var atk_targets = update_atk_targets()
+    attack(atk_targets)
 
 func _on_AnimatedSprite_animation_finished():
-    if anim_sprite.animation=="atk":
-        update_atk_targets()
-        init_atk=true
-        if len(atk_targets)==0:
-            play_move()
-
-func _on_AnimatedSprite_frame_changed():
-    if anim_sprite.animation=="atk":
-        if init_atk and atk_frame<=anim_sprite.frame:
-            attack()
+    if status=="atk":
+        if process_skills()==false:
+            play_continue()
+    elif status=="dead":
+        game.remove_chara(self)
+    elif status=="hit":
+        play_continue()
 
 func set_anim(anim_data, info):
-    atk_frame=info["atk_frame"]
+    shoot_fx=info["shoot_fx"]
+    atk_fx=info["atk_fx"]
+    bullet_fx=info["bullet_fx"]
+    hit_fx=info["hit_fx"]
     anim_sprite.frames=anim_data
-    anim_sprite.animation="idle"
+    anim_sprite.animation="mov"
+    status="mov"
     anim_sprite.play()
     anim_sprite.offset.y=info["y_offset"]
     position.y=ground_y
     anim_sprite.material = anim_sprite.material.duplicate()
-
-func play_anim(anim_name):
-    anim_sprite.animation=anim_name
+    var names = anim_data.get_animation_names()
+    var temp_counter=0
+    for n in names:
+        if "atk" in n:
+            temp_counter=temp_counter+1
+    if temp_counter>0:
+        var temp_ind=ceil(rand_range(0,1)*temp_counter)
+        atk_anim_name="atk_"+str(temp_ind)
+        atk_frame=info["atk_frame"][temp_ind-1]
+    else:
+        atk_anim_name=""
 
 func set_team(_team_id):
     team_id=_team_id
+    name=type+"_"+str(team_id)+"_"+str(chara_index)
     if team_id==1:
         mov_dir=-1
         anim_sprite.flip_h=true
@@ -171,19 +232,39 @@ func set_x_pos(x_pos):
 
 func play_move():
     anim_sprite.animation="mov"
+    status="mov"
     anim_sprite.speed_scale=mov_spd
+    anim_sprite.play()
 
 func play_atk():
-    anim_sprite.animation="atk"
+    if atk_anim_name=="":
+        return
+    anim_sprite.animation=atk_anim_name
+    status="atk"
     anim_sprite.frame=0
-    var frame_num = anim_sprite.frames.get_frame_count("atk")
+    var frame_num = anim_sprite.frames.get_frame_count(atk_anim_name)
     var temp_atk_spd=apply_attr_buf("atk_spd")
     if temp_atk_spd<0.1:
         temp_atk_spd=0.1
     var atk_period=1/temp_atk_spd
+    var atk_time=atk_period*float(atk_frame)/frame_num
+    atk_timer.start(atk_time)
     anim_sprite.speed_scale=1
     var fps=frame_num/atk_period
-    anim_sprite.frames.set_animation_speed("atk", fps)
+    anim_sprite.frames.set_animation_speed(atk_anim_name, fps)
+    anim_sprite.play()
+
+func process_skills():
+    if status=="skill" and status=="dead":
+        return false
+    for s in skills:
+        if Global.check_prob_pass(s["chance"]):
+            var skill_data=Global.skills_tb[s["name"]]
+            if skill_data["name"]=="teleport":
+                pass
+            else:
+                game.apply_skill(skill_data,[],team_id)
+    return false
 
 func reduce_buf_count(buf):
     buf["countdown"]=buf["countdown"]-1
@@ -201,19 +282,17 @@ func _physics_process(delta):
                     bufs[buf_name].erase(buf)
                     if len(bufs[buf_name])==0:
                         bufs.erase(buf_name)
-    # if team_id==0 and type=="chara":
-    #     if "add_atk" in bufs:
-    #         print(bufs["add_atk"][0].time_remain)
-    if anim_sprite.animation=="mov":
+    if status=="mov":
         position.x = position.x + mov_dir*delta*mov_spd*mov_spd_coef
         if team_id==1 and position.x<game.scene_min or team_id==0 and position.x>game.scene_max:
             game.remove_chara(self)
             return
         if check_atk_countdown<0:
-            check_atk_countdown=rand_range(0.1,0.5)
-            update_atk_targets()
-            if len(atk_targets)>0:
-                play_atk()
+            check_atk_countdown=rand_range(0.1,0.3)
+            if process_skills()==false:
+                var atk_targets = update_atk_targets()
+                if len(atk_targets)>0:
+                    play_atk()
         check_atk_countdown=check_atk_countdown-delta
 
 func on_die(_chara):
@@ -223,7 +302,8 @@ func on_die(_chara):
         if coin_ef_num>10:
             coin_ef_num=10
         game.fx_mgr.play_coin_fx(coin_ef_num, fx_pos_node.position+position)
-    game.remove_chara(self)
+    anim_sprite.animation="dead"
+    status="dead"
 
 func change_hp(val, chara):
     var new_hp=hp+val

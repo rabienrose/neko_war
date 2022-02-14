@@ -1,0 +1,29 @@
+[gd_resource type="SpriteFrames" load_steps=15 format=2]
+
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_0.png" type="Texture" id=1]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_0.png" type="Texture" id=2]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_6.png" type="Texture" id=3]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_1.png" type="Texture" id=4]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_3.png" type="Texture" id=5]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_3.png" type="Texture" id=6]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_2.png" type="Texture" id=7]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_4.png" type="Texture" id=8]
+[ext_resource path="res://binary/images/objects/effect/impact_1/impact1_5.png" type="Texture" id=9]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_2.png" type="Texture" id=10]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_1.png" type="Texture" id=11]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_4.png" type="Texture" id=12]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_6.png" type="Texture" id=13]
+[ext_resource path="res://binary/images/objects/effect/impact_2/impact2_5.png" type="Texture" id=14]
+
+[resource]
+animations = [ {
+"frames": [ ExtResource( 1 ), ExtResource( 11 ), ExtResource( 10 ), ExtResource( 6 ), ExtResource( 12 ), ExtResource( 14 ), ExtResource( 13 ) ],
+"loop": false,
+"name": "fx_2",
+"speed": 20.0
+}, {
+"frames": [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 7 ), ExtResource( 5 ), ExtResource( 8 ), ExtResource( 9 ), ExtResource( 3 ) ],
+"loop": false,
+"name": "fx_1",
+"speed": 20.0
+} ]

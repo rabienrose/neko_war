@@ -1,0 +1,35 @@
+{
+    "dec_atk":{
+        "name":"dec_atk",
+        "buf":{
+            "buf_name":"add_atk",
+            "max_layer":10,
+            "duration":2,
+            "type":"attr",
+            "attr":"atk",
+            "op":"add",
+            "val":-10
+        }
+    },
+    "push":{
+        "name":"push",
+        "distance":100
+    },
+    "stun":{
+        "name":"stun",
+        "buf":{
+            "buf_name":"stun",
+            "max_layer":10,
+            "duration":2,
+            "type":"stun"
+        }
+    },
+    "life_steal":{
+        "name":"life_steal",
+        "instance":{
+            "attr":"hp",
+            "op":"add",
+            "val":-20
+        }
+    }
+}

@@ -10,6 +10,8 @@ var char_tb_file_path="res://configs/characters.json"
 var user_data_path="user://user.json"
 var levels_info_path="res://configs/levels.json"
 var items_info_path="res://configs/items.json"
+var skills_info_path="res://configs/items.json"
+var atk_bufs_info_path="res://configs/items.json"
 var char_img_file_path="res://binary/images/charas/"
 var item_img_file_path="res://binary/images/items/"
 
@@ -20,13 +22,16 @@ var user_data={}
 var chara_tb={}
 var levels_tb=[]
 var items_tb={}
+var skills_tb={}
+var atk_buf_tb={}
 var chara_anim={}
 
-var sel_level=-1
+var sel_level=0
 
 var lottery_price=70
 
 func _ready():
+    randomize()
     var f=File.new()
     f.open(char_tb_file_path, File.READ)
     var content = f.get_as_text()
@@ -68,6 +73,14 @@ func _ready():
     content = f.get_as_text()
     items_tb = JSON.parse(content).result
     f.close()
+    f.open(skills_info_path, File.READ)
+    content = f.get_as_text()
+    skills_tb = JSON.parse(content).result
+    f.close()
+    f.open(atk_bufs_info_path, File.READ)
+    content = f.get_as_text()
+    atk_buf_tb = JSON.parse(content).result
+    f.close()
     connect("request_battle",self,"on_request_start_battle")
     connect("request_go_home",self,"on_request_go_home")
 
@@ -78,14 +91,21 @@ func save_user_data():
     f.store_string(temp_json_str)
     f.close()
 
-func get_char_anim_info(char_name):
-    return chara_tb[char_name]["appearance"]
-
 func get_char_anim(char_name):
     var anim_file = chara_tb[char_name]["appearance"]
     if not anim_file in chara_anim:
         chara_anim[anim_file]=load("res://anim_sprite/"+char_name+".tres")
     return chara_anim[anim_file]
+
+func get_fx_frame_anim(fx_name):
+    return load("res://anim_sprite/effect/"+fx_name+".tres")
+
+func check_prob_pass(p):
+    var temp_r=rand_range(0,1)
+    return temp_r<=p
+
+func rand_in_list(list_data):
+    return list_data[floor(rand_range(0,1)*len(list_data))]
 
 func on_request_start_battle(lv):
     sel_level=lv
@@ -94,7 +114,6 @@ func on_request_start_battle(lv):
 func on_request_go_home():
     get_tree().change_scene(home_scene)
 
-    
 func delete_children(node):
     for n in node.get_children():
         node.remove_child(n)

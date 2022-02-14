@@ -4,14 +4,14 @@
         "price":10,
         "chance":0.9,
         "delay":1,
-        "target":{
-            "group":"self_chara",
+        "target_scheme":{
+            "group":["self"],
+            "type":["chara"],
             "amount":1,
             "sel_type":"min_hp"
         },
-        "info":{
-            "type_duration":"instance",
-            "type":"hp",
+        "instance":{
+            "attr":"hp",
             "op":"add",
             "val":10
         },
@@ -22,12 +22,12 @@
         "price":10,
         "chance":0.1,
         "delay":0.2,
-        "target":{
-            "group":"self_chara",
+        "target_scheme":{
+            "group":["self"],
+            "type":["chara"],
             "amount":-1
         },
-        "info":{
-            "type_duration":"buf",
+        "buf":{
             "buf_name":"add_atk",
             "max_layer":10,
             "duration":2,
@@ -38,47 +38,51 @@
         },
         "desc":"Increase atk 10 points for all characters."
     },
-    "add_atk_num":{
-        "name":"add_atk_num",
-        "price":10,
-        "chance":0.1,
-        "delay":0.2,
-        "target":{
-            "group":"self_chara",
-            "amount":1,
-            "sel_type":"rand"
-        },
-        "info":{
-            "type_duration":"buf",
-            "buf_name":"add_atk_num",
-            "max_layer":10,
-            "duration":5,
-            "type":"attr",
-            "attr":"atk_num",
-            "op":"mul",
-            "val":2
-        },
-        "desc":"Double attack area for a random character."
-    },
     "add_atk_spd":{
         "name":"add_atk_spd",
         "price":10,
         "chance":0.1,
         "delay":0.2,
-        "target":{
-            "group":"self_chara",
+        "target_scheme":{
+            "group":["self"],
+            "type":["chara"],
             "amount":-1,
             "sel_type":"rand"
         },
-        "info":{
-            "type_duration":"buf",
+        "buf":{
             "buf_name":"add_atk_spd",
             "max_layer":10,
             "duration":5,
-            "type":"attr",
-            "attr":"atk_spd",
-            "op":"mul",
-            "val":2
+            "is_time_limit":true,
+            "type":"attr",            
+            "data":{
+                "attr":"atk_spd",
+                "op":"mul",
+                "val":2
+            }
+        },
+        "desc":"Increase attack speed for all characters."
+    },
+    "add_atk_num":{
+        "name":"add_atk_num",
+        "price":10,
+        "chance":0.1,
+        "delay":0.2,
+        "target_scheme":{
+            "group":["self"],
+            "type":["chara"],
+            "amount":-1,
+            "sel_type":"rand"
+        },
+        "buf":{
+            "buf_name":"add_atk_num",
+            "max_layer":10,
+            "duration":5,
+            "type":"atk_num",
+            "data":{
+                "val":1,
+                "op":"add"
+            }
         },
         "desc":"Increase attack speed for all characters."
     },

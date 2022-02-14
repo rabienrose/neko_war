@@ -34,6 +34,10 @@ var stop=false
 var star_num=3
 var battle_time=0
 var timer_update_delay=1
+var self_count=0
+var live_self_count=0
+var enemy_count=0
+var live_enemy_count=0
 
 var level_data=null
 
@@ -90,8 +94,8 @@ func stop_game(b_win):
                 my_level_info["star"]=star_num
         Global.save_user_data()
 
-func get_charas_in_range(team_id, min_x, max_x):
-    var temp_chars=team_charas[team_id]
+func get_charas_in_range(min_x, max_x, targets):
+    var temp_chars=targets
     var out_charas=[]
     for chara in temp_chars:
         if chara.position.x>=min_x and chara.position.x<=max_x:
@@ -111,7 +115,6 @@ func spawn_chara(chara_name, lv, team_id):
     char_root.add_child(new_char)
     var spawn_pos = spawn_nodes[team_id]
     init_object(new_char, spawn_pos, chara_name, lv, team_id)
-    new_char.play_anim("mov")
 
 func init_object(res, spawn_pos, chara_name, lv, team_id):
     res.on_create(self)
@@ -120,62 +123,128 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
     var create_info={}
     lv=str(lv)
     create_info["hp"]=chara_dat["attrs"][lv]["hp"]
+    var temp_index=0
     if chara_dat["type"]=="chara":
         create_info["atk"]=chara_dat["attrs"][lv]["atk"]
         create_info["mov_spd"]=chara_dat["attrs"][lv]["mov_spd"]
         create_info["atk_spd"]=chara_dat["attrs"][lv]["atk_spd"]
+        create_info["range"]=chara_dat["attrs"][lv]["range"]
+        create_info["flee"]=chara_dat["attrs"][lv]["flee"]
+        create_info["deff"]=chara_dat["attrs"][lv]["deff"]
+        create_info["cri"]=chara_dat["attrs"][lv]["cri"]
+        create_info["luk"]=chara_dat["attrs"][lv]["luk"]
         create_info["drop_gold"]=chara_dat["drop_gold"]
-        create_info["atk_num"]=chara_dat["attrs"][lv]["atk_num"]
+        create_info["skills"]=chara_dat["skills"]
+        create_info["atk_buf"]=chara_dat["atk_buf"]
+        create_info["target_scheme"]=chara_dat["target_scheme"]
+        if team_id==0:
+            self_count=self_count+1
+            live_self_count=live_self_count+1
+            temp_index=self_count
+        else:
+            enemy_count=enemy_count+1
+            live_enemy_count=live_enemy_count+1
+            temp_index=enemy_count
+        create_info["index"]=temp_index
     res.set_attr_data(create_info)
     var anim_data=Global.get_char_anim(chara_name)
-    res.set_anim(anim_data, Global.get_char_anim_info(chara_name))
+    var anim_info=Global.chara_tb[chara_name]["appearance"]
+    res.set_anim(anim_data, anim_info)
     res.set_team(team_id)
     res.set_x_pos(spawn_pos.position.x)
 
-func customComparison(a, b):
+func hp_comparison(a, b):
     return a.hp/a.max_hp > b.hp/b.max_hp
+
+func index_comparison_inc(a, b):
+    return a.chara_index < b.chara_index
+
+func index_comparison_dec(a, b):
+    return a.chara_index > b.chara_index
+
+func get_charas_by_group(group_names, type_names, team_id):
+    var targets=[]
+    var b_chara=false
+    var b_building=false
+    if "chara" in type_names:
+        b_chara=true
+    if "building" in type_names:
+        b_building=true
+    if "self" in group_names:
+        for c in team_charas[team_id]:
+            if c["type"] == "chara" and b_chara:
+                targets.append(c)
+            if c["type"] == "building" and b_building:
+                targets.append(c)
+    if "enemy" in group_names:
+        var enemy_id=-1
+        if team_id==0:
+            enemy_id=1
+        else:
+            enemy_id=0
+        for c in team_charas[enemy_id]:
+            if c["type"] == "chara" and b_chara:
+                targets.append(c)
+            if c["type"] == "building" and b_building:
+                targets.append(c)
+    return targets
+
+func filter_targets(target_scheme, targets):
+    if target_scheme["amount"]!=-1:
+        var new_targets=[]
+        if target_scheme["sel_type"]=="min_hp":
+            targets.sort_custom(self, "hp_comparison")
+        elif target_scheme["sel_type"]=="rand":
+            targets.shuffle()
+        elif target_scheme["sel_type"]=="new":
+            targets.sort_custom(self, "index_comparison_dec")
+        elif target_scheme["sel_type"]=="old":
+            targets.sort_custom(self, "index_comparison_inc")
+        for c in targets:
+            new_targets.append(c)
+            if len(new_targets)>=target_scheme["amount"]:
+                break
+        targets=new_targets
+    return targets
+
+func apply_op(op, val, base_val):
+    if op=="add":
+        base_val=base_val+val
+    elif op=="mul":
+        base_val=base_val*val
+
+func create_buf(buf_info):
+    var buf=Character.Buf.new()
+    buf.name=buf_info["buf_name"]
+    buf.type=buf_info["type"]
+    buf.data=buf_info["data"]
+    buf.is_time_limit=buf_info["is_time_limit"]
+    buf.max_layer=buf_info["max_layer"]
+    buf.time_remain=buf_info["duration"]
+
+func apply_skill(skill_data, targets, team_id):
+    if len(targets)==0:
+        targets=get_charas_by_group(skill_data["target_scheme"]["group"],skill_data["target_scheme"]["type"], team_id)
+        targets = filter_targets(skill_data["target_scheme"], targets)
+    if skill_data["name"]=="dash":
+        pass
+    elif "instance" in skill_data:
+        if skill_data["instance"]["type"] == "hp":
+            if skill_data["instance"]["op"]=="add":
+                for chara in targets:
+                    chara.change_hp(skill_data["instance"]["val"],null)
+    elif "buf" in skill_data:
+        var new_buf = create_buf(skill_data["buf"])
+        for chara in targets:
+            chara.add_buf(new_buf)
 
 func request_use_item(item_name):
     if item_name=="done_at_once":
         for item in chara_gen_ui.get_items():
             item.set_done()
-    var item_dat=Global.items_tb[item_name]
-    var targets=[]
-    if item_dat["target"]["group"]=="self_chara":
-        for c in team_charas[0]:
-            if c["type"] == "chara":
-                targets.append(c)
-    if item_dat["target"]["group"]=="enemy_chara":
-        for c in team_charas[1]:
-            if c["type"] == "chara":
-                targets.append(c)
-    if item_dat["target"]["amount"]!=-1:
-        var new_targets=[]
-        if item_dat["target"]["sel_type"]=="min_hp":
-            targets.sort_custom(self, "customComparison")
-        elif item_dat["target"]["sel_type"]=="rand":
-            targets.shuffle()
-        for c in targets:
-            if len(new_targets)>item_dat["target"]["amount"]:
-                break
-            new_targets.append(c)
-        targets=new_targets
-    if item_dat["info"]["type_duration"] == "instance":
-        if item_dat["info"]["type"] == "hp":
-            if item_dat["info"]["op"]=="add":
-                for chara in targets:
-                    chara.change_hp(item_dat["info"]["val"],null)
-    elif item_dat["info"]["type_duration"] == "buf":
-        if item_dat["info"]["type"] == "attr":
-            var buf=Character.Buf.new()
-            buf.name=item_dat["info"]["buf_name"]
-            buf.type=item_dat["info"]["type"]
-            buf.data={"attr":item_dat["info"]["attr"],"val":item_dat["info"]["val"],"op":item_dat["info"]["op"]}
-            buf.is_time_limit=true
-            buf.max_layer=item_dat["info"]["max_layer"]
-            buf.time_remain=item_dat["info"]["duration"]
-            for chara in targets:
-                chara.add_buf(buf)
+    else:
+        var item_dat=Global.items_tb[item_name]
+        apply_skill(item_dat, [], 0)
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)

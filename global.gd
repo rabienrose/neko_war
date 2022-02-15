@@ -10,8 +10,8 @@ var char_tb_file_path="res://configs/characters.json"
 var user_data_path="user://user.json"
 var levels_info_path="res://configs/levels.json"
 var items_info_path="res://configs/items.json"
-var skills_info_path="res://configs/items.json"
-var atk_bufs_info_path="res://configs/items.json"
+var skills_info_path="res://configs/skills.json"
+var atk_bufs_info_path="res://configs/atk_buf.json"
 var char_img_file_path="res://binary/images/charas/"
 var item_img_file_path="res://binary/images/items/"
 
@@ -91,10 +91,10 @@ func save_user_data():
     f.store_string(temp_json_str)
     f.close()
 
-func get_char_anim(char_name):
+func get_char_anim(char_name, type):
     var anim_file = chara_tb[char_name]["appearance"]
     if not anim_file in chara_anim:
-        chara_anim[anim_file]=load("res://anim_sprite/"+char_name+".tres")
+        chara_anim[anim_file]=load("res://anim_sprite/"+type+"/"+char_name+".tres")
     return chara_anim[anim_file]
 
 func get_fx_frame_anim(fx_name):

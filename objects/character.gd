@@ -7,7 +7,7 @@ class Buf:
     var is_time_limit=true
     var name=""
     var data={}
-    var max_layer=100
+    var max_layer=10
     var type=""
 
 #path
@@ -50,14 +50,20 @@ var atk_anim_name=""
 var mov_dir=1
 var chara_index=-1
 var atk_frame=0 
+var shoot_offset=Vector2(0,0)
 
 #constant
 var ground_y=771
-var mov_spd_coef=100
+var dash_spd=600
+var mov_skill_delay=5
+var back_spd=1000
 
 #temp_status
 var check_atk_countdown=0
 var status="mov"
+var pending_atk_tar=[]
+var cur_skill=""
+var skill_mov_delay_count=mov_skill_delay
 
 #list status
 var bufs={}
@@ -66,6 +72,7 @@ var atk_buf={}
 
 var game
 var atk_timer
+var shoot_timer
 var shoot_fx
 var atk_fx
 var bullet_fx
@@ -79,6 +86,7 @@ func _ready():
     fct_mgr=get_node(fct_mgr_path)
     hp_bar.rect_position.y=hp_bar.rect_position.y+rand_range(0,190)
     atk_timer=get_node("AtkTimer")
+    shoot_timer=get_node("ShootTimer")
 
 func on_create(_game):
     game=_game
@@ -104,6 +112,12 @@ func set_attr_data(data):
     luk=data["luk"]
     cri=data["cri"]
 
+func add_back_buf(dist):
+    var buf=Buf.new()
+    buf.name="back"
+    buf.time_remain=dist/back_spd
+    add_buf(buf)
+
 func add_buf(buf):
     if buf.name in bufs:
         if len(bufs[buf.name])<buf.max_layer:
@@ -120,34 +134,37 @@ func apply_attr_buf(attr):
     return temp_val
 
 func attack(atk_targets):
+    pending_atk_tar = []
+    var max_dist=-1
+    var max_dist_char=null
     for chara in atk_targets:
         if is_instance_valid(chara)==false:
             continue
         if chara.dead==false:
-            for b in atk_buf:
-                if Global.check_prob_pass(b["chance"]*luk):
-                    var buf_data=Global.atk_buf_tb[b["name"]]
-                    if buf_data["name"]=="":
-                        pass
-                    else:
-                        game.apply_skill(buf_data, [chara], chara.team_id)
+            pending_atk_tar.append(chara)
+            var dist=abs(chara.global_position.x-global_position.x)
+            if max_dist<dist:
+                max_dist=dist
+                max_dist_char=chara
+    if len(pending_atk_tar)>0:
+        if len(atk_fx)>0:
+            var dura = game.fx_mgr.play_frame_link(atk_fx[0],global_position+shoot_offset,max_dist_char.fx_pos_node.global_position)
+            shoot_timer.start(dura)
+        elif len(bullet_fx)>0:
+            var bullet = game.fx_mgr.play_bullet(bullet_fx[0],global_position+shoot_offset,max_dist_char.fx_pos_node.global_position)
+            bullet.connect("finish_play", self, "on_shoot_timeout")
+        else:
+            apply_attck()
+    if len(shoot_fx)>0:
+        game.fx_mgr.play_frame_fx(shoot_fx[0],global_position+shoot_offset)
             
-            var cri_ok = Global.check_prob_pass(cri)
-            var temp_atk=apply_attr_buf("atk")
-            if cri_ok==false:
-                var flee_ok = Global.check_prob_pass(chara.flee)
-                if flee_ok==true:
-                    show_miss()
-                    continue
-                else:
-                    temp_atk=temp_atk*(1-chara.def)
-            chara.change_hp(-temp_atk,self)
-            chara.play_hit()
 
-func play_hit():
-    var fx=Global.rand_in_list(hit_fx)
+func play_hit(source_fx_info):
+    if len(source_fx_info)==0:
+        return
+    var fx=Global.rand_in_list(source_fx_info)
     var g_pos=fx_pos_node.global_position
-    game.fx_mgr.play_frame_fx(fx["res"], fx["anim"], g_pos)
+    game.fx_mgr.play_frame_fx(fx, g_pos)
     anim_sprite.animation="hit"
     status="hit"
     atk_timer.stop()
@@ -183,6 +200,40 @@ func play_continue():
     else:
         play_atk()
 
+func apply_attck():
+    for chara in pending_atk_tar:
+        if is_instance_valid(chara) and chara.dead==false:
+            for b in atk_buf:
+                if Global.check_prob_pass(b["chance"]*luk):
+                    var buf_data=Global.atk_buf_tb[b["name"]]
+                    if buf_data["name"]=="":
+                        pass
+                    else:
+                        game.apply_skill(buf_data, [chara], chara.team_id, self)
+            var cri_ok = Global.check_prob_pass(cri)
+            var temp_atk=apply_attr_buf("atk")
+            if cri_ok==false:
+                var flee_ok = Global.check_prob_pass(chara.flee)
+                if flee_ok==true:
+                    show_miss()
+                    continue
+                else:
+                    temp_atk=temp_atk*(1-chara.def)
+            chara.change_hp(-temp_atk,self)
+            chara.play_hit(hit_fx)
+    pending_atk_tar=[]
+
+func on_teleport():
+    var tele_dist = Global.skills_tb[cur_skill]["distance"]
+    var new_posi=position.x+tele_dist*mov_dir
+    if check_if_outside(new_posi)==false:
+        position.x=new_posi
+    visible=true
+    anim_sprite.animation="teleport_reverse"
+
+func on_shoot_timeout():
+    apply_attck()
+
 func on_atk_timeout():
     var atk_targets = update_atk_targets()
     attack(atk_targets)
@@ -195,6 +246,15 @@ func _on_AnimatedSprite_animation_finished():
         game.remove_chara(self)
     elif status=="hit":
         play_continue()
+    elif anim_sprite.animation=="teleport":
+        visible=false
+        get_node("TeleportTimer").start(Global.skills_tb[cur_skill]["delay"])
+    elif anim_sprite.animation=="teleport_reverse":
+        cur_skill=""
+        play_continue()
+    elif anim_sprite.animation=="dash":
+        cur_skill=""
+        play_continue()
 
 func set_anim(anim_data, info):
     shoot_fx=info["shoot_fx"]
@@ -202,10 +262,9 @@ func set_anim(anim_data, info):
     bullet_fx=info["bullet_fx"]
     hit_fx=info["hit_fx"]
     anim_sprite.frames=anim_data
-    anim_sprite.animation="mov"
-    status="mov"
-    anim_sprite.play()
+    play_move()
     anim_sprite.offset.y=info["y_offset"]
+    shoot_offset=Vector2(info["shoot_offset"][0],info["shoot_offset"][1]) 
     position.y=ground_y
     anim_sprite.material = anim_sprite.material.duplicate()
     var names = anim_data.get_animation_names()
@@ -226,6 +285,7 @@ func set_team(_team_id):
     if team_id==1:
         mov_dir=-1
         anim_sprite.flip_h=true
+        shoot_offset.x=-shoot_offset.x
 
 func set_x_pos(x_pos):
     position.x=x_pos
@@ -233,8 +293,31 @@ func set_x_pos(x_pos):
 func play_move():
     anim_sprite.animation="mov"
     status="mov"
-    anim_sprite.speed_scale=mov_spd
+    var frame_num=anim_sprite.frames.get_frame_count("mov")
+    var frame_p_pixel=0.002
+    var loop_time = mov_spd*frame_p_pixel
+    var fps=frame_num/loop_time
+    anim_sprite.speed_scale=fps/10
     anim_sprite.play()
+
+func play_dash(targets, dash_info):
+    if anim_sprite.frames.has_animation("dash")==false:
+        return false
+    anim_sprite.animation="dash"
+    status="skill"
+    cur_skill=dash_info["name"]
+    var frame_data=anim_sprite.frames
+    var frame_num=frame_data.get_frame_count("dash")
+    var dist = dash_info["distance"]
+    var time_need=dist/dash_spd
+    var fps=frame_num/time_need
+    var speed_rate=fps/10
+    anim_sprite.speed_scale=speed_rate
+    anim_sprite.play()
+    for c in targets:
+        c.add_back_buf(dist)
+    return true
+
 
 func play_atk():
     if atk_anim_name=="":
@@ -257,14 +340,23 @@ func play_atk():
 func process_skills():
     if status=="skill" and status=="dead":
         return false
+    var skill_candi=[]
     for s in skills:
-        if Global.check_prob_pass(s["chance"]):
-            var skill_data=Global.skills_tb[s["name"]]
-            if skill_data["name"]=="teleport":
-                pass
-            else:
-                game.apply_skill(skill_data,[],team_id)
-    return false
+        if Global.check_prob_pass(s["chance"]*luk):
+            skill_candi.append(s["name"])
+    if len(skill_candi)>0:
+        var s = Global.rand_in_list(skill_candi)
+        var skill_data=Global.skills_tb[s]
+        if skill_data["type"]=="teleport":
+            anim_sprite.animation="teleport"
+            anim_player.play()
+            status="skill"
+            cur_skill=s
+        else:
+            return game.apply_skill(skill_data,[],team_id, self)
+        return true
+    else:
+        return false
 
 func reduce_buf_count(buf):
     buf["countdown"]=buf["countdown"]-1
@@ -272,6 +364,12 @@ func reduce_buf_count(buf):
         bufs[buf.name].erase(buf)
         if len(bufs[buf.name])==0:
             bufs.erase(buf.name)
+
+func check_if_outside(x):
+    if team_id==1 and x<game.scene_min or team_id==0 and x>game.scene_max:
+        return true
+    else:
+        return false
 
 func _physics_process(delta):
     for buf_name in bufs:
@@ -282,14 +380,23 @@ func _physics_process(delta):
                     bufs[buf_name].erase(buf)
                     if len(bufs[buf_name])==0:
                         bufs.erase(buf_name)
+    if "back" in bufs:
+        position.x=position.x - mov_dir*delta*back_spd
+    if anim_sprite.animation=="dash":
+        position.x=position.x + mov_dir*delta*dash_spd
     if status=="mov":
-        position.x = position.x + mov_dir*delta*mov_spd*mov_spd_coef
-        if team_id==1 and position.x<game.scene_min or team_id==0 and position.x>game.scene_max:
+        position.x = position.x + mov_dir*delta*mov_spd
+        if check_if_outside(global_position.x):
             game.remove_chara(self)
             return
         if check_atk_countdown<0:
-            check_atk_countdown=rand_range(0.1,0.3)
-            if process_skills()==false:
+            check_atk_countdown=rand_range(0.03,0.2)
+            var do_skill=false
+            skill_mov_delay_count=skill_mov_delay_count-1
+            if skill_mov_delay_count<0:
+                skill_mov_delay_count=mov_skill_delay
+                do_skill = process_skills()
+            if do_skill==false:
                 var atk_targets = update_atk_targets()
                 if len(atk_targets)>0:
                     play_atk()

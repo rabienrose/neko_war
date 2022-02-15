@@ -13,7 +13,7 @@
     },
     "push":{
         "name":"push",
-        "distance":100
+        "distance":300
     },
     "stun":{
         "name":"stun",

@@ -7,7 +7,7 @@
 [ext_resource path="res://binary/images/ui/barHorizontal_yellow.png" type="Texture" id=5]
 [ext_resource path="res://binary/images/ui/barHorizontal_red.png" type="Texture" id=6]
 [ext_resource path="res://binary/images/ui/barHorizontal_frame_narrow.png" type="Texture" id=7]
-[ext_resource path="res://anim_sprite/sword.tres" type="SpriteFrames" id=8]
+[ext_resource path="res://anim_sprite/chara/sword.tres" type="SpriteFrames" id=8]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -85,6 +85,7 @@ bar_yellow = ExtResource( 5 )
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
 material = SubResource( 5 )
+position = Vector2( 0, -73 )
 frames = ExtResource( 8 )
 animation = "hit"
 frame = 7
@@ -92,8 +93,8 @@ playing = true
 
 [node name="ProgressBar" type="TextureProgress" parent="."]
 margin_left = -30.0
-margin_top = 6.0
-margin_bottom = 14.0
+margin_top = -67.0
+margin_bottom = -59.0
 value = 50.0
 texture_over = ExtResource( 7 )
 texture_progress = ExtResource( 4 )
@@ -103,12 +104,12 @@ __meta__ = {
 }
 
 [node name="FCTMgr" type="Node2D" parent="."]
-position = Vector2( 0, -200 )
+position = Vector2( 0, -273 )
 script = ExtResource( 2 )
 fct_res = ExtResource( 3 )
 
 [node name="FxPos" type="Node2D" parent="."]
-position = Vector2( 0, -100 )
+position = Vector2( 0, -173 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/RESET = SubResource( 4 )

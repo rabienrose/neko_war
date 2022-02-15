@@ -12,6 +12,7 @@
         "atk_buf":[
         ],
         "skills":[
+            {"name":"dash_short","chance":1.0}
         ],
         "target_scheme":{
             "group":["enemy"],
@@ -24,10 +25,10 @@
             "1":{
                 "hp":2000,
                 "atk":10,
-                "mov_spd":3,
+                "mov_spd":300,
                 "atk_spd":1,
                 "range":100,
-                "luk":0.1,
+                "luk":0.5,
                 "deff":0.1,
                 "cri":0.1,
                 "flee":0.1,
@@ -36,10 +37,10 @@
             "2":{
                 "hp":2000,
                 "atk":10,
-                "mov_spd":3,
+                "mov_spd":300,
                 "atk_spd":1,
                 "range":100,
-                "luk":0.1,
+                "luk":0.5,
                 "deff":0.9,
                 "cri":0.1,
                 "flee":0.8,
@@ -49,16 +50,67 @@
         "appearance":{
             "file_name":"sword",
             "y_offset":-70,
+            "shoot_offset":[10,20],
             "atk_frame":[5,5,9],
-            "shoot_fx":"",
-            "atk_fx":"",
-            "bullet_fx":"",
-            "hit_fx":[{"res":"impact","anim":"fx_1"},{"res":"impact","anim":"fx_2"}]
+            "shoot_fx":[],
+            "atk_fx":[],
+            "bullet_fx":[],
+            "hit_fx":[
+                {"type":"frame","res":"impact","anim":"fx_1"},
+                {"type":"frame","res":"impact","anim":"fx_2"}
+            ]
         }
     },
     "skeleton_mage":
     {
         "name":"skeleton_mage",
+        "type":"chara",
+        "chance":0.5,
+        "desc":"La la la la la.",
+        "max_lv":1,
+        "build_cost":30,
+        "build_time":0.2,
+        "only_atk_building":false,
+        "atk_buf":[
+        ],
+        "skills":[
+            {"name":"teleport_long","chance":1.0}
+        ],
+        "target_scheme":{
+            "group":["enemy"],
+            "type":["chara","building"],
+            "amount":1,
+            "sel_type":"new"
+        },
+        "drop_gold":20,
+        "attrs":{
+            "1":{
+                "hp":2000,
+                "atk":10,
+                "mov_spd":200,
+                "atk_spd":0.5,
+                "range":500,
+                "luk":0.4,
+                "deff":0.1,
+                "cri":0.1,
+                "flee":0.1,
+                "upgrade_cost":10
+            }
+        },
+        "appearance":{
+            "file_name":"skeleton_mage",
+            "y_offset":-105,
+            "shoot_offset":[80,-100],
+            "atk_frame":[11,8],
+            "shoot_fx":[{"type":"prefab","res":"black_hole"}],
+            "atk_fx":[{"type":"frame","res":"0215","anim":"lightning"}],
+            "bullet_fx":[],
+            "hit_fx":[{"type":"prefab","res":"lightning_bolt"}]
+        }
+    },
+    "bow":
+    {
+        "name":"bow",
         "type":"chara",
         "chance":0.5,
         "desc":"La la la la la.",
@@ -81,7 +133,7 @@
             "1":{
                 "hp":2000,
                 "atk":10,
-                "mov_spd":2,
+                "mov_spd":200,
                 "atk_spd":0.5,
                 "range":500,
                 "luk":0.1,
@@ -92,13 +144,17 @@
             }
         },
         "appearance":{
-            "file_name":"skeleton_mage",
-            "y_offset":-105,
-            "atk_frame":[12,9],
-            "shoot_fx":"",
-            "atk_fx":"",
-            "bullet_fx":"",
-            "hit_fx":[{"res":"impact","anim":"fx_1"},{"res":"impact","anim":"fx_2"}]
+            "file_name":"bow",
+            "y_offset":-70,
+            "shoot_offset":[60,-60],
+            "atk_frame":[12],
+            "shoot_fx":[],
+            "atk_fx":[],
+            "bullet_fx":[{"type":"bullet","res":"arrow"}],
+            "hit_fx":[
+                {"type":"frame","res":"impact","anim":"fx_1"},
+                {"type":"frame","res":"impact","anim":"fx_2"}
+            ]
         }
     },
     "base1":
@@ -113,6 +169,7 @@
         "appearance":{
             "file_name":"base1",
             "y_offset":-165,
+            "shoot_offset":[0,0],
             "atk_frame":[],
             "shoot_fx":"",
             "atk_fx":"",
@@ -132,6 +189,7 @@
         "appearance":{
             "file_name":"base2",
             "y_offset":-145,
+            "shoot_offset":[0,0],
             "atk_frame":[],
             "shoot_fx":"",
             "atk_fx":"",

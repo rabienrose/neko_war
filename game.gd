@@ -147,7 +147,7 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
             temp_index=enemy_count
         create_info["index"]=temp_index
     res.set_attr_data(create_info)
-    var anim_data=Global.get_char_anim(chara_name)
+    var anim_data=Global.get_char_anim(chara_name, chara_dat["type"])
     var anim_info=Global.chara_tb[chara_name]["appearance"]
     res.set_anim(anim_data, anim_info)
     res.set_team(team_id)
@@ -172,6 +172,8 @@ func get_charas_by_group(group_names, type_names, team_id):
         b_building=true
     if "self" in group_names:
         for c in team_charas[team_id]:
+            if c.visible==false or c.dead==true:
+                continue
             if c["type"] == "chara" and b_chara:
                 targets.append(c)
             if c["type"] == "building" and b_building:
@@ -183,6 +185,8 @@ func get_charas_by_group(group_names, type_names, team_id):
         else:
             enemy_id=0
         for c in team_charas[enemy_id]:
+            if c.visible==false or c.dead==true:
+                continue
             if c["type"] == "chara" and b_chara:
                 targets.append(c)
             if c["type"] == "building" and b_building:
@@ -222,12 +226,13 @@ func create_buf(buf_info):
     buf.max_layer=buf_info["max_layer"]
     buf.time_remain=buf_info["duration"]
 
-func apply_skill(skill_data, targets, team_id):
+func apply_skill(skill_data, targets, team_id, self_chara):
     if len(targets)==0:
         targets=get_charas_by_group(skill_data["target_scheme"]["group"],skill_data["target_scheme"]["type"], team_id)
         targets = filter_targets(skill_data["target_scheme"], targets)
-    if skill_data["name"]=="dash":
-        pass
+    if skill_data["type"]=="dash":
+        print("dash")
+        return self_chara.play_dash(targets, skill_data)
     elif "instance" in skill_data:
         if skill_data["instance"]["type"] == "hp":
             if skill_data["instance"]["op"]=="add":
@@ -237,6 +242,7 @@ func apply_skill(skill_data, targets, team_id):
         var new_buf = create_buf(skill_data["buf"])
         for chara in targets:
             chara.add_buf(new_buf)
+    return true
 
 func request_use_item(item_name):
     if item_name=="done_at_once":
@@ -244,7 +250,7 @@ func request_use_item(item_name):
             item.set_done()
     else:
         var item_dat=Global.items_tb[item_name]
-        apply_skill(item_dat, [], 0)
+        apply_skill(item_dat, [], 0, null)
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)

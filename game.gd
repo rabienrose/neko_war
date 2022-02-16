@@ -216,33 +216,20 @@ func apply_op(op, val, base_val):
         base_val=base_val+val
     elif op=="mul":
         base_val=base_val*val
+    return base_val
 
-func create_buf(buf_info):
-    var buf=Character.Buf.new()
-    buf.name=buf_info["buf_name"]
-    buf.type=buf_info["type"]
-    buf.data=buf_info["data"]
-    buf.is_time_limit=buf_info["is_time_limit"]
-    buf.max_layer=buf_info["max_layer"]
-    buf.time_remain=buf_info["duration"]
-
-func apply_skill(skill_data, targets, team_id, self_chara):
+func request_skill(skill_data, targets, team_id, self_chara):
     if len(targets)==0:
         targets=get_charas_by_group(skill_data["target_scheme"]["group"],skill_data["target_scheme"]["type"], team_id)
         targets = filter_targets(skill_data["target_scheme"], targets)
     if skill_data["type"]=="dash":
-        print("dash")
-        return self_chara.play_dash(targets, skill_data)
-    elif "instance" in skill_data:
-        if skill_data["instance"]["type"] == "hp":
-            if skill_data["instance"]["op"]=="add":
-                for chara in targets:
-                    chara.change_hp(skill_data["instance"]["val"],null)
-    elif "buf" in skill_data:
-        var new_buf = create_buf(skill_data["buf"])
-        for chara in targets:
-            chara.add_buf(new_buf)
-    return true
+        if self_chara!=null:
+            self_chara.play_dash(targets, skill_data)
+    elif len(targets)>0:
+        if self_chara!=null:
+            self_chara.play_skill_anim(targets, skill_data["name"])
+        else:
+            self_chara.apply_skill(targets, skill_data)
 
 func request_use_item(item_name):
     if item_name=="done_at_once":
@@ -250,7 +237,7 @@ func request_use_item(item_name):
             item.set_done()
     else:
         var item_dat=Global.items_tb[item_name]
-        apply_skill(item_dat, [], 0, null)
+        request_skill(item_dat, [], 0, null)
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)

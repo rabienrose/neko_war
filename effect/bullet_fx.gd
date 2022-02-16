@@ -7,7 +7,7 @@ var remain_time=0
 var total_time=0
 var s_pos
 var e_pos
-var bullet_spd=500
+var bullet_spd=900
 
 func play(_s_pos, _e_pos):
     s_pos=_s_pos

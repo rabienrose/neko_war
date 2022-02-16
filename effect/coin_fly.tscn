@@ -36,6 +36,7 @@ anim_offset_random = 1.0
 
 [node name="Coins" type="Particles2D"]
 material = SubResource( 1 )
+position = Vector2( 530, 481 )
 emitting = false
 amount = 3
 lifetime = 2.0

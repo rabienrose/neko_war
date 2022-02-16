@@ -23,10 +23,13 @@
             "amount":-1
         },
         "name":"heal_all",
-        "instance":{
-            "attr":"hp",
-            "op":"add",
-            "val":20
+        "type":"instance",
+        "info":{
+            "type":"hp",
+            "data":{
+                "op":"add",
+                "val":20
+            }
         }
     }
 }

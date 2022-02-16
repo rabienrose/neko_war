@@ -120,7 +120,6 @@ one_shot = true
 one_shot = true
 
 [connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_AnimatedSprite_animation_finished"]
-[connection signal="frame_changed" from="AnimatedSprite" to="." method="_on_AnimatedSprite_frame_changed"]
 [connection signal="timeout" from="AtkTimer" to="." method="on_atk_timeout"]
 [connection signal="timeout" from="ShootTimer" to="." method="on_shoot_timeout"]
 [connection signal="timeout" from="TeleportTimer" to="." method="on_teleport"]

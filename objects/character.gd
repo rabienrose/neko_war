@@ -131,6 +131,8 @@ func apply_attr_buf(attr):
         for buf in bufs[buf_name]:
             if buf.type=="attr" and buf.data["attr"]==attr:
                 temp_val = game.apply_op(buf.data["op"], buf.data["val"], temp_val)
+                if temp_val<0:
+                    temp_val=0
     return temp_val
 
 func attack(atk_targets):
@@ -165,8 +167,7 @@ func play_hit(source_fx_info):
     var fx=Global.rand_in_list(source_fx_info)
     var g_pos=fx_pos_node.global_position
     game.fx_mgr.play_frame_fx(fx, g_pos)
-    anim_sprite.animation="hit"
-    status="hit"
+    change_animation("hit", "hit")
     atk_timer.stop()
 
 func show_miss():
@@ -205,11 +206,7 @@ func apply_attck():
         if is_instance_valid(chara) and chara.dead==false:
             for b in atk_buf:
                 if Global.check_prob_pass(b["chance"]*luk):
-                    var buf_data=Global.atk_buf_tb[b["name"]]
-                    if buf_data["name"]=="":
-                        pass
-                    else:
-                        game.apply_skill(buf_data, [chara], chara.team_id, self)
+                    apply_skill([chara], Global.atk_buf_tb[b["name"]])
             var cri_ok = Global.check_prob_pass(cri)
             var temp_atk=apply_attr_buf("atk")
             if cri_ok==false:
@@ -221,6 +218,7 @@ func apply_attck():
                     temp_atk=temp_atk*(1-chara.def)
             chara.change_hp(-temp_atk,self)
             chara.play_hit(hit_fx)
+    
     pending_atk_tar=[]
 
 func on_teleport():
@@ -229,7 +227,7 @@ func on_teleport():
     if check_if_outside(new_posi)==false:
         position.x=new_posi
     visible=true
-    anim_sprite.animation="teleport_reverse"
+    change_animation("teleport_reverse", "skill")
 
 func on_shoot_timeout():
     apply_attck()
@@ -238,9 +236,16 @@ func on_atk_timeout():
     var atk_targets = update_atk_targets()
     attack(atk_targets)
 
+func change_animation(anim_name, _status):
+    anim_sprite.animation=anim_name
+    anim_sprite.frame=0
+    anim_sprite.play()
+    status=_status
+
 func _on_AnimatedSprite_animation_finished():
     if status=="atk":
-        if process_skills()==false:
+        process_skills()
+        if status=="atk":
             play_continue()
     elif status=="dead":
         game.remove_chara(self)
@@ -255,6 +260,15 @@ func _on_AnimatedSprite_animation_finished():
     elif anim_sprite.animation=="dash":
         cur_skill=""
         play_continue()
+    elif status=="skill":
+        if cur_skill!="":
+            apply_skill(pending_atk_tar, Global.skills_tb[cur_skill])
+            cur_skill=""
+            pending_atk_tar=[]
+        if status=="skill":
+            play_continue()
+    elif status=="stun":
+        change_animation("hit","stun")
 
 func set_anim(anim_data, info):
     shoot_fx=info["shoot_fx"]
@@ -290,21 +304,28 @@ func set_team(_team_id):
 func set_x_pos(x_pos):
     position.x=x_pos
 
+func create_buf(buf_info):
+    var buf=Buf.new()
+    buf.name=buf_info["buf_name"]
+    buf.type=buf_info["type"]
+    buf.data=buf_info["data"]
+    buf.is_time_limit=true
+    buf.max_layer=buf_info["max_layer"]
+    buf.time_remain=buf_info["duration"]
+    return buf
+
 func play_move():
-    anim_sprite.animation="mov"
-    status="mov"
+    change_animation("mov", "mov")
     var frame_num=anim_sprite.frames.get_frame_count("mov")
     var frame_p_pixel=0.002
     var loop_time = mov_spd*frame_p_pixel
     var fps=frame_num/loop_time
     anim_sprite.speed_scale=fps/10
-    anim_sprite.play()
 
 func play_dash(targets, dash_info):
     if anim_sprite.frames.has_animation("dash")==false:
-        return false
-    anim_sprite.animation="dash"
-    status="skill"
+        return
+    change_animation("dash", "skill")
     cur_skill=dash_info["name"]
     var frame_data=anim_sprite.frames
     var frame_num=frame_data.get_frame_count("dash")
@@ -313,18 +334,38 @@ func play_dash(targets, dash_info):
     var fps=frame_num/time_need
     var speed_rate=fps/10
     anim_sprite.speed_scale=speed_rate
-    anim_sprite.play()
     for c in targets:
         c.add_back_buf(dist)
-    return true
 
+func apply_skill(targets, skill_data):
+    if skill_data["type"]=="instance":
+        var inst_type=skill_data["info"]["type"]
+        if inst_type == "hp" or inst_type == "life_steal":
+            if skill_data["info"]["data"]["op"]=="add":
+                for chara in targets:
+                    chara.change_hp(skill_data["info"]["data"]["val"],null)
+                    if inst_type=="life_steal":
+                        change_hp(-skill_data["info"]["data"]["val"],null)
+    elif skill_data["type"]=="buf":
+        var new_buf = create_buf(skill_data["info"])
+        for chara in targets:
+            chara.add_buf(new_buf)
+    elif skill_data["type"]=="push":
+        for chara in targets:
+            chara.add_back_buf(skill_data["distance"])
+
+func play_skill_anim(targets, skill_name):
+    if atk_anim_name=="":
+        return
+    anim_sprite.speed_scale=1
+    change_animation(atk_anim_name, "skill")
+    pending_atk_tar=targets
+    cur_skill=skill_name
 
 func play_atk():
     if atk_anim_name=="":
         return
-    anim_sprite.animation=atk_anim_name
-    status="atk"
-    anim_sprite.frame=0
+    change_animation(atk_anim_name, "atk")
     var frame_num = anim_sprite.frames.get_frame_count(atk_anim_name)
     var temp_atk_spd=apply_attr_buf("atk_spd")
     if temp_atk_spd<0.1:
@@ -334,12 +375,11 @@ func play_atk():
     atk_timer.start(atk_time)
     anim_sprite.speed_scale=1
     var fps=frame_num/atk_period
-    anim_sprite.frames.set_animation_speed(atk_anim_name, fps)
-    anim_sprite.play()
+    anim_sprite.speed_scale=fps/10
 
 func process_skills():
     if status=="skill" and status=="dead":
-        return false
+        return
     var skill_candi=[]
     for s in skills:
         if Global.check_prob_pass(s["chance"]*luk):
@@ -348,15 +388,10 @@ func process_skills():
         var s = Global.rand_in_list(skill_candi)
         var skill_data=Global.skills_tb[s]
         if skill_data["type"]=="teleport":
-            anim_sprite.animation="teleport"
-            anim_player.play()
-            status="skill"
+            change_animation("teleport", "skill")
             cur_skill=s
         else:
-            return game.apply_skill(skill_data,[],team_id, self)
-        return true
-    else:
-        return false
+            game.request_skill(skill_data,[],team_id, self)
 
 func reduce_buf_count(buf):
     buf["countdown"]=buf["countdown"]-1
@@ -382,6 +417,10 @@ func _physics_process(delta):
                         bufs.erase(buf_name)
     if "back" in bufs:
         position.x=position.x - mov_dir*delta*back_spd
+    if "stun" in bufs and status!="stun":
+        change_animation("hit","stun")
+    if not "stun" in bufs and status=="stun":
+        play_continue()
     if anim_sprite.animation=="dash":
         position.x=position.x + mov_dir*delta*dash_spd
     if status=="mov":
@@ -390,13 +429,12 @@ func _physics_process(delta):
             game.remove_chara(self)
             return
         if check_atk_countdown<0:
-            check_atk_countdown=rand_range(0.03,0.2)
-            var do_skill=false
+            check_atk_countdown=rand_range(0.03,0.1)
             skill_mov_delay_count=skill_mov_delay_count-1
             if skill_mov_delay_count<0:
                 skill_mov_delay_count=mov_skill_delay
-                do_skill = process_skills()
-            if do_skill==false:
+                process_skills()
+            if status=="mov":
                 var atk_targets = update_atk_targets()
                 if len(atk_targets)>0:
                     play_atk()
@@ -409,8 +447,7 @@ func on_die(_chara):
         if coin_ef_num>10:
             coin_ef_num=10
         game.fx_mgr.play_coin_fx(coin_ef_num, fx_pos_node.position+position)
-    anim_sprite.animation="dead"
-    status="dead"
+    change_animation("dead", "dead")
 
 func change_hp(val, chara):
     var new_hp=hp+val

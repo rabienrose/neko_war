@@ -1,35 +1,44 @@
 {
     "dec_atk":{
         "name":"dec_atk",
-        "buf":{
+        "type":"buf",
+        "info":{
             "buf_name":"add_atk",
             "max_layer":10,
-            "duration":2,
+            "duration":5,
             "type":"attr",
-            "attr":"atk",
-            "op":"add",
-            "val":-10
+            "data":{
+                "attr":"atk",
+                "op":"add",
+                "val":-1
+            }
         }
     },
-    "push":{
-        "name":"push",
+    "push_short":{
+        "name":"push_short",
+        "type":"push",
         "distance":300
     },
     "stun":{
         "name":"stun",
-        "buf":{
+        "type":"buf",
+        "info":{
             "buf_name":"stun",
             "max_layer":10,
-            "duration":2,
-            "type":"stun"
+            "duration":3,
+            "type":"stun",
+            "data":{}
         }
     },
     "life_steal":{
         "name":"life_steal",
-        "instance":{
-            "attr":"hp",
-            "op":"add",
-            "val":-20
+        "type":"instance",
+        "info":{
+            "type":"life_steal",
+            "data":{
+                "op":"add",
+                "val":-20
+            }
         }
     }
 }

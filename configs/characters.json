@@ -10,9 +10,10 @@
         "build_time":0.2,
         "only_atk_building":false,
         "atk_buf":[
+            {"name":"stun","chance":1.0}
         ],
         "skills":[
-            {"name":"dash_short","chance":1.0}
+            {"name":"dash_short","chance":0.0}
         ],
         "target_scheme":{
             "group":["enemy"],
@@ -28,7 +29,7 @@
                 "mov_spd":300,
                 "atk_spd":1,
                 "range":100,
-                "luk":0.5,
+                "luk":1.0,
                 "deff":0.1,
                 "cri":0.1,
                 "flee":0.1,
@@ -74,7 +75,8 @@
         "atk_buf":[
         ],
         "skills":[
-            {"name":"teleport_long","chance":1.0}
+            {"name":"teleport_long","chance":0.0},
+            {"name":"heal_all","chance":1.0}
         ],
         "target_scheme":{
             "group":["enemy"],
@@ -90,7 +92,7 @@
                 "mov_spd":200,
                 "atk_spd":0.5,
                 "range":500,
-                "luk":0.4,
+                "luk":1.0,
                 "deff":0.1,
                 "cri":0.1,
                 "flee":0.1,
@@ -119,6 +121,7 @@
         "build_time":0.2,
         "only_atk_building":false,
         "atk_buf":[
+            {"name":"push_short","chance":1.0}
         ],
         "skills":[
         ],
@@ -136,7 +139,7 @@
                 "mov_spd":200,
                 "atk_spd":0.5,
                 "range":500,
-                "luk":0.1,
+                "luk":1.0,
                 "deff":0.1,
                 "cri":0.1,
                 "flee":0.1,

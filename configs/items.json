@@ -10,10 +10,13 @@
             "amount":1,
             "sel_type":"min_hp"
         },
-        "instance":{
-            "attr":"hp",
-            "op":"add",
-            "val":10
+        "type":"instance",
+        "info":{
+            "type":"hp",
+            "data":{
+                "op":"add",
+                "val":10
+            }
         },
         "desc":"Recover all characters 10 hp."
     },
@@ -27,14 +30,17 @@
             "type":["chara"],
             "amount":-1
         },
-        "buf":{
+        "type":"buf",
+        "info":{
             "buf_name":"add_atk",
             "max_layer":10,
             "duration":2,
             "type":"attr",
-            "attr":"atk",
-            "op":"add",
-            "val":10
+            "data":{
+                "attr":"atk",
+                "op":"add",
+                "val":10
+            }
         },
         "desc":"Increase atk 10 points for all characters."
     },
@@ -49,7 +55,8 @@
             "amount":-1,
             "sel_type":"rand"
         },
-        "buf":{
+        "type":"buf",
+        "info":{
             "buf_name":"add_atk_spd",
             "max_layer":10,
             "duration":5,
@@ -74,7 +81,8 @@
             "amount":-1,
             "sel_type":"rand"
         },
-        "buf":{
+        "type":"buf",
+        "info":{
             "buf_name":"add_atk_num",
             "max_layer":10,
             "duration":5,

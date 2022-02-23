@@ -9,7 +9,6 @@
         "target_scheme":{
             "group":["enemy"],
             "type":["chara"],
-            "amount":1,
             "sel_type":"min_hp"
         },
         "name":"dash_short",
@@ -20,7 +19,7 @@
         "target_scheme":{
             "group":["self"],
             "type":["chara"],
-            "amount":-1
+            "sel_type":"min_hp"
         },
         "name":"heal_all",
         "type":"instance",
@@ -28,7 +27,7 @@
             "type":"hp",
             "data":{
                 "op":"add",
-                "val":20
+                "val":100
             }
         }
     }

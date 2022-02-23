@@ -13,9 +13,15 @@ func play(_s_pos, _e_pos):
     s_pos=_s_pos
     e_pos=_e_pos
     var bullet=get_node("Sprite")
+    if bullet.visible==false:
+        bullet=get_node("AnimatedSprite")
     if s_pos.x>e_pos.x:
         bullet.flip_h=true
     var dist=(s_pos-e_pos).length()
+    var dist_y=e_pos.y-s_pos.y
+    bullet.rotation_degrees=asin(dist_y/dist)*180/3.1415926
+    if bullet.flip_h:
+        bullet.rotation_degrees=-bullet.rotation_degrees
     total_time=dist/bullet_spd
     remain_time=total_time
     b_play=true

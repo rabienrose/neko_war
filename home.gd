@@ -23,9 +23,11 @@ export (NodePath) var chara_container_path
 export (NodePath) var item_container_path
 export (NodePath) var lottery_container_path
 export (NodePath) var lottery_price_path
+export (NodePath) var tab_dots_path
 
 export (Resource) var level_item_res
 export (Resource) var drop_item_res
+export (Resource) var tab_dot_res
 
 var level_grid
 var level_info
@@ -40,12 +42,15 @@ var chara_hotkey=[]
 var item_hotkey=[]
 
 var cur_level_page=0
-var cur_sel_level=-1
+var cur_sel_level=""
 var cur_sel_chara=""
 var cur_sel_item=""
 var cur_drag_chara=""
 var cur_drag_item=""
 
+var chara_lv_num=10
+var spawn_delay_num=7
+var cur_chara_type_ind=0
 
 func _ready():
     Global.connect("show_level_info",self, "on_show_level_info")
@@ -65,18 +70,23 @@ func _ready():
     click_cb = funcref(self, "item_item_click_cb")
     for c in item_hotkey.get_children():
         c.set_cb(click_cb)
-    update_levels_ui()
+    init_tab_dots(len(Global.lv_chara_type_list))
+    set_tab_dot_sel(0)
+    update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
     update_characters_ui()
     update_items_ui()
     update_status()
     update_lottery_ui()
 
-func on_show_level_info(lv):
-    cur_sel_level=lv
+func on_show_level_info(lv_name):
+    cur_sel_level=lv_name
     var str_temp=""
-    str_temp=str_temp+Global.levels_tb[lv]["title"]+"\n\n"
-    str_temp=str_temp+"Level: "+str(lv)+"\n\n"
-    str_temp=str_temp+"Description:\n"+Global.levels_tb[lv]["desc"]+"\n\n"
+    var lv_info=Global.levels_tb[cur_sel_level]
+    str_temp=str_temp+str(lv_info["gold"])+" gold\n"
+    str_temp=str_temp+"lv: "+str(lv_info["lv"])+"s\n"
+    str_temp=str_temp+"delay: "+str(lv_info["spawn_delay"])+"s\n\n"
+    for chara_t in lv_info["cell_sequence"]:
+        str_temp=str_temp+chara_t+"\n"
     get_node(level_info_path).text=str_temp
 
 func chara_item_click_cb(chara_name):
@@ -84,12 +94,24 @@ func chara_item_click_cb(chara_name):
     var str_temp=""
     var my_chara_info = Global.get_my_chara_info(chara_name)
     cur_sel_chara=chara_name
-    str_temp=str_temp+chara_db["name"]+"\n\n"
-    str_temp=str_temp+"Description:\n"+chara_db["desc"]+"\n\n"
+    var lv=my_chara_info["lv"]
+    var t_attr_info=chara_db["attrs"][str(lv)]
+    var t_attr_info_next=null
+    if lv<chara_db["max_lv"]:
+        t_attr_info_next=chara_db["attrs"][str(lv+1)]
+    for key in t_attr_info:
+        if key == "upgrade_cost":
+            continue
+        var next_lv=""
+        if t_attr_info_next!=null:
+            var val_change=t_attr_info_next[key]-t_attr_info[key]
+            if val_change!=0:
+                next_lv=" ("+str(val_change)+")"
+        str_temp=str_temp+key+": "+str(t_attr_info[key])+next_lv+"\n"
     chara_info.text=str_temp
     clear_grid_highlight(chara_grid)
     clear_grid_highlight(chara_hotkey)
-    var upgrage_price=Global.get_upgrade_price(chara_name, my_chara_info["lv"])
+    var upgrage_price=Global.get_upgrade_price(chara_name, lv)
     if upgrage_price>0:
         get_node(upgrade_btn_bg_path).visible=true
         get_node(upgrade_btn_path).text=str("UP  ("+str(upgrage_price)+")")
@@ -144,21 +166,24 @@ func set_item_hk_slot(slot_id, item_name):
     Global.user_data["equip"]["item"][slot_id]=item_name
     Global.save_user_data()
 
-func update_levels_ui():
-    var last_pass_lv=-1
-    for lv_info in Global.levels_tb:
-        var level_item = level_item_res.instance()
-        level_item.container=level_grid
-        var lv_num=str(lv_info["lv"])
-        if lv_num in Global.user_data["levels"]:
-            level_item.set_lock(false, int(lv_num), Global.user_data["levels"][lv_num]["star"])
-            last_pass_lv=lv_num
-        else:
-            if int(last_pass_lv)==int(lv_num)-1:
-                level_item.set_lock(false, int(lv_num), -1)
-            else:
-                level_item.set_lock(true, -1, -1)
-        level_grid.add_child(level_item)
+func make_lv_name(chara_type,chara_lv,delay_id):
+    return str(chara_type)+"/"+str(chara_lv)+"/"+str(delay_id)
+
+func add_lv_grid_item(lv_name):
+    var level_item = level_item_res.instance()
+    level_item.container=level_grid
+    if lv_name in Global.user_data["levels"]:
+        level_item.set_lock(false, lv_name)
+    else:
+        level_item.set_lock(true, lv_name)
+    level_grid.add_child(level_item)
+
+func update_levels_ui(chara_type):
+    Global.delete_children(level_grid)
+    for chara_lv in range(chara_lv_num):
+        for delay_id in range(spawn_delay_num):
+            var lv_name=make_lv_name(chara_type,chara_lv,delay_id)
+            add_lv_grid_item(lv_name)
 
 func update_characters_ui():
     var click_cb = funcref(self, "chara_item_click_cb")
@@ -252,6 +277,23 @@ func _input(event):
             cur_drag_chara=""
             cur_drag_item=""
             hide_drag_icon()
+
+func init_tab_dots(num):
+    var tab_dots=get_node(tab_dots_path)
+    for _i in range(num):
+        var new_dot = tab_dot_res.instance()
+        tab_dots.add_child(new_dot)
+
+func set_tab_dot_sel(ind):
+    var tab_dots=get_node(tab_dots_path)
+    for c_id in tab_dots.get_child_count():
+        var c = tab_dots.get_child(c_id)
+        if c_id==ind:
+            c.get_child(0).visible=false
+            c.get_child(1).visible=true
+        else:
+            c.get_child(0).visible=true
+            c.get_child(1).visible=false
 
 func hide_all_tabs():
     get_node(level_label_path).add_color_override("font_color", Color.white)
@@ -395,5 +437,25 @@ func _on_Rank_gui_input(event):
 func _on_Start_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            if cur_sel_level>=0:
+            if cur_sel_level!="":
                 Global.emit_signal("request_battle",cur_sel_level)
+
+func _on_Left_gui_input(event):
+    if event is InputEventScreenTouch:
+        if event.pressed:
+            if cur_chara_type_ind-1<0:
+                return
+            else:
+                cur_chara_type_ind=cur_chara_type_ind-1
+                update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
+                set_tab_dot_sel(cur_chara_type_ind)
+
+func _on_Right_gui_input(event):
+    if event is InputEventScreenTouch:
+        if event.pressed:
+            if cur_chara_type_ind+1>=len(Global.lv_chara_type_list):
+                return
+            else:
+                cur_chara_type_ind=cur_chara_type_ind+1
+                update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
+                set_tab_dot_sel(cur_chara_type_ind)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://ui/texture/gold_ui.tres" type="Texture" id=1]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
@@ -8,9 +8,7 @@
 [ext_resource path="res://ui/texture/s_bg_blue.tres" type="Texture" id=7]
 [ext_resource path="res://ui/texture/icon_replay.tres" type="Texture" id=8]
 [ext_resource path="res://ui/texture/s_bg_green.tres" type="Texture" id=9]
-[ext_resource path="res://ui/texture/icon_star_empty.tres" type="Texture" id=10]
 [ext_resource path="res://ui/texture/icon_ske_head.tres" type="Texture" id=11]
-[ext_resource path="res://ui/texture/icon_star.tres" type="Texture" id=12]
 [ext_resource path="res://ui/texture/icon_next.tres" type="Texture" id=13]
 [ext_resource path="res://ui/texture/s_bg_red.tres" type="Texture" id=14]
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=15]
@@ -41,14 +39,7 @@ script = ExtResource( 16 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-star1_path = NodePath("BG/CenterContainer/Control/Star")
-star2_path = NodePath("BG/CenterContainer/Control/Star2")
-star3_path = NodePath("BG/CenterContainer/Control/Star3")
-star1e_path = NodePath("BG/CenterContainer/Control/StarE")
-star2e_path = NodePath("BG/CenterContainer/Control/Star2E")
-star3e_path = NodePath("BG/CenterContainer/Control/Star3E")
 title_text_path = NodePath("BG/Title/Label")
-star_path = NodePath("BG/CenterContainer/Control")
 ske_head_path = NodePath("BG/CenterContainer/SkeHead")
 gold_head_path = NodePath("BG/GoldBG/Gold/LabelBG/Label")
 next_btn_path = NodePath("BG/HBoxContainer/Next")
@@ -249,75 +240,6 @@ margin_top = 33.0
 margin_right = 422.0
 margin_bottom = 289.0
 texture = ExtResource( 11 )
-
-[node name="Control" type="Control" parent="BG/CenterContainer"]
-margin_top = 11.0
-margin_right = 600.0
-margin_bottom = 311.0
-rect_min_size = Vector2( 600, 300 )
-
-[node name="StarE" type="TextureRect" parent="BG/CenterContainer/Control"]
-visible = false
-margin_left = -6.0
-margin_top = 82.0
-margin_right = 205.0
-margin_bottom = 277.0
-texture = ExtResource( 10 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star" type="TextureRect" parent="BG/CenterContainer/Control"]
-margin_left = -6.0
-margin_top = 82.0
-margin_right = 203.0
-margin_bottom = 275.0
-texture = ExtResource( 12 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star2E" type="TextureRect" parent="BG/CenterContainer/Control"]
-visible = false
-margin_left = 195.0
-margin_top = 10.0
-margin_right = 404.0
-margin_bottom = 203.0
-texture = ExtResource( 10 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star2" type="TextureRect" parent="BG/CenterContainer/Control"]
-margin_left = 195.0
-margin_top = 10.0
-margin_right = 404.0
-margin_bottom = 203.0
-texture = ExtResource( 12 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star3E" type="TextureRect" parent="BG/CenterContainer/Control"]
-margin_left = 393.0
-margin_top = 80.0
-margin_right = 602.0
-margin_bottom = 273.0
-texture = ExtResource( 10 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star3" type="TextureRect" parent="BG/CenterContainer/Control"]
-visible = false
-margin_left = 393.0
-margin_top = 80.0
-margin_right = 602.0
-margin_bottom = 273.0
-texture = ExtResource( 12 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [connection signal="gui_input" from="BG/HBoxContainer/Home" to="." method="_on_Home_gui_input"]
 [connection signal="gui_input" from="BG/HBoxContainer/Replay" to="." method="_on_Replay_gui_input"]

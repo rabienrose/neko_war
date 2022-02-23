@@ -1,6 +1,12 @@
 extends Label
 
-func show_value(value, travel, duration, spread, color):
+func show_value(value, travel, duration, spread, color, critical):
+    var font = get("custom_fonts/font")
+    font=font.duplicate()
+    set("custom_fonts/font",font)
+    if critical:
+        font.outline_color = Color.blue
+        font.outline_size = 5
     text = value
     rect_pivot_offset = rect_size / 2
     var movement = travel.rotated(rand_range(-spread/2, spread/2))

@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[ext_resource path="res://ui/shader/outline.tres" type="Shader" id=1]
+
+[resource]
+shader = ExtResource( 1 )
+shader_param/color = Color( 0.6, 0.00392157, 0.00392157, 0.639216 )
+shader_param/width = 0.0
+shader_param/pattern = 2
+shader_param/inside = false
+shader_param/add_margins = false

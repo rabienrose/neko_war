@@ -31,7 +31,6 @@ var scene_min=440
 var scene_max=3500
 var gold=100
 var stop=false
-var star_num=3
 var battle_time=0
 var timer_update_delay=1
 var self_count=0
@@ -42,6 +41,7 @@ var live_enemy_count=0
 var level_data=null
 
 func _ready():
+    level_data=Global.get_level_info(Global.sel_level)
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
     spawn_nodes.append(get_node(spawn2_path))
@@ -50,8 +50,8 @@ func _ready():
     item_use_ui=get_node(item_use_ui_path)
     spawn_building("base1", 0)
     spawn_building("base2", 1)
-    Global.emit_signal("money_change",100)
-    level_data=Global.get_level_info(Global.sel_level)
+    gold=level_data["init_gold"]
+    Global.emit_signal("money_change",gold)
     var cancel_cb = funcref(self, "cancel_cb")
     var go_home_cb = funcref(self, "go_home_cb")
     get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
@@ -59,6 +59,7 @@ func _ready():
     update_hotkey_ui()
     update_timer_ui()
     get_node(lv_name_label_path).text="Lv: "+str(level_data["lv"])
+    Global.connect("money_change",self,"on_money_change")
 
 func cancel_cb():
     get_tree().paused = false
@@ -70,28 +71,19 @@ func go_home_cb():
 
 func stop_game(b_win):
     var lv_gold=level_data["gold"]
-    if star_num==1:
-        lv_gold=lv_gold*2
-    elif star_num==2:
-        lv_gold=lv_gold*4
-    elif star_num==3:
-        lv_gold=lv_gold*8
-    if b_win==false:
-        star_num=-1
-        lv_gold=0
     var show_next=true
-    if Global.get_max_level()<Global.sel_level+1:
-        show_next=false
-    get_node(summary_path).show_summary(star_num,true,lv_gold,show_next)
+    show_next=false
+    if b_win==false:
+        lv_gold=0
+    get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
     Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
-    var lv_str=str(Global.sel_level)
+    var lv_str=Global.sel_level
     if b_win:
         if not lv_str in Global.user_data["levels"]:
-            Global.user_data["levels"][lv_str]={"lv":Global.sel_level,"star":star_num}
+            Global.user_data["levels"][lv_str]={"time":battle_time}
         else:
-            var my_level_info = Global.user_data["levels"][lv_str]
-            if my_level_info["star"]<star_num:
-                my_level_info["star"]=star_num
+            if battle_time<Global.user_data["levels"][lv_str]["time"]:
+                Global.user_data["levels"][lv_str]["time"]=battle_time
         Global.save_user_data()
 
 func get_charas_in_range(min_x, max_x, targets):
@@ -109,6 +101,8 @@ func spawn_building(build_name, team_id):
     if team_id==1:
         temp_pos_node=get_node(base2_path)
     init_object(new_build, temp_pos_node, build_name, 1, team_id)
+    new_build.max_hp=level_data["base_hp"]
+    new_build.hp=new_build.max_hp
 
 func spawn_chara(chara_name, lv, team_id):
     var new_char = char_res.instance()
@@ -125,6 +119,7 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
     create_info["hp"]=chara_dat["attrs"][lv]["hp"]
     var temp_index=0
     if chara_dat["type"]=="chara":
+        create_info["lv"]=lv
         create_info["atk"]=chara_dat["attrs"][lv]["atk"]
         create_info["mov_spd"]=chara_dat["attrs"][lv]["mov_spd"]
         create_info["atk_spd"]=chara_dat["attrs"][lv]["atk_spd"]
@@ -133,10 +128,12 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
         create_info["deff"]=chara_dat["attrs"][lv]["deff"]
         create_info["cri"]=chara_dat["attrs"][lv]["cri"]
         create_info["luk"]=chara_dat["attrs"][lv]["luk"]
+        create_info["atk_num"]=chara_dat["attrs"][lv]["atk_num"]
         create_info["drop_gold"]=chara_dat["drop_gold"]
         create_info["skills"]=chara_dat["skills"]
         create_info["atk_buf"]=chara_dat["atk_buf"]
         create_info["target_scheme"]=chara_dat["target_scheme"]
+        create_info["self_destroy"]=chara_dat["self_destroy"]
         if team_id==0:
             self_count=self_count+1
             live_self_count=live_self_count+1
@@ -174,9 +171,9 @@ func get_charas_by_group(group_names, type_names, team_id):
         for c in team_charas[team_id]:
             if c.visible==false or c.dead==true:
                 continue
-            if c["type"] == "chara" and b_chara:
+            if c.type == "chara" and b_chara:
                 targets.append(c)
-            if c["type"] == "building" and b_building:
+            if c.type == "building" and b_building:
                 targets.append(c)
     if "enemy" in group_names:
         var enemy_id=-1
@@ -187,14 +184,14 @@ func get_charas_by_group(group_names, type_names, team_id):
         for c in team_charas[enemy_id]:
             if c.visible==false or c.dead==true:
                 continue
-            if c["type"] == "chara" and b_chara:
+            if c.type == "chara" and b_chara:
                 targets.append(c)
-            if c["type"] == "building" and b_building:
+            if c.type == "building" and b_building:
                 targets.append(c)
     return targets
 
-func filter_targets(target_scheme, targets):
-    if target_scheme["amount"]!=-1:
+func filter_targets(target_scheme, targets, amount):
+    if amount!=-1:
         var new_targets=[]
         if target_scheme["sel_type"]=="min_hp":
             targets.sort_custom(self, "hp_comparison")
@@ -206,7 +203,7 @@ func filter_targets(target_scheme, targets):
             targets.sort_custom(self, "index_comparison_inc")
         for c in targets:
             new_targets.append(c)
-            if len(new_targets)>=target_scheme["amount"]:
+            if len(new_targets)>=amount:
                 break
         targets=new_targets
     return targets
@@ -218,18 +215,62 @@ func apply_op(op, val, base_val):
         base_val=base_val*val
     return base_val
 
-func request_skill(skill_data, targets, team_id, self_chara):
-    if len(targets)==0:
-        targets=get_charas_by_group(skill_data["target_scheme"]["group"],skill_data["target_scheme"]["type"], team_id)
-        targets = filter_targets(skill_data["target_scheme"], targets)
-    if skill_data["type"]=="dash":
+func create_buf(buf_info):
+    var buf=Character.Buf.new()
+    buf.name=buf_info["buf_name"]
+    buf.type=buf_info["type"]
+    buf.data=buf_info["data"]
+    buf.is_time_limit=true
+    buf.max_layer=buf_info["max_layer"]
+    buf.time_remain=buf_info["duration"]
+    return buf
+
+func apply_skill(targets, skill_data, self_chara):
+    if skill_data["type"]=="instance":
+        var inst_type=skill_data["info"]["type"]
+        if inst_type == "hp" or inst_type == "life_steal":
+            if skill_data["info"]["data"]["op"]=="add":
+                for chara in targets:
+                    if is_instance_valid(chara) and chara.dead==false:
+                        chara.change_hp(skill_data["info"]["data"]["val"],null)
+                        if inst_type=="life_steal":
+                            self_chara.change_hp(-skill_data["info"]["data"]["val"],null)
+        elif inst_type == "attr":
+            pass
+    elif skill_data["type"]=="buf":
+        var new_buf = create_buf(skill_data["info"])
+        for chara in targets:
+            chara.add_buf(new_buf)
+    elif skill_data["type"]=="push":
+        for chara in targets:
+            chara.add_back_buf(skill_data["distance"])
+
+func request_skill(skill_data, team_id, self_chara):
+    var targets=get_charas_by_group(skill_data["target_scheme"]["group"],skill_data["target_scheme"]["type"], team_id)
+    if self_chara!=null:
+        var range_atk=self_chara.get_min_max_atk_range()
+        targets=get_charas_in_range(range_atk[0], range_atk[1],targets)
+    var target_num=-1
+    if "amount" in skill_data["target_scheme"]:
+        target_num = skill_data["target_scheme"]["amount"]
+    if self_chara!=null:
+        target_num=self_chara.atk_num
+    targets = filter_targets(skill_data["target_scheme"], targets, target_num)
+
+    if len(targets)>0:
         if self_chara!=null:
-            self_chara.play_dash(targets, skill_data)
-    elif len(targets)>0:
-        if self_chara!=null:
+            if skill_data["name"]=="heal_all":
+                var new_targets=[]
+                for c in targets:
+                    if c.hp<c.max_hp:
+                        new_targets.append(c)
+                if len(new_targets)==0:
+                    return 
+                else:
+                    targets=new_targets
             self_chara.play_skill_anim(targets, skill_data["name"])
         else:
-            self_chara.apply_skill(targets, skill_data)
+            apply_skill(targets, skill_data, null)
 
 func request_use_item(item_name):
     if item_name=="done_at_once":
@@ -237,14 +278,13 @@ func request_use_item(item_name):
             item.set_done()
     else:
         var item_dat=Global.items_tb[item_name]
-        request_skill(item_dat, [], 0, null)
+        request_skill(item_dat, 0, null)
 
 func on_request_spawn_chara(chara_info):
     spawn_chara(chara_info["name"], chara_info["lv"], 0)
 
 func remove_chara(chara):
     team_charas[chara.team_id].erase(chara)
-    chara.dead=true
     chara.queue_free()
 
 func expend_gold(val):
@@ -257,20 +297,6 @@ func expend_gold(val):
 func change_gold(val):
     gold=gold+val
     Global.emit_signal("money_change",gold)
-
-func update_star_ui():
-    if star_num==0:
-        get_node(star1_path).visible=false
-        get_node(star2_path).visible=false
-        get_node(star3_path).visible=false
-    elif star_num==1:
-        get_node(star1_path).visible=true
-        get_node(star2_path).visible=false
-        get_node(star3_path).visible=false
-    elif star_num==2:
-        get_node(star1_path).visible=true
-        get_node(star2_path).visible=true
-        get_node(star3_path).visible=false
 
 func update_timer_ui():
     var m = floor(battle_time/60)
@@ -340,35 +366,12 @@ func _physics_process(delta):
         timer_update_delay=1
         update_timer_ui()
     battle_time=battle_time+delta
-    var new_star_num=star_num
-    if battle_time>level_data["star1_time"]:
-        new_star_num=0
-    elif battle_time>level_data["star2_time"] and battle_time<=level_data["star1_time"]:
-        new_star_num=1
-    elif battle_time>level_data["star3_time"] and battle_time<=level_data["star2_time"]:
-        new_star_num=2
-    if new_star_num<star_num:
-        star_num=new_star_num
-        update_star_ui()
     if auto_spawn_countdown>0:
         auto_spawn_countdown=auto_spawn_countdown-delta
     else:
-        var pass_items=[]
-        for n in level_data["rand_pool"]:
-            var t_rand = rand_range(0,1)
-            if t_rand<n["chance"]:
-                pass_items.append(n)
-        var final_pass=null
-        if len(pass_items)==0:
-            var rand_i = floor(rand_range(0,len(level_data["rand_pool"])))
-            final_pass=level_data["rand_pool"][rand_i]
-        elif len(pass_items)>1:
-            var rand_i = floor(rand_range(0,len(pass_items)))
-            final_pass=pass_items[rand_i]
-        else:
-            final_pass=pass_items[0]
-        spawn_chara(final_pass["name"], final_pass["lv"], 1)
-        var rnd_time = level_data["spawn_delay_min"]+rand_range(0,1)*(level_data["spawn_delay_max"]-level_data["spawn_delay_min"])
+        var cell_index=enemy_count%len(level_data["cell_sequence"])
+        spawn_chara(level_data["cell_sequence"][cell_index], level_data["lv"], 1)
+        var rnd_time = level_data["spawn_delay"]*0.5+rand_range(0,1)*(level_data["spawn_delay"]*1.5-level_data["spawn_delay"]*0.5)
         auto_spawn_countdown=rnd_time
 
 func _on_Return_gui_input(event):

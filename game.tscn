@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=2]
+[gd_scene load_steps=27 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
@@ -23,8 +23,6 @@
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=21]
 [ext_resource path="res://ui/texture/circle_yellow.tres" type="Texture" id=22]
 [ext_resource path="res://ui/comfirm_box.tscn" type="PackedScene" id=23]
-[ext_resource path="res://ui/texture/s_star.tres" type="Texture" id=24]
-[ext_resource path="res://ui/texture/s_star_empty.tres" type="Texture" id=25]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=26]
 [ext_resource path="res://ui/texture/rect_empty.tres" type="Texture" id=27]
 
@@ -51,9 +49,6 @@ game_status_path = NodePath("CanvasLayer/Status")
 comfirm_path = NodePath("CanvasLayer/CenterContainer/Comfirm")
 timer_label_path = NodePath("CanvasLayer/Timer/Label")
 lv_name_label_path = NodePath("CanvasLayer/LevelName/Label")
-star1_path = NodePath("CanvasLayer/Stars/Star1")
-star2_path = NodePath("CanvasLayer/Stars/Star2")
-star3_path = NodePath("CanvasLayer/Stars/Star3")
 
 [node name="Camera2D" parent="." instance=ExtResource( 3 )]
 anchor_mode = 0
@@ -149,7 +144,7 @@ tile_data = PoolIntArray( 196608, 1, 0, 196609, 1, 0, 196610, 3, 0, 196611, 1, 0
 position = Vector2( 219, 695 )
 
 [node name="Team2Spawn" type="Node2D" parent="."]
-position = Vector2( 1658, 664 )
+position = Vector2( 3662, 700 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -223,73 +218,6 @@ rect_min_size = Vector2( 70, 70 )
 texture = ExtResource( 21 )
 expand = true
 
-[node name="Stars" type="Control" parent="CanvasLayer"]
-margin_right = 40.0
-margin_bottom = 40.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star1E" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2129.0
-margin_top = 23.0
-margin_right = 2194.0
-margin_bottom = 90.0
-texture = ExtResource( 25 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star1" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2129.0
-margin_top = 23.0
-margin_right = 2194.0
-margin_bottom = 90.0
-texture = ExtResource( 24 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star2E" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2194.0
-margin_top = 23.0
-margin_right = 2259.0
-margin_bottom = 90.0
-texture = ExtResource( 25 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star2" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2194.0
-margin_top = 23.0
-margin_right = 2259.0
-margin_bottom = 90.0
-texture = ExtResource( 24 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star3E" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2258.0
-margin_top = 23.0
-margin_right = 2323.0
-margin_bottom = 90.0
-texture = ExtResource( 25 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Star3" type="TextureRect" parent="CanvasLayer/Stars"]
-margin_left = 2258.0
-margin_top = 23.0
-margin_right = 2323.0
-margin_bottom = 90.0
-texture = ExtResource( 24 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="Timer" type="TextureRect" parent="CanvasLayer"]
 margin_left = 701.0
 margin_top = 22.0
@@ -331,5 +259,7 @@ valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Timer" type="Timer" parent="."]
 
 [connection signal="gui_input" from="CanvasLayer/Return" to="." method="_on_Return_gui_input"]

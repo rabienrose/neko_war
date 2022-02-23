@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/spritesheet2022-02-08T10-40-43.png-13cf9e5e6d0117fc9f335748a8c5c34b.stex"
+path="res://.import/icon76.png-49297892f05d50992b9cd0971849f48d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tools/spritesheet2022-02-08T10-40-43.png"
-dest_files=[ "res://.import/spritesheet2022-02-08T10-40-43.png-13cf9e5e6d0117fc9f335748a8c5c34b.stex" ]
+source_file="res://icon76.png"
+dest_files=[ "res://.import/icon76.png-49297892f05d50992b9cd0971849f48d.stex" ]
 
 [params]
 

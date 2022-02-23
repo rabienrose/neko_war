@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://objects/character.gd" type="Script" id=1]
 [ext_resource path="res://ui/fct_mgr.gd" type="Script" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://binary/images/ui/barHorizontal_yellow.png" type="Texture" id=5]
 [ext_resource path="res://binary/images/ui/barHorizontal_red.png" type="Texture" id=6]
 [ext_resource path="res://binary/images/ui/barHorizontal_frame_narrow.png" type="Texture" id=7]
+[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=8]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -73,11 +74,16 @@ tracks/0/keys = {
 "values": [ Color( 1, 1, 1, 1 ), Color( 1, 0, 0, 0 ) ]
 }
 
+[sub_resource type="DynamicFont" id=7]
+size = 30
+font_data = ExtResource( 8 )
+
 [node name="Chara" type="Node2D"]
 script = ExtResource( 1 )
 sprite_anim_path = NodePath("AnimatedSprite")
 hp_bar_path = NodePath("ProgressBar")
 fct_mgr_path = NodePath("FCTMgr")
+lv_label_path = NodePath("Lv/Label")
 bar_red = ExtResource( 6 )
 bar_green = ExtResource( 4 )
 bar_yellow = ExtResource( 5 )
@@ -118,6 +124,31 @@ one_shot = true
 
 [node name="TeleportTimer" type="Timer" parent="."]
 one_shot = true
+
+[node name="Lv" type="TextureRect" parent="."]
+visible = false
+margin_left = -25.0
+margin_top = -220.0
+margin_right = 25.0
+margin_bottom = -170.0
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Lv"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color_shadow = Color( 0.219608, 0.184314, 0.101961, 1 )
+custom_constants/shadow_offset_x = 2
+custom_constants/shadow_offset_y = 2
+custom_fonts/font = SubResource( 7 )
+text = "20"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_AnimatedSprite_animation_finished"]
 [connection signal="timeout" from="AtkTimer" to="." method="on_atk_timeout"]

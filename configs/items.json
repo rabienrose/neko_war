@@ -15,10 +15,10 @@
             "type":"hp",
             "data":{
                 "op":"add",
-                "val":10
+                "val":100
             }
         },
-        "desc":"Recover all characters 10 hp."
+        "desc":"Recover all characters 100 hp."
     },
     "add_atk":{
         "name":"add_atk",

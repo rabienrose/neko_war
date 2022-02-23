@@ -25,8 +25,9 @@ var items_tb={}
 var skills_tb={}
 var atk_buf_tb={}
 var chara_anim={}
+var lv_chara_type_list=[]
 
-var sel_level=0
+var sel_level="0/0/0"
 
 var lottery_price=70
 
@@ -47,26 +48,27 @@ func _ready():
         user_data={}
         user_data["gold"]=0
         var chara_info={}
-        chara_info["name"]="paohui"
+        chara_info["name"]="sword"
         chara_info["lv"]=1
         user_data["characters"]=[chara_info]
         var equip_info={}
-        equip_info["chara"]=["paohui","paohui","","",""]
-        equip_info["item"]=["hp_recover","","","",""]
+        equip_info["chara"]=["sword","","","",""]
+        equip_info["item"]=["","","","",""]
         user_data["equip"]=equip_info
         user_data["levels"]={}
-        var level_info={}
-        level_info["lv"]=0
-        level_info["star"]=2
-        user_data["levels"][str(level_info["lv"])]=level_info
-        var item_info={}
-        item_info["name"]="hp_recover"
-        item_info["num"]=10
-        user_data["items"]=[item_info]
+        user_data["items"]=[]
     f = File.new()
     f.open(levels_info_path, File.READ)
     content = f.get_as_text()
     levels_tb = JSON.parse(content).result
+    var temp_chara_type_set={}
+    lv_chara_type_list.append(0)
+    for key in levels_tb:
+        var t_chara_type=key.split("/")[0]
+        if t_chara_type in temp_chara_type_set or t_chara_type=="0":
+            continue
+        lv_chara_type_list.append(t_chara_type)
+        temp_chara_type_set[t_chara_type]=1
     f.close()
     f = File.new()
     f.open(items_info_path, File.READ)
@@ -149,11 +151,8 @@ func get_my_item_info(item_name):
             return item
     return null
 
-func get_level_info(lv):
-    for dat in levels_tb:
-        if dat["lv"]==lv:
-            return dat
-    return null
+func get_level_info(lv_name):
+    return levels_tb[lv_name]
 
 func get_max_level():
     return levels_tb[len(levels_tb)-1]["lv"]

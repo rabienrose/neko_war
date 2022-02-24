@@ -12,6 +12,7 @@ var bullet_spd=900
 func play(_s_pos, _e_pos):
     s_pos=_s_pos
     e_pos=_e_pos
+    position=s_pos
     var bullet=get_node("Sprite")
     if bullet.visible==false:
         bullet=get_node("AnimatedSprite")

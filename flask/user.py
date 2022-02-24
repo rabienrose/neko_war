@@ -37,7 +37,7 @@ class UserInfo:
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":user_info})
 
     def get_info(self):
-        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0})
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"account":0, "password":0})
         query_re["token"]=self.token
         return query_re
 

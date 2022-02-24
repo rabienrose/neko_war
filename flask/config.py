@@ -18,3 +18,5 @@ pp=pprint.PrettyPrinter(width=41, compact=True)
 myclient = pymongo.MongoClient(mongo_conn)
 myclient.server_info()
 user_table=myclient["neko_war"]["user"]
+level_table=myclient["neko_war"]["level"]
+game_table=myclient["neko_war"]["game"]

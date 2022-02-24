@@ -30,6 +30,7 @@ var auto_spawn_countdown=0
 var scene_min=440
 var scene_max=3500
 var gold=100
+var gold_enemy=100
 var stop=false
 var battle_time=0
 var timer_update_delay=1
@@ -37,8 +38,10 @@ var self_count=0
 var live_self_count=0
 var enemy_count=0
 var live_enemy_count=0
-
+var ai_op_delay=0.2
+var ai_chara_hotkey=[]
 var level_data=null
+var ai_node
 
 func _ready():
     level_data=Global.get_level_info(Global.sel_level)
@@ -51,6 +54,7 @@ func _ready():
     spawn_building("base1", 0)
     spawn_building("base2", 1)
     gold=level_data["init_gold"]
+    gold_enemy=level_data["init_gold"]
     Global.emit_signal("money_change",gold)
     var cancel_cb = funcref(self, "cancel_cb")
     var go_home_cb = funcref(self, "go_home_cb")
@@ -60,6 +64,12 @@ func _ready():
     update_timer_ui()
     get_node(lv_name_label_path).text="Lv: "+str(level_data["lv"])
     Global.connect("money_change",self,"on_money_change")
+    ai_node=Node.new()
+    ai_node.set_script(load("res://ai/ai.gd"))
+    add_child(ai_node)
+    var ai_info={}
+    ai_info["charas"]=[{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
+    ai_node.init(self, ai_info)
 
 func cancel_cb():
     get_tree().paused = false
@@ -190,7 +200,7 @@ func get_charas_by_group(group_names, type_names, team_id):
                 targets.append(c)
     return targets
 
-func filter_targets(target_scheme, targets, amount):
+func filter_targets(target_scheme, targets, amount, self_chara):
     if amount!=-1:
         var new_targets=[]
         if target_scheme["sel_type"]=="min_hp":
@@ -201,6 +211,18 @@ func filter_targets(target_scheme, targets, amount):
             targets.sort_custom(self, "index_comparison_dec")
         elif target_scheme["sel_type"]=="old":
             targets.sort_custom(self, "index_comparison_inc")
+        elif target_scheme["sel_type"]=="near":
+            var near_char=null
+            var min_dist=-1
+            for t in targets:
+                var dist = abs(t.position.x-self_chara.position.x)
+                if t==self_chara:
+                    continue
+                if near_char==null or dist<min_dist:
+                    min_dist=dist
+                    near_char=t
+            if near_char!=null:
+                targets=[near_char]
         for c in targets:
             new_targets.append(c)
             if len(new_targets)>=amount:
@@ -255,7 +277,8 @@ func request_skill(skill_data, team_id, self_chara):
         target_num = skill_data["target_scheme"]["amount"]
     if self_chara!=null:
         target_num=self_chara.atk_num
-    targets = filter_targets(skill_data["target_scheme"], targets, target_num)
+    if len(targets)>0:
+        targets = filter_targets(skill_data["target_scheme"], targets, target_num, self_chara)
 
     if len(targets)>0:
         if self_chara!=null:
@@ -291,12 +314,15 @@ func expend_gold(val):
     if gold-val<0:
         return false
     else:
-        change_gold(-val)
+        change_gold(-val, 0)
         return true
     
-func change_gold(val):
-    gold=gold+val
-    Global.emit_signal("money_change",gold)
+func change_gold(val, team_id):
+    if team_id==0:
+        gold=gold+val
+        Global.emit_signal("money_change",gold)
+    else:
+        gold_enemy=gold_enemy+val
 
 func update_timer_ui():
     var m = floor(battle_time/60)
@@ -366,13 +392,20 @@ func _physics_process(delta):
         timer_update_delay=1
         update_timer_ui()
     battle_time=battle_time+delta
+    # print(ai_chara_hotkey[0]["countdown"])
+    for item in ai_chara_hotkey:
+        item["countdown"]=item["countdown"]-delta
     if auto_spawn_countdown>0:
         auto_spawn_countdown=auto_spawn_countdown-delta
     else:
-        var cell_index=enemy_count%len(level_data["cell_sequence"])
-        spawn_chara(level_data["cell_sequence"][cell_index], level_data["lv"], 1)
-        var rnd_time = level_data["spawn_delay"]*0.5+rand_range(0,1)*(level_data["spawn_delay"]*1.5-level_data["spawn_delay"]*0.5)
-        auto_spawn_countdown=rnd_time
+        var op= ai_node.ai_get_op()
+        if op!= null and op["type"]=="chara":
+            var temp_info=ai_chara_hotkey[op["ind"]]
+            spawn_chara(temp_info["name"], temp_info["lv"], 1)
+            var chara_info=Global.chara_tb[temp_info["name"]]
+            temp_info["countdown"]=chara_info["build_time"]
+            gold_enemy=gold_enemy-chara_info["build_cost"]
+        auto_spawn_countdown=ai_op_delay
 
 func _on_Return_gui_input(event):
     if event is InputEventScreenTouch:

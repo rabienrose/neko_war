@@ -288,11 +288,11 @@ for line in lines:
             chara_attr_tb[chara_names[i-2]][attr_name]=var
 f.close()
 
-# generate_chara_config(chara_attr_tb)
-total_levs={}
-generate_levels_config(["sword"],2,total_levs,1.1)
-generate_levels_config(["sword","bow"],1,total_levs,1.1)
-generate_levels_config(["skeleton_shield","sword","skeleton_shield","bow"],0,total_levs,1.1)
+generate_chara_config(chara_attr_tb)
+# total_levs={}
+# generate_levels_config(["sword"],2,total_levs,1.1)
+# generate_levels_config(["sword","bow"],1,total_levs,1.1)
+# generate_levels_config(["skeleton_shield","sword","skeleton_shield","bow"],0,total_levs,1.1)
 
 
 

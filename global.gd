@@ -31,44 +31,52 @@ var sel_level="0/0/0"
 
 var lottery_price=70
 
+var local_mode=true
+
+var http
+var server_url="127.0.0.1:9001"
+
 func _ready():
     randomize()
+    if local_mode:
+        var f = File.new()
+        if f.file_exists(user_data_path):
+            f.open(user_data_path, File.READ)
+            var out_str = f.get_as_text()
+            user_data = JSON.parse(out_str).result
+            f.close()
+        else:
+            user_data={}
+            user_data["gold"]=0
+            var chara_info={}
+            chara_info["name"]="sword"
+            chara_info["lv"]=1
+            user_data["characters"]=[chara_info]
+            var equip_info={}
+            equip_info["chara"]=["sword","","","",""]
+            equip_info["item"]=["","","","",""]
+            user_data["equip"]=equip_info
+            user_data["levels"]={}
+            user_data["items"]=[]
+        f = File.new()
+        f.open(levels_info_path, File.READ)
+        var content = f.get_as_text()
+        levels_tb = JSON.parse(content).result
+        var temp_chara_type_set={}
+        lv_chara_type_list.append(0)
+        for key in levels_tb:
+            var t_chara_type=key.split("/")[0]
+            if t_chara_type in temp_chara_type_set or t_chara_type=="0":
+                continue
+            lv_chara_type_list.append(t_chara_type)
+            temp_chara_type_set[t_chara_type]=1
+        f.close()
+    else:
+        check_update()
     var f=File.new()
     f.open(char_tb_file_path, File.READ)
     var content = f.get_as_text()
     chara_tb = JSON.parse(content).result
-    f.close()
-    f = File.new()
-    if f.file_exists(user_data_path):
-        f.open(user_data_path, File.READ)
-        var out_str = f.get_as_text()
-        user_data = JSON.parse(out_str).result
-        f.close()
-    else:
-        user_data={}
-        user_data["gold"]=0
-        var chara_info={}
-        chara_info["name"]="sword"
-        chara_info["lv"]=1
-        user_data["characters"]=[chara_info]
-        var equip_info={}
-        equip_info["chara"]=["sword","","","",""]
-        equip_info["item"]=["","","","",""]
-        user_data["equip"]=equip_info
-        user_data["levels"]={}
-        user_data["items"]=[]
-    f = File.new()
-    f.open(levels_info_path, File.READ)
-    content = f.get_as_text()
-    levels_tb = JSON.parse(content).result
-    var temp_chara_type_set={}
-    lv_chara_type_list.append(0)
-    for key in levels_tb:
-        var t_chara_type=key.split("/")[0]
-        if t_chara_type in temp_chara_type_set or t_chara_type=="0":
-            continue
-        lv_chara_type_list.append(t_chara_type)
-        temp_chara_type_set[t_chara_type]=1
     f.close()
     f = File.new()
     f.open(items_info_path, File.READ)
@@ -85,6 +93,25 @@ func _ready():
     f.close()
     connect("request_battle",self,"on_request_start_battle")
     connect("request_go_home",self,"on_request_go_home")
+
+func check_update():
+    pass
+
+func update_data_remote():
+    http=HTTPRequest.new()
+    http.connect("request_completed", self, "on_get_user")
+    add_child(http)
+    var query_info={}
+    query_info["token"]="Client.user_token"
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/on_get_user", headers, false, HTTPClient.METHOD_POST, query)
+
+func on_get_user(result, response_code, headers, body):
+    http.queue_free()
+
+func on_get_levels(result, response_code, headers, body):
+    pass
 
 func save_user_data():
     var f=File.new()

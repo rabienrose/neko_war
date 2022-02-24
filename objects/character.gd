@@ -200,7 +200,7 @@ func update_atk_targets():
     var targets=game.get_charas_by_group(target_scheme["group"],target_scheme["type"], team_id)
     var range_atk=get_min_max_atk_range()
     var chars_in_range=game.get_charas_in_range(range_atk[0], range_atk[1],targets)
-    return game.filter_targets(target_scheme, chars_in_range, atk_num)
+    return game.filter_targets(target_scheme, chars_in_range, atk_num, self)
 
 func play_continue():
     var atk_targets = update_atk_targets()
@@ -446,12 +446,19 @@ func get_hit_pos(fx):
     return g_pos
 
 func on_die(_chara):
-    if team_id==1 and gold>0:
-        game.change_gold(gold)
-        var coin_ef_num=int(gold/10)+1
-        if coin_ef_num>10:
-            coin_ef_num=10
-        game.fx_mgr.play_coin_fx(coin_ef_num, fx_pos_node.position+position)
+    if gold>0:
+        var discount_gold=gold*0.9
+        var hard_discount_gold=discount_gold*0.0
+        if team_id==0:
+            discount_gold=discount_gold+hard_discount_gold
+        else:
+            discount_gold=discount_gold-hard_discount_gold
+        game.change_gold(discount_gold, get_enemy_team_id())
+        if team_id==1:
+            var coin_ef_num=int(gold/10)+1
+            if coin_ef_num>10:
+                coin_ef_num=10
+            game.fx_mgr.play_coin_fx(coin_ef_num, fx_pos_node.position+position)
     anim_sprite.speed_scale=1
     change_animation("die", "die")
     if len(die_fx)>0:
@@ -480,7 +487,7 @@ func change_hp(val, chara, b_critical=false):
             anim_player.play("red")
     else:
         fct_mgr.show_value(str(actual_val), Color.green)
-    update_chara_panel()
+    # update_chara_panel()
 
 func update_chara_panel():
     hp_bar.texture_progress = bar_green

@@ -18,7 +18,6 @@ func ai_get_op():
         if item["countdown"]<=0 and chara_info["build_cost"]<=game.gold_enemy:
             var op={"type":"chara"}
             op["ind"]=i
-            print(i)
             return op
     return null
 

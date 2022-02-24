@@ -92,6 +92,7 @@ bar_yellow = ExtResource( 5 )
 material = SubResource( 5 )
 
 [node name="ProgressBar" type="TextureProgress" parent="."]
+visible = false
 margin_left = -30.0
 margin_top = 6.0
 margin_bottom = 14.0
@@ -115,9 +116,6 @@ position = Vector2( 0, -100 )
 anims/RESET = SubResource( 4 )
 anims/red = SubResource( 3 )
 anims/white = SubResource( 6 )
-
-[node name="AtkTimer" type="Timer" parent="."]
-one_shot = true
 
 [node name="ShootTimer" type="Timer" parent="."]
 one_shot = true
@@ -151,6 +149,5 @@ __meta__ = {
 }
 
 [connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_AnimatedSprite_animation_finished"]
-[connection signal="timeout" from="AtkTimer" to="." method="on_atk_timeout"]
 [connection signal="timeout" from="ShootTimer" to="." method="on_shoot_timeout"]
 [connection signal="timeout" from="TeleportTimer" to="." method="on_teleport"]

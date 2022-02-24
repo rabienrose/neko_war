@@ -15,7 +15,6 @@ func set_attr_data(data):
     hp_bar.max_value=max_hp
     hp_bar.value=max_hp
     type="building"
-    update_chara_panel()
 
 func set_anim(anim_data, info):
     hit_fx=info["hit_fx"]

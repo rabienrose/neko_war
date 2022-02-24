@@ -40,8 +40,13 @@ var enemy_count=0
 var live_enemy_count=0
 var ai_op_delay=0.2
 var ai_chara_hotkey=[]
+var self_chara_hotkey=[]
 var level_data=null
 var ai_node
+var op_record=[]
+
+var chara_inputs=[]
+var item_inputs=[]
 
 func _ready():
     level_data=Global.get_level_info(Global.sel_level)
@@ -308,14 +313,7 @@ func on_request_spawn_chara(chara_info):
 
 func remove_chara(chara):
     team_charas[chara.team_id].erase(chara)
-    chara.queue_free()
-
-func expend_gold(val):
-    if gold-val<0:
-        return false
-    else:
-        change_gold(-val, 0)
-        return true
+    chara.queue_free()    
     
 func change_gold(val, team_id):
     if team_id==0:
@@ -349,10 +347,12 @@ func use_item_cb(item):
     return true
 
 func start_chara_cb(item):
-    return expend_gold(item.custom_val)
-
-func end_chara_cb(item):
-    on_request_spawn_chara(item.custom_info)
+    if gold>=item.custom_val:
+        chara_inputs.append(item.index)
+        return true
+    else:
+        return false
+    
 
 func on_money_change(val):
     for c in chara_gen_ui.get_items():
@@ -372,8 +372,7 @@ func update_hotkey_ui():
         var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
         var icon_texture=load(icon_file_path)
         var click_cb = funcref(self, "start_chara_cb")
-        var delay_cb = funcref(self, "end_chara_cb")
-        chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb, delay_cb)
+        chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i)
     for i in range(len(Global.user_data["equip"]["item"])):
         var item_name=Global.user_data["equip"]["item"][i]
         if item_name=="":
@@ -384,7 +383,7 @@ func update_hotkey_ui():
         var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
         var icon_texture=load(icon_file_path)
         var click_cb = funcref(self, "use_item_cb")
-        item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,null)
+        item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
 func _physics_process(delta):
     timer_update_delay=timer_update_delay-delta
@@ -392,19 +391,30 @@ func _physics_process(delta):
         timer_update_delay=1
         update_timer_ui()
     battle_time=battle_time+delta
-    # print(ai_chara_hotkey[0]["countdown"])
     for item in ai_chara_hotkey:
+        item["countdown"]=item["countdown"]-delta
+    for item in self_chara_hotkey:
         item["countdown"]=item["countdown"]-delta
     if auto_spawn_countdown>0:
         auto_spawn_countdown=auto_spawn_countdown-delta
     else:
+        if len(chara_inputs)>0:
+            for key in chara_inputs:
+                var chara_name=self_chara_hotkey[key]["name"]
+                var chara_info=Global.chara_tb[chara_name]
+                if self_chara_hotkey[key]["countdown"]<0 and chara_info["build_cost"]<=gold:
+                    self_chara_hotkey[key]["countdown"]=chara_info["build_time"]
+                    spawn_chara(chara_name, self_chara_hotkey[key]["lv"], 0)
+                    change_gold(-chara_info["build_cost"], 0)
+            op_record.append({"time":battle_time,"input":chara_inputs.duplicate()})
+            chara_inputs=[]
         var op= ai_node.ai_get_op()
         if op!= null and op["type"]=="chara":
             var temp_info=ai_chara_hotkey[op["ind"]]
             spawn_chara(temp_info["name"], temp_info["lv"], 1)
             var chara_info=Global.chara_tb[temp_info["name"]]
             temp_info["countdown"]=chara_info["build_time"]
-            gold_enemy=gold_enemy-chara_info["build_cost"]
+            change_gold(-chara_info["build_cost"], 1)
         auto_spawn_countdown=ai_op_delay
 
 func _on_Return_gui_input(event):

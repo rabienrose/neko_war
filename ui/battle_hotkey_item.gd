@@ -18,7 +18,7 @@ var countdown=0
 var in_gen=false
 var custom_val
 var click_cb=null
-var delay_cb=null
+var index
 
 func _ready():
     cost_label_node=get_node(cost_label_path)
@@ -26,7 +26,8 @@ func _ready():
     progress_node=get_node(progress_path)
     avia_mask_node=get_node(cost_mask_path)
 
-func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb, _delay_cb):
+func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb,_index):
+    index=_index
     delay_time=_delay_time
     set_val(val)
     has_item=true
@@ -34,7 +35,6 @@ func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb, _delay_cb):
     icon_node.texture=icon_tex
     custom_info=_custom_info
     click_cb=_click_cb
-    delay_cb=_delay_cb
 
 func set_val(val):
     cost_label_node.text=str(val)
@@ -63,15 +63,13 @@ func _on_CharaUIItem_gui_input(event:InputEvent):
 func shake_box():
     $AnimationPlayer.play("shake")
 
-func _process(_delta):
+func _physics_process(_delta):
     if countdown>0:
         countdown=countdown-_delta
         progress_node.value=int(countdown/delay_time*100)
     else:
         if in_gen:
             in_gen=false
-            if delay_cb!=null:
-                delay_cb.call_func(self)
             progress_node.value=0
             shake_box()
 

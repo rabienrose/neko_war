@@ -44,6 +44,7 @@ var gold=20
 var atk_num=1
 var target_scheme=null
 var self_destroy=false
+var hit_delay=0
 
 #static status
 var type=""
@@ -61,12 +62,18 @@ var mov_skill_delay=5
 var back_spd=1000
 
 #temp_status
-var check_atk_countdown=0
 var status="mov"
 var pending_atk_tar=[]
 var cur_skill=""
 var skill_mov_delay_count=mov_skill_delay
 var dead=false
+var atk_pre_countdown=0
+var atk_after_countdown=0
+var in_atk_pre=false
+var in_atk_after=false
+
+var hit_delay_countdown=0
+var in_hit_delay=false
 
 #list status
 var bufs={}
@@ -74,7 +81,6 @@ var skills={}
 var atk_buf={}
 
 var game
-var atk_timer
 var shoot_timer
 var shoot_fx=[]
 var atk_fx=[]
@@ -89,7 +95,6 @@ func _ready():
     hp_bar=get_node(hp_bar_path)
     fct_mgr=get_node(fct_mgr_path)
     hp_bar.rect_position.y=hp_bar.rect_position.y+rand_range(0,190)
-    atk_timer=get_node("AtkTimer")
     shoot_timer=get_node("ShootTimer")
 
 func on_create(_game):
@@ -107,7 +112,6 @@ func set_attr_data(data):
     hp_bar.max_value=max_hp
     hp_bar.value=max_hp
     type="chara"
-    update_chara_panel()
     chara_index=data["index"]
     skills=data["skills"]
     atk_buf=data["atk_buf"]
@@ -117,10 +121,6 @@ func set_attr_data(data):
     cri=data["cri"]
     atk_num=data["atk_num"]
     self_destroy=data["self_destroy"]
-    # get_node(lv_label_path).text=str(data["lv"])
-    # var label_parent=get_node(lv_label_path).get_parent()
-    # label_parent.visible=true
-
 
 func add_back_buf(dist):
     var buf=Buf.new()
@@ -173,10 +173,12 @@ func attack(atk_targets):
 func play_hit(source_fx_info):
     if len(source_fx_info)==0:
         return
-    var fx=Global.rand_in_list(source_fx_info)
-    game.fx_mgr.play_frame_fx(fx, get_hit_pos(fx))
-    change_animation("hit", "hit")
-    atk_timer.stop()
+    if hit_delay>0.02:
+        var fx=Global.rand_in_list(source_fx_info)
+        game.fx_mgr.play_frame_fx(fx, get_hit_pos(fx))
+        change_animation("hit", "hit")
+        hit_delay_countdown=hit_delay
+        in_hit_delay=true
 
 func show_miss():
     if team_id==0:
@@ -245,12 +247,6 @@ func on_teleport():
 func on_shoot_timeout():
     apply_attck()
 
-func on_atk_timeout():
-    if dead:
-        return
-    var atk_targets = update_atk_targets()
-    attack(atk_targets)
-
 func change_animation(anim_name, _status):
     anim_sprite.animation=anim_name
     anim_sprite.frame=0
@@ -258,32 +254,8 @@ func change_animation(anim_name, _status):
     status=_status
 
 func _on_AnimatedSprite_animation_finished():
-    if status=="atk":
-        process_skills()
-        if status=="atk":
-            play_continue()
-    elif dead==true:
+    if dead==true:
         game.remove_chara(self)
-    elif status=="hit":
-        play_continue()
-    elif anim_sprite.animation=="teleport":
-        visible=false
-        get_node("TeleportTimer").start(Global.skills_tb[cur_skill]["delay"])
-    elif anim_sprite.animation=="teleport_reverse":
-        cur_skill=""
-        play_continue()
-    elif anim_sprite.animation=="dash":
-        cur_skill=""
-        play_continue()
-    elif status=="skill":
-        if cur_skill!="":
-            game.apply_skill(pending_atk_tar, Global.skills_tb[cur_skill], self)
-            cur_skill=""
-            pending_atk_tar=[]
-        if status=="skill":
-            play_continue()
-    elif status=="stun":
-        change_animation("hit","stun")
 
 func set_anim(anim_data, info):
     shoot_fx=info["shoot_fx"]
@@ -363,10 +335,13 @@ func play_atk():
         temp_atk_spd=0.1
     var atk_period=1/temp_atk_spd
     var atk_time=atk_period*float(atk_frame)/frame_num
-    atk_timer.start(atk_time)
     anim_sprite.speed_scale=1
     var fps=frame_num/atk_period
     anim_sprite.speed_scale=fps/10
+    atk_pre_countdown=atk_time
+    atk_after_countdown=atk_period
+    in_atk_pre=true
+    in_atk_after=true
 
 func process_skills():
     if status=="skill" and dead==true:
@@ -421,23 +396,41 @@ func _physics_process(delta):
         if check_if_outside(global_position.x):
             game.remove_chara(self)
             return
-        if check_atk_countdown<0:
-            check_atk_countdown=rand_range(0.03,0.1)
-            skill_mov_delay_count=skill_mov_delay_count-1
-            if skill_mov_delay_count<0:
-                skill_mov_delay_count=mov_skill_delay
-                process_skills()
-            if status=="mov":
+        skill_mov_delay_count=skill_mov_delay_count-1
+        if skill_mov_delay_count<0:
+            skill_mov_delay_count=mov_skill_delay
+            process_skills()
+        if status=="mov":
+            var atk_targets = update_atk_targets()
+            if len(atk_targets)>0:
+                if self_destroy: #hack for self_destory character
+                    position.x=atk_targets[0].position.x
+                    atk_targets = update_atk_targets()
+                    attack(atk_targets)
+                    change_hp(-1000,null)
+                else:
+                    play_atk()
+    if status=="atk":
+        atk_pre_countdown=atk_pre_countdown-delta
+        if in_atk_pre and atk_pre_countdown<=0:
+            in_atk_pre=false
+            if dead==false:
                 var atk_targets = update_atk_targets()
-                if len(atk_targets)>0:
-                    if self_destroy: #hack for self_destory character
-                        position.x=atk_targets[0].position.x
-                        atk_targets = update_atk_targets()
-                        attack(atk_targets)
-                        change_hp(-1000,null)
-                    else:
-                        play_atk()
-        check_atk_countdown=check_atk_countdown-delta
+                attack(atk_targets)
+        atk_after_countdown=atk_after_countdown-delta
+        if in_atk_after and atk_after_countdown<=0:
+            in_atk_after=false
+            if dead==false:
+                process_skills()
+                if status=="atk":
+                    play_continue()
+    if status=="hit":
+        hit_delay_countdown=hit_delay_countdown-delta
+        if in_hit_delay and hit_delay_countdown<=0:
+            in_hit_delay=false
+            if dead==false:
+                play_continue()
+            
 
 func get_hit_pos(fx):
     var g_pos=fx_pos_node.global_position
@@ -487,17 +480,5 @@ func change_hp(val, chara, b_critical=false):
             anim_player.play("red")
     else:
         fct_mgr.show_value(str(actual_val), Color.green)
-    # update_chara_panel()
 
-func update_chara_panel():
-    hp_bar.texture_progress = bar_green
-    if hp < max_hp * 0.7:
-        hp_bar.texture_progress = bar_yellow
-    if hp < max_hp * 0.35:
-        hp_bar.texture_progress = bar_red
-    hp_bar.value = hp
-    if hp<max_hp:
-        hp_bar.visible=true
-    else:
-        hp_bar.visible=false
 

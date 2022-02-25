@@ -4,6 +4,7 @@ var game
 
 var start_seg=[]
 var start_ind=-1
+var team_id=1
 
 func _ready():
     pass        
@@ -15,7 +16,7 @@ func ai_get_op():
     for i in range(len(temp_hk_config)):
         var item=temp_hk_config[i]
         var chara_info=Global.chara_tb[item["name"]]
-        if item["countdown"]<=0 and chara_info["build_cost"]<=game.gold_enemy:
+        if item["countdown"]<=0 and chara_info["build_cost"]<=game.gold_num[team_id]:
             var op={"type":"chara"}
             op["ind"]=i
             return op

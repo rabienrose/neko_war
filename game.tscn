@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=2]
+[gd_scene load_steps=30 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
@@ -23,6 +23,8 @@
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=21]
 [ext_resource path="res://ui/texture/circle_yellow.tres" type="Texture" id=22]
 [ext_resource path="res://ui/comfirm_box.tscn" type="PackedScene" id=23]
+[ext_resource path="res://ui/texture/l_bg_gray.tres" type="Texture" id=24]
+[ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=25]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=26]
 [ext_resource path="res://ui/texture/rect_empty.tres" type="Texture" id=27]
 
@@ -30,6 +32,10 @@
 size = 50
 outline_size = 5
 outline_color = Color( 0, 0, 0, 0.364706 )
+font_data = ExtResource( 26 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 100
 font_data = ExtResource( 26 )
 
 [node name="Game" type="Node2D"]
@@ -49,6 +55,7 @@ game_status_path = NodePath("CanvasLayer/Status")
 comfirm_path = NodePath("CanvasLayer/CenterContainer/Comfirm")
 timer_label_path = NodePath("CanvasLayer/Timer/Label")
 lv_name_label_path = NodePath("CanvasLayer/LevelName/Label")
+lobby_path = NodePath("CanvasLayer/Lobby")
 
 [node name="Camera2D" parent="." instance=ExtResource( 3 )]
 anchor_mode = 0
@@ -260,6 +267,45 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Lobby" type="NinePatchRect" parent="CanvasLayer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 25 )
+patch_margin_left = 975
+patch_margin_top = 40
+patch_margin_right = 976
+patch_margin_bottom = 31
+
+[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/Lobby"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Join" type="TextureRect" parent="CanvasLayer/Lobby/CenterContainer"]
+margin_left = 982.0
+margin_top = 491.0
+margin_right = 1382.0
+margin_bottom = 691.0
+rect_min_size = Vector2( 400, 200 )
+mouse_filter = 0
+texture = ExtResource( 24 )
+expand = true
+
+[node name="Label" type="Label" parent="CanvasLayer/Lobby/CenterContainer/Join"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 2 )
+text = "JOIN"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Timer" type="Timer" parent="."]
 
 [connection signal="gui_input" from="CanvasLayer/Return" to="." method="_on_Return_gui_input"]
+[connection signal="gui_input" from="CanvasLayer/Lobby/CenterContainer/Join" to="." method="_on_Join_gui_input"]

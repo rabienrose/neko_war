@@ -44,7 +44,7 @@ var gold=20
 var atk_num=1
 var target_scheme=null
 var self_destroy=false
-var hit_delay=0
+var hit_delay=0.5
 
 #static status
 var type=""

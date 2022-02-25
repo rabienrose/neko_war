@@ -47,8 +47,12 @@ var op_record=[]
 
 var chara_inputs=[]
 var item_inputs=[]
+var next_replay_time=0
+var next_replay_index=0
+var replay_mode=true
 
 func _ready():
+    Global.rng.seed=0
     level_data=Global.get_level_info(Global.sel_level)
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
@@ -75,6 +79,14 @@ func _ready():
     var ai_info={}
     ai_info["charas"]=[{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
     ai_node.init(self, ai_info)
+    for chara_name in Global.user_data["equip"]["chara"]:
+        var c_lv=Global.get_my_chara_info(chara_name)["lv"]
+        self_chara_hotkey.append({"name":chara_name,"lv":c_lv})
+    for item in self_chara_hotkey:
+        item["countdown"]=0
+    if replay_mode:
+        op_record = Global.load_battle_record()
+        next_replay_time=op_record[0]["time"]
 
 func cancel_cb():
     get_tree().paused = false
@@ -91,6 +103,8 @@ func stop_game(b_win):
     if b_win==false:
         lv_gold=0
     get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
+    if replay_mode==false:
+        Global.save_battle_record(op_record)
     Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
     var lv_str=Global.sel_level
     if b_win:
@@ -347,12 +361,15 @@ func use_item_cb(item):
     return true
 
 func start_chara_cb(item):
+    if replay_mode:
+        return false
     if gold>=item.custom_val:
-        chara_inputs.append(item.index)
-        return true
+        if not item.index in chara_inputs:
+            chara_inputs.append(item.index)
+            return true
+        return false
     else:
         return false
-    
 
 func on_money_change(val):
     for c in chara_gen_ui.get_items():
@@ -390,7 +407,7 @@ func _physics_process(delta):
     if timer_update_delay<0:
         timer_update_delay=1
         update_timer_ui()
-    battle_time=battle_time+delta
+    battle_time=stepify(battle_time+delta,0.01)
     for item in ai_chara_hotkey:
         item["countdown"]=item["countdown"]-delta
     for item in self_chara_hotkey:
@@ -398,6 +415,14 @@ func _physics_process(delta):
     if auto_spawn_countdown>0:
         auto_spawn_countdown=auto_spawn_countdown-delta
     else:
+        if replay_mode:
+            if next_replay_time<=battle_time:
+                chara_inputs=op_record[next_replay_index]["input"].duplicate()
+                if next_replay_index+1<len(op_record):
+                    next_replay_index=next_replay_index+1
+                    next_replay_time=op_record[next_replay_index]["time"]
+                else:
+                    next_replay_time=10000
         if len(chara_inputs)>0:
             for key in chara_inputs:
                 var chara_name=self_chara_hotkey[key]["name"]
@@ -406,7 +431,8 @@ func _physics_process(delta):
                     self_chara_hotkey[key]["countdown"]=chara_info["build_time"]
                     spawn_chara(chara_name, self_chara_hotkey[key]["lv"], 0)
                     change_gold(-chara_info["build_cost"], 0)
-            op_record.append({"time":battle_time,"input":chara_inputs.duplicate()})
+            if replay_mode==false:
+                op_record.append({"time":battle_time ,"input":chara_inputs.duplicate()})
             chara_inputs=[]
         var op= ai_node.ai_get_op()
         if op!= null and op["type"]=="chara":

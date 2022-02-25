@@ -36,8 +36,10 @@ var local_mode=true
 var http
 var server_url="127.0.0.1:9001"
 
+var rng 
+
 func _ready():
-    randomize()
+    rng = RandomNumberGenerator.new()
     if local_mode:
         var f = File.new()
         if f.file_exists(user_data_path):
@@ -120,6 +122,21 @@ func save_user_data():
     f.store_string(temp_json_str)
     f.close()
 
+func save_battle_record(data):
+    var f=File.new()
+    f.open("user://temp_battle_record.json", File.WRITE)
+    var temp_json_str=JSON.print(data)
+    f.store_string(temp_json_str)
+    f.close()
+
+func load_battle_record():
+    var f=File.new()
+    f.open("user://temp_battle_record.json", File.READ)
+    var out_str = f.get_as_text()
+    var data = JSON.parse(out_str).result
+    f.close()
+    return data
+
 func get_char_anim(char_name, type):
     var anim_file = chara_tb[char_name]["appearance"]
     if not anim_file in chara_anim:
@@ -130,11 +147,11 @@ func get_fx_frame_anim(fx_name):
     return load("res://anim_sprite/effect/"+fx_name+".tres")
 
 func check_prob_pass(p):
-    var temp_r=rand_range(0,1)
+    var temp_r=rng.randf_range(0,1)
     return temp_r<=p
 
 func rand_in_list(list_data):
-    return list_data[floor(rand_range(0,1)*len(list_data))]
+    return list_data[floor(rng.randf_range(0,1)*len(list_data))]
 
 func on_request_start_battle(lv):
     sel_level=lv

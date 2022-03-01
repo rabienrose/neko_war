@@ -14,16 +14,17 @@ export (NodePath) var summary_path
 export (NodePath) var game_status_path
 export (NodePath) var comfirm_path
 export (NodePath) var timer_label_path
-export (NodePath) var lv_name_label_path
 export (NodePath) var lobby_path
-
-export (NodePath) var star1_path
-export (NodePath) var star2_path
-export (NodePath) var star3_path
+export (NodePath) var lobby_msg_path
+export (NodePath) var chara1_list_path
+export (NodePath) var chara2_list_path
+export (NodePath) var meat1_label_path
+export (NodePath) var meat2_label_path
+export (NodePath) var diamond1_label_path
+export (NodePath) var diamond2_label_path
 
 var fx_mgr
 var char_root
-var spawn_nodes=[]
 var chara_gen_ui
 var item_use_ui
 var frame_time_countdown=0
@@ -33,31 +34,52 @@ var scene_max=3500
 var stop=false
 var battle_time=0
 var timer_ui_delay=1
-var level_data=null
-var ai_node
 
-
+var battle_init_meat=1000
 var next_replay_time=0
 var next_replay_index=0
+
+#batlle mode
 var replay_mode=false
 var pvp_mode=false
-var peer
+var level_mode=true
 var server_mode=false
+var player_setting=["local","ai"] #local, remote, ai
+var recording_mask=[false, false]
+
+#input args
+var level_data={}
+
+var peer
 var players_info={}
-var player_setting=["local","ai"] #local, remote, ai, record
-var recording_mask=[true, true]
 var recording_data=[[],[]]
 var replay_data=[[],[]]
 var live_chara_count=[0,0]
 var chara_count=[0,0]
-var chara_hotkey=[[],[]]
+var chara_hotkey=[[null,null,null,null,null],[null,null,null,null,null]]
 var frame_delay=0.2
-var gold_num=[0,0]
+var meat_num=[0,0]
+var diamond_num=[0,0]
 var team_charas=[[],[]]
-var battle_init_gold=1000
 
-var chara_inputs=[]
-var item_inputs=[]
+var chara_inputs=[[],[]]
+var item_inputs=[[],[]]
+
+var cache_chara_inputs=[[],[]]
+var cache_item_inputs=[[],[]]
+
+var ai_nodes=[]
+var spawn_nodes=[]
+
+var net_id_2_team_id={}
+var team_id_2_net_id=[]
+
+var game_start=false
+
+var frame_id=-1
+var other_frame_id=-1
+
+var wait_4_ack=false
 
 func _ready():
     var cmds=OS.get_cmdline_args()
@@ -86,22 +108,43 @@ func connect_2_server():
     get_tree().network_peer = peer
 
 remote func start_battle_net(player_info):
-    print(player_info)
+    var other_team_id = player_info["team"]
+    var my_team_id=-1
+    if other_team_id==0:
+        my_team_id=1
+    else:
+        my_team_id=0
+    player_setting[other_team_id]="remote"
+    player_setting[my_team_id]="local"
+    for i in range(len(player_info["equip"])):
+        chara_hotkey[other_team_id][i]=player_info["equip"][i].duplicate()
+        chara_hotkey[other_team_id][i]["countdown"]=0
+    get_node(lobby_path).visible=false
     start_battle()
 
 remote func process_join(_info):
     var id = get_tree().get_rpc_sender_id()
-    print(players_info)
     if id in players_info:
         return
-    for player in players_info:
-        if players_info[player]["status"]=="waiting":
-            rpc_id(id, "start_battle_net", players_info[player]["info"])
-            rpc_id(player, "start_battle_net", _info)
-            player["status"]="battle"
+    var find_player=false
+    for player_net_id in players_info:
+        if players_info[player_net_id]["status"]=="waiting":
+            var start_battle_info={}
+            start_battle_info["team"]=0
+            start_battle_info["equip"]=players_info[player_net_id]["info"]["equip"]
+            rpc_id(id, "start_battle_net", start_battle_info)
+            start_battle_info={}
+            start_battle_info["team"]=1
+            start_battle_info["equip"]=_info["equip"]
+            rpc_id(player_net_id, "start_battle_net", start_battle_info)
+            players_info[player_net_id]["status"]="battle"
+            players_info[id]={"status":"battle","info":_info}
+            find_player=true
             break
-    players_info[id]={"status":"waiting","info":_info}
     
+    if find_player==false:
+        rpc_id(id, "joint_succ")
+        players_info[id]={"status":"waiting","info":_info}
 
 func _player_connected(id):
     print("_player_connected: ",id)
@@ -112,8 +155,12 @@ func _player_disconnected(id):
     print("_player_disconnected: ",id)
 
 func start_battle():
+    #test
+    level_data["gold"]=100
+    level_data["base_hp"]=200
+    level_data["script"]="ai"
+    level_data["args"]=[{"name":"sword","lv":10},{"name":"bow","lv":10},{"name":"bow","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
     Global.rng.seed=0
-    level_data=Global.get_level_info(Global.sel_level)
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
     spawn_nodes.append(get_node(spawn2_path))
@@ -122,29 +169,59 @@ func start_battle():
     item_use_ui=get_node(item_use_ui_path)
     spawn_building("base1", 0)
     spawn_building("base2", 1)
-    gold_num[0]=battle_init_gold
-    gold_num[1]=battle_init_gold
+    meat_num[0]=battle_init_meat
+    meat_num[1]=battle_init_meat
     var cancel_cb = funcref(self, "cancel_cb")
     var go_home_cb = funcref(self, "go_home_cb")
     get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
     get_node(comfirm_path).set_btn2("Ok", go_home_cb)
-    update_hotkey_ui()
     update_timer_ui()
-    Global.connect("money_change",self,"on_money_change")
-    ai_node=Node.new()
-    ai_node.set_script(load("res://ai/ai.gd"))
-    add_child(ai_node)
-    var ai_info={}
-    ai_info["charas"]=[{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
-    ai_node.init(self, ai_info)
-    for chara_name in Global.user_data["equip"]["chara"]:
-        var c_lv=Global.get_my_chara_info(chara_name)["lv"]
-        self_chara_hotkey.append({"name":chara_name,"lv":c_lv})
-    for item in self_chara_hotkey:
-        item["countdown"]=0
+    ai_nodes=[]
+    for i in range(0,2):
+        if player_setting[i]=="ai":
+            var t_node=Node.new()
+            t_node.set_script(load("res://ai/"+level_data["script"]+".gd"))
+            add_child(t_node)
+            t_node.init(self, level_data["args"], i)
+            ai_nodes.append(t_node)
+        else:
+            ai_nodes.append(null)
+
     if replay_mode:
-        op_record = Global.load_battle_record()
-        next_replay_time=op_record[0]["time"]
+        pass
+
+    var has_local=false
+    for i in range(0,2):
+        if player_setting[i]=="local":
+            has_local=true
+            break
+    if has_local==false:
+        get_node(chara_gen_ui_path).visible=false
+        get_node(item_use_ui_path).visible=false
+
+    var _team_id = find_local_team_id()
+    if _team_id>=0:
+        update_hotkey_ui(_team_id)
+    
+    if pvp_mode:
+        var local_team_id = find_local_team_id()
+        if local_team_id!=-1:
+            if local_team_id==0:
+                get_node(diamond1_label_path).get_parent().visible=true
+                get_node(meat1_label_path).get_parent().visible=true
+                get_node(diamond2_label_path).get_parent().visible=false
+                get_node(meat2_label_path).get_parent().visible=false
+            else:
+                get_node(diamond1_label_path).get_parent().visible=false
+                get_node(meat1_label_path).get_parent().visible=false
+                get_node(diamond2_label_path).get_parent().visible=true
+                get_node(meat2_label_path).get_parent().visible=true
+    else:
+        get_node(diamond1_label_path).get_parent().visible=false
+        get_node(meat1_label_path).get_parent().visible=true
+        get_node(diamond2_label_path).get_parent().visible=false
+        get_node(meat2_label_path).get_parent().visible=true
+    game_start=true
 
 func cancel_cb():
     get_tree().paused = false
@@ -155,23 +232,22 @@ func go_home_cb():
     Global.emit_signal("request_go_home")
 
 func stop_game(b_win):
-    var lv_gold=level_data["gold"]
-    var show_next=true
-    show_next=false
-    if b_win==false:
-        lv_gold=0
-    get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
-    if replay_mode==false:
-        Global.save_battle_record(op_record)
-    Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
-    var lv_str=Global.sel_level
-    if b_win:
-        if not lv_str in Global.user_data["levels"]:
-            Global.user_data["levels"][lv_str]={"time":battle_time}
-        else:
-            if battle_time<Global.user_data["levels"][lv_str]["time"]:
-                Global.user_data["levels"][lv_str]["time"]=battle_time
-        Global.save_user_data()
+    if level_mode:
+        var lv_gold=level_data["gold"]
+        var show_next=true
+        show_next=false
+        if b_win==false:
+            lv_gold=0
+        get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
+        Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
+        var lv_str=Global.sel_level
+        if b_win:
+            if not lv_str in Global.user_data["levels"]:
+                Global.user_data["levels"][lv_str]={"time":battle_time}
+            else:
+                if battle_time<Global.user_data["levels"][lv_str]["time"]:
+                    Global.user_data["levels"][lv_str]["time"]=battle_time
+            Global.save_user_data()
 
 func get_charas_in_range(min_x, max_x, targets):
     var temp_chars=targets
@@ -223,12 +299,14 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
         chara_count[team_id]=chara_count[team_id]+1
         live_chara_count[team_id]=live_chara_count[team_id]+1
         create_info["index"]=chara_count[team_id]
+    create_info["chara_name"]=chara_name
     res.set_attr_data(create_info)
     var anim_data=Global.get_char_anim(chara_name, chara_dat["type"])
     var anim_info=Global.chara_tb[chara_name]["appearance"]
     res.set_anim(anim_data, anim_info)
     res.set_team(team_id)
     res.set_x_pos(spawn_pos.position.x)
+    update_chara_list_ui()
 
 func hp_comparison(a, b):
     return a.hp/a.max_hp > b.hp/b.max_hp
@@ -373,15 +451,65 @@ func request_use_item(item_name):
         var item_dat=Global.items_tb[item_name]
         request_skill(item_dat, 0, null)
 
-func on_request_spawn_chara(chara_info):
-    spawn_chara(chara_info["name"], chara_info["lv"], 0)
-
 func remove_chara(chara):
     team_charas[chara.team_id].erase(chara)
     chara.queue_free()    
     
-func change_gold(val, team_id):
-   pass
+func change_meat(change_val, team_id):
+    if change_val>0:
+        meat_num[team_id]=meat_num[team_id]+change_val
+    else:
+        if change_val<=meat_num[team_id]:
+            meat_num[team_id]=meat_num[team_id]+change_val
+        else:
+            var remain_cost=change_val-meat_num[team_id]
+            if remain_cost<=diamond_num[team_id]:
+                diamond_num[team_id]=diamond_num[team_id]-remain_cost
+            else:
+                print("expend meat error!!")
+    update_stats_ui()
+
+func check_chara_build(chara_cost, team_id):
+    if chara_cost<=meat_num[team_id]:
+        return true
+    else:
+        if chara_cost<=diamond_num[team_id]+meat_num[team_id]:
+            return true
+    return false
+
+func update_chara_list_ui():
+    var chara_num_stats=[{},{}]
+    for c in char_root.get_children():
+        if is_instance_valid(c)==false:
+            continue
+        if c.dead==true:
+            continue
+        if not c.chara_name in chara_num_stats[c.team_id]:
+            chara_num_stats[c.team_id][c.chara_name]=0
+        chara_num_stats[c.team_id][c.chara_name]=chara_num_stats[c.team_id][c.chara_name]+1
+    for i in range(0,2):
+        var chara_infos=[]
+        for chara_name in chara_num_stats[i]:
+            var lv=0
+            for info in chara_hotkey[i]:
+                if chara_name==info["name"]:
+                    lv=info["lv"]
+                    break
+            var chara_info={}
+            chara_info["name"]=chara_name
+            chara_info["lv"]=lv
+            chara_info["num"]=chara_num_stats[i][chara_name]
+            chara_infos.append(chara_info)
+        if i==0:
+            get_node(chara1_list_path).update_list(chara_infos)
+        else:
+            get_node(chara2_list_path).update_list(chara_infos)
+
+func update_stats_ui():
+    get_node(meat1_label_path).text="Meat: "+str(meat_num[0])
+    get_node(meat2_label_path).text="Meat: "+str(meat_num[1])
+    get_node(diamond1_label_path).text="D: "+str(diamond_num[0])
+    get_node(diamond2_label_path).text="D: "+str(diamond_num[1])
 
 func update_timer_ui():
     var m = floor(battle_time/60)
@@ -407,24 +535,31 @@ func use_item_cb(item):
     Global.save_user_data()
     return true
 
+func find_local_team_id():
+    for i in range(0,2):
+        if player_setting[i]=="local":
+            return i
+    return -1
+
 func start_chara_cb(item):
-    if replay_mode:
-        return false
-    if gold>=item.custom_val:
-        if not item.index in chara_inputs:
-            chara_inputs.append(item.index)
+    var local_team=find_local_team_id()
+    if local_team==-1:
+        return
+    if meat_num[local_team]>=item.custom_val:
+        if not item.index in chara_inputs[local_team]:
+            chara_inputs[local_team].append(item.index)
             return true
         return false
     else:
         return false
 
-func on_money_change(val):
+func update_hk_mask(val):
     for c in chara_gen_ui.get_items():
         if c.has_item==false:
             continue
         c.set_mask(c.custom_val>val)
 
-func update_hotkey_ui():
+func update_hotkey_ui(_local_team_id):
     for i in range(len(Global.user_data["equip"]["chara"])):
         var chara_name=Global.user_data["equip"]["chara"][i]
         if chara_name=="":
@@ -437,6 +572,11 @@ func update_hotkey_ui():
         var icon_texture=load(icon_file_path)
         var click_cb = funcref(self, "start_chara_cb")
         chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i)
+        var hk_info={}
+        hk_info["countdown"]=0
+        hk_info["lv"]=lv
+        hk_info["name"]=chara_name
+        chara_hotkey[_local_team_id][i]=hk_info
     for i in range(len(Global.user_data["equip"]["item"])):
         var item_name=Global.user_data["equip"]["item"][i]
         if item_name=="":
@@ -449,49 +589,93 @@ func update_hotkey_ui():
         var click_cb = funcref(self, "use_item_cb")
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
+func sycn_local_input():
+    var team_id = find_local_team_id()
+    if team_id!=-1:
+        rpc("on_get_input_ack", team_id, chara_inputs[team_id], frame_id)
+
+remote func on_get_input_ack(team_id, input_dat, _other_frame_id):
+    if len(input_dat)>0:
+        print(input_dat)
+    other_frame_id=_other_frame_id
+    if other_frame_id==frame_id:
+        chara_inputs[team_id]=input_dat
+        if get_tree().paused==true:
+            get_tree().paused=false
+    elif frame_id+1 == other_frame_id:
+        chara_inputs[team_id]=input_dat
+    else:
+        print("frame sync error!!!! (1)")
+        get_tree().paused=true
+
+remote func joint_succ():
+    get_node(lobby_msg_path).text="Join success, please wait."
+
 func _physics_process(delta):
+    if game_start==false:
+        return
+    if frame_time_countdown>0:
+        frame_time_countdown=stepify(frame_time_countdown-delta, 0.01)
+    else:
+        if pvp_mode:
+            if wait_4_ack==false:
+                frame_id=frame_id+1
+                sycn_local_input()
+                if other_frame_id!=frame_id:
+                    wait_4_ack=true
+                    get_tree().paused=true
+                    return
+            else:
+                if other_frame_id!=frame_id:
+                    print("frame sync error!!!! (2)")
+                    get_tree().paused=true
+                wait_4_ack=false
+        for _team_id in range(0,2):
+            var temp_chara_input=[]
+            if replay_mode==false:
+                if player_setting[_team_id]=="ai":
+                    var op= ai_nodes[_team_id].ai_get_op()
+                    
+                    if op!= null and op["type"]=="chara":
+                        temp_chara_input.append(op["ind"])
+                elif player_setting[_team_id]=="local":
+                    if pvp_mode==false:
+                        temp_chara_input=chara_inputs[_team_id].duplicate()
+                    else:
+                        temp_chara_input=chara_inputs[_team_id].duplicate()
+                        # cache_chara_inputs[_team_id]=chara_inputs[_team_id].duplicate()
+                elif player_setting[_team_id]=="remote":
+                    temp_chara_input=chara_inputs[_team_id].duplicate()
+                    # cache_chara_inputs[_team_id]=[]
+            else:
+                if next_replay_time<=battle_time:
+                    temp_chara_input=replay_data[_team_id][next_replay_index]["input"].duplicate()
+                    if next_replay_index+1<len(replay_data[_team_id]):
+                        next_replay_index=next_replay_index+1
+                        next_replay_time=replay_data[_team_id][next_replay_index]["time"]
+                    else:
+                        next_replay_time=10000
+            
+            if len(temp_chara_input)>0:
+                for key in temp_chara_input:
+                    var chara_name=chara_hotkey[_team_id][key]["name"]
+                    var chara_info=Global.chara_tb[chara_name]
+                    if chara_hotkey[_team_id][key]["countdown"]<0 and check_chara_build(chara_info["build_cost"],_team_id):
+                        chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
+                        spawn_chara(chara_name, chara_hotkey[_team_id][key]["lv"], _team_id)
+                        change_meat(-chara_info["build_cost"], _team_id)
+                if recording_mask[_team_id]==false:
+                    recording_data[_team_id].append({"time":battle_time ,"input":temp_chara_input.duplicate()})
+            chara_inputs[_team_id]=[]
+        frame_time_countdown=stepify(frame_delay-delta,0.01)
+    battle_time=stepify(battle_time+delta,0.01)
     timer_ui_delay=timer_ui_delay-delta
     if timer_ui_delay<0:
         timer_ui_delay=1
         update_timer_ui()
-    battle_time=stepify(battle_time+delta,0.01)
-    for _team_id in range(0,1):
+    for _team_id in range(0,2):
         for item in chara_hotkey[_team_id]:
             item["countdown"]=item["countdown"]-delta
-    if frame_time_countdown>0:
-        frame_time_countdown=frame_time_countdown-delta
-    else:
-        for _team_id in range(0,1):
-            if player_setting[_team_id]=="local":
-                pass
-        if replay_mode:
-            if next_replay_time<=battle_time:
-                chara_inputs=op_record[next_replay_index]["input"].duplicate()
-                if next_replay_index+1<len(op_record):
-                    next_replay_index=next_replay_index+1
-                    next_replay_time=op_record[next_replay_index]["time"]
-                else:
-                    next_replay_time=10000
-        if len(chara_inputs)>0:
-            for key in chara_inputs:
-                var chara_name=self_chara_hotkey[key]["name"]
-                var chara_info=Global.chara_tb[chara_name]
-                if self_chara_hotkey[key]["countdown"]<0 and chara_info["build_cost"]<=gold:
-                    self_chara_hotkey[key]["countdown"]=chara_info["build_time"]
-                    spawn_chara(chara_name, self_chara_hotkey[key]["lv"], 0)
-                    change_gold(-chara_info["build_cost"], 0)
-            if replay_mode==false:
-                op_record.append({"time":battle_time ,"input":chara_inputs.duplicate()})
-            chara_inputs=[]
-        if pvp_mode==false:
-            var op= ai_node.ai_get_op()
-            if op!= null and op["type"]=="chara":
-                var temp_info=ai_chara_hotkey[op["ind"]]
-                spawn_chara(temp_info["name"], temp_info["lv"], 1)
-                var chara_info=Global.chara_tb[temp_info["name"]]
-                temp_info["countdown"]=chara_info["build_time"]
-                change_gold(-chara_info["build_cost"], 1)
-        frame_time_countdown=frame_delay
 
 func _on_Return_gui_input(event):
     if event is InputEventScreenTouch:
@@ -503,4 +687,17 @@ func _on_Return_gui_input(event):
 func _on_Join_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed:
-            rpc_id(1,"process_join",["asdf","dfsdf"])
+            var join_info={}
+            join_info["equip"]=[]
+            for i in range(len(Global.user_data["equip"]["chara"])):
+                var chara_name=Global.user_data["equip"]["chara"][i]
+                if chara_name=="":
+                    join_info["equip"].append(null)
+                else:
+                    var my_chara_info = Global.get_my_chara_info(chara_name)
+                    var lv=my_chara_info["lv"]
+                    var hk_info={}
+                    hk_info["lv"]=lv
+                    hk_info["name"]=chara_name
+                    join_info["equip"].append(hk_info)
+            rpc_id(1,"process_join",join_info)

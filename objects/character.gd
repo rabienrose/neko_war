@@ -48,6 +48,7 @@ var hit_delay=0.5
 
 #static status
 var type=""
+var chara_name=""
 var atk_anim_name=""
 var mov_dir=1
 var chara_index=-1
@@ -121,6 +122,7 @@ func set_attr_data(data):
     cri=data["cri"]
     atk_num=data["atk_num"]
     self_destroy=data["self_destroy"]
+    chara_name=data["chara_name"]
 
 func add_back_buf(dist):
     var buf=Buf.new()
@@ -284,7 +286,7 @@ func set_anim(anim_data, info):
 
 func set_team(_team_id):
     team_id=_team_id
-    name=type+"_"+str(team_id)+"_"+str(chara_index)
+    name=chara_name+"_"+str(team_id)+"_"+str(chara_index)
     if team_id==1:
         mov_dir=-1
         anim_sprite.flip_h=true
@@ -375,6 +377,8 @@ func check_if_outside(x):
         return false
 
 func _physics_process(delta):
+    # if Global.frame_sync_ready==false:
+    #     return
     for buf_name in bufs:
         if bufs[buf_name][0]["is_time_limit"]==true:
             for buf in bufs[buf_name]:
@@ -393,6 +397,7 @@ func _physics_process(delta):
         position.x=position.x + mov_dir*delta*dash_spd
     if status=="mov":
         position.x = position.x + mov_dir*delta*mov_spd
+        # print("chara: ",game.frame_id)
         if check_if_outside(global_position.x):
             game.remove_chara(self)
             return
@@ -446,7 +451,7 @@ func on_die(_chara):
             discount_gold=discount_gold+hard_discount_gold
         else:
             discount_gold=discount_gold-hard_discount_gold
-        game.change_gold(discount_gold, get_enemy_team_id())
+        game.change_meat(discount_gold, get_enemy_team_id())
         if team_id==1:
             var coin_ef_num=int(gold/10)+1
             if coin_ef_num>10:
@@ -457,6 +462,7 @@ func on_die(_chara):
     if len(die_fx)>0:
         game.fx_mgr.play_frame_fx(die_fx[0], get_hit_pos(die_fx[0]))
     dead=true
+    game.update_chara_list_ui()
 
 func change_hp(val, chara, b_critical=false):
     var new_hp=hp+val

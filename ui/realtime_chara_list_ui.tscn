@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/realtime_chara_list_ui.gd" type="Script" id=1]
+[ext_resource path="res://ui/realtime_chara_list_item_ui.tscn" type="PackedScene" id=2]
+
+[node name="CharaList" type="VBoxContainer"]
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+item_res = ExtResource( 2 )

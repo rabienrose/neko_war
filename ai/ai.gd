@@ -4,30 +4,32 @@ var game
 
 var start_seg=[]
 var start_ind=-1
-var team_id=1
+
+var team_id
 
 func _ready():
     pass        
     
 func ai_get_op():
-    var temp_hk_config=game.ai_chara_hotkey
-    # if start_ind>=start_seg and start_ind>=0:
-    #     if 
+    var temp_hk_config=game.chara_hotkey[team_id]
     for i in range(len(temp_hk_config)):
         var item=temp_hk_config[i]
         var chara_info=Global.chara_tb[item["name"]]
-        if item["countdown"]<=0 and chara_info["build_cost"]<=game.gold_num[team_id]:
+        if item["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"], team_id):
             var op={"type":"chara"}
             op["ind"]=i
             return op
     return null
 
-func init(_game, ai_info):
+func init(_game, ai_info, _team_id):
+    team_id=_team_id
     game=_game
-    game.ai_chara_hotkey=ai_info["charas"]
-    for item in game.ai_chara_hotkey:
-        item["countdown"]=0
-        item["lv"]=10
+    for i in range(len(ai_info)):
+        var hk_info={}
+        hk_info["countdown"]=0
+        hk_info["lv"]=ai_info[i]["lv"]
+        hk_info["name"]=ai_info[i]["name"]
+        game.chara_hotkey[team_id][i]=hk_info
 
 
 

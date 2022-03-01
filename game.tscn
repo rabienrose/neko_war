@@ -18,10 +18,9 @@
 [ext_resource path="res://objects/character.tscn" type="PackedScene" id=16]
 [ext_resource path="res://ui/summary.tscn" type="PackedScene" id=17]
 [ext_resource path="res://ui/battle_hotkeys.tscn" type="PackedScene" id=18]
-[ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=19]
+[ext_resource path="res://ui/realtime_chara_list_ui.tscn" type="PackedScene" id=19]
 [ext_resource path="res://sys/fx_mgr.tscn" type="PackedScene" id=20]
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=21]
-[ext_resource path="res://ui/texture/circle_yellow.tres" type="Texture" id=22]
 [ext_resource path="res://ui/comfirm_box.tscn" type="PackedScene" id=23]
 [ext_resource path="res://ui/texture/l_bg_gray.tres" type="Texture" id=24]
 [ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=25]
@@ -38,6 +37,10 @@ font_data = ExtResource( 26 )
 size = 100
 font_data = ExtResource( 26 )
 
+[sub_resource type="DynamicFont" id=3]
+size = 50
+font_data = ExtResource( 26 )
+
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
 char_res = ExtResource( 16 )
@@ -51,11 +54,16 @@ base1_path = NodePath("Foreground/Base1Pos")
 base2_path = NodePath("Foreground/Base2Pos")
 foreground_path = NodePath("Foreground")
 summary_path = NodePath("CanvasLayer/CenterContainer/Summary")
-game_status_path = NodePath("CanvasLayer/Status")
 comfirm_path = NodePath("CanvasLayer/CenterContainer/Comfirm")
 timer_label_path = NodePath("CanvasLayer/Timer/Label")
-lv_name_label_path = NodePath("CanvasLayer/LevelName/Label")
 lobby_path = NodePath("CanvasLayer/Lobby")
+lobby_msg_path = NodePath("CanvasLayer/Lobby/Msg")
+chara1_list_path = NodePath("CanvasLayer/CharaList1")
+chara2_list_path = NodePath("CanvasLayer/CharaList2")
+meat1_label_path = NodePath("CanvasLayer/SelfMeat/SelfMeatLabel")
+meat2_label_path = NodePath("CanvasLayer/OtherMeat/AiMeatLabel")
+diamond1_label_path = NodePath("CanvasLayer/Diamond/DiamondLabel")
+diamond2_label_path = NodePath("CanvasLayer/Diamond2/DiamondLabel")
 
 [node name="Camera2D" parent="." instance=ExtResource( 3 )]
 anchor_mode = 0
@@ -167,12 +175,6 @@ margin_top = -216.0
 margin_right = 1068.0
 margin_bottom = -16.0
 
-[node name="Status" parent="CanvasLayer" instance=ExtResource( 19 )]
-margin_left = -996.0
-margin_top = 10.0
-margin_right = 1004.0
-margin_bottom = 110.0
-
 [node name="CenterContainer" type="CenterContainer" parent="CanvasLayer"]
 anchor_right = 1.0
 anchor_bottom = 0.9
@@ -197,39 +199,11 @@ margin_top = 303.0
 margin_right = 1476.0
 margin_bottom = 637.0
 
-[node name="Return" type="TextureRect" parent="CanvasLayer"]
-margin_left = 30.0
-margin_top = 30.0
-margin_right = 150.0
-margin_bottom = 150.0
-texture = ExtResource( 22 )
-expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/Return"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Return/CenterContainer"]
-margin_left = 25.0
-margin_top = 25.0
-margin_right = 95.0
-margin_bottom = 95.0
-rect_min_size = Vector2( 70, 70 )
-texture = ExtResource( 21 )
-expand = true
-
 [node name="Timer" type="TextureRect" parent="CanvasLayer"]
-margin_left = 701.0
-margin_top = 22.0
-margin_right = 956.0
-margin_bottom = 99.0
+margin_left = 1013.0
+margin_top = 38.0
+margin_right = 1268.0
+margin_bottom = 115.0
 texture = ExtResource( 27 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -246,21 +220,88 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="LevelName" type="TextureRect" parent="CanvasLayer"]
-margin_left = 376.0
-margin_top = 22.0
-margin_right = 631.0
-margin_bottom = 99.0
+[node name="SelfMeat" type="TextureRect" parent="CanvasLayer"]
+margin_left = 422.0
+margin_top = 32.0
+margin_right = 722.0
+margin_bottom = 109.0
+texture = ExtResource( 27 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SelfMeatLabel" type="Label" parent="CanvasLayer/SelfMeat"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "Meat: 30"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OtherMeat" type="TextureRect" parent="CanvasLayer"]
+margin_left = 1636.0
+margin_top = 37.0
+margin_right = 1936.0
+margin_bottom = 114.0
+texture = ExtResource( 27 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="AiMeatLabel" type="Label" parent="CanvasLayer/OtherMeat"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "Meat: 100"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Diamond" type="TextureRect" parent="CanvasLayer"]
+margin_left = 722.0
+margin_top = 36.0
+margin_right = 977.0
+margin_bottom = 113.0
+rect_pivot_offset = Vector2( -217, 120 )
 texture = ExtResource( 27 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Label" type="Label" parent="CanvasLayer/LevelName"]
+[node name="DiamondLabel" type="Label" parent="CanvasLayer/Diamond"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_fonts/font = SubResource( 1 )
-text = "Lv: 1 "
+text = "D: 10"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Diamond2" type="TextureRect" parent="CanvasLayer"]
+margin_left = 1392.0
+margin_top = 33.0
+margin_right = 1647.0
+margin_bottom = 110.0
+rect_pivot_offset = Vector2( -217, 120 )
+texture = ExtResource( 27 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DiamondLabel" type="Label" parent="CanvasLayer/Diamond2"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "D: 10"
 align = 1
 valign = 1
 __meta__ = {
@@ -305,7 +346,44 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Msg" type="Label" parent="CanvasLayer/Lobby"]
+anchor_right = 1.0
+margin_top = 100.0
+margin_bottom = 100.0
+custom_colors/font_color = Color( 0.933333, 0.317647, 0.317647, 1 )
+custom_fonts/font = SubResource( 3 )
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Return" type="TextureRect" parent="CanvasLayer"]
+margin_left = 1268.0
+margin_top = 42.0
+margin_right = 1338.0
+margin_bottom = 112.0
+rect_min_size = Vector2( 70, 70 )
+texture = ExtResource( 21 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CharaList1" parent="CanvasLayer" instance=ExtResource( 19 )]
+margin_left = 27.0
+margin_top = 42.0
+margin_right = 327.0
+margin_bottom = 63.0
+
+[node name="CharaList2" parent="CanvasLayer" instance=ExtResource( 19 )]
+margin_left = 2048.0
+margin_top = 37.0
+margin_right = 2348.0
+margin_bottom = 145.0
+b_right = true
+
 [node name="Timer" type="Timer" parent="."]
 
-[connection signal="gui_input" from="CanvasLayer/Return" to="." method="_on_Return_gui_input"]
 [connection signal="gui_input" from="CanvasLayer/Lobby/CenterContainer/Join" to="." method="_on_Join_gui_input"]
+[connection signal="gui_input" from="CanvasLayer/Return" to="." method="_on_Return_gui_input"]

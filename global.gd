@@ -20,7 +20,6 @@ var home_scene="res://home.tscn"
 
 var user_data={}
 var chara_tb={}
-var levels_tb=[]
 var items_tb={}
 var skills_tb={}
 var atk_buf_tb={}
@@ -60,19 +59,6 @@ func _ready():
             user_data["equip"]=equip_info
             user_data["levels"]={}
             user_data["items"]=[]
-        f = File.new()
-        f.open(levels_info_path, File.READ)
-        var content = f.get_as_text()
-        levels_tb = JSON.parse(content).result
-        var temp_chara_type_set={}
-        lv_chara_type_list.append(0)
-        for key in levels_tb:
-            var t_chara_type=key.split("/")[0]
-            if t_chara_type in temp_chara_type_set or t_chara_type=="0":
-                continue
-            lv_chara_type_list.append(t_chara_type)
-            temp_chara_type_set[t_chara_type]=1
-        f.close()
     else:
         check_update()
     var f=File.new()
@@ -195,8 +181,5 @@ func get_my_item_info(item_name):
             return item
     return null
 
-func get_level_info(lv_name):
-    return levels_tb[lv_name]
-
-func get_max_level():
-    return levels_tb[len(levels_tb)-1]["lv"]
+func _physics_process(delta):
+    pass

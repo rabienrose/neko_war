@@ -10,6 +10,12 @@ var btn2_cb=null
 func _ready():
     pass # Replace with function body.
 
+func hide_btn(btn_ind):
+    if btn_ind==1:
+        get_node(btn1_label_path).get_parent().visible=false
+    elif btn_ind==2:
+        get_node(btn2_label_path).get_parent().visible=false
+
 func set_text(text):
     get_node(label_path).text=text
 

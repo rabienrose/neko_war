@@ -159,7 +159,8 @@ func start_battle():
     level_data["gold"]=100
     level_data["base_hp"]=200
     level_data["script"]="ai"
-    level_data["args"]=[{"name":"sword","lv":10},{"name":"bow","lv":10},{"name":"bow","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
+    level_data["args"]={}
+    level_data["args"]["hotkey"] = [{"name":"sword","lv":10},{"name":"bow","lv":10},{"name":"bow","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
     Global.rng.seed=0
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
@@ -182,7 +183,7 @@ func start_battle():
             var t_node=Node.new()
             t_node.set_script(load("res://ai/"+level_data["script"]+".gd"))
             add_child(t_node)
-            t_node.init(self, level_data["args"], i)
+            t_node.init(self, level_data["args"]["hotkey"], i)
             ai_nodes.append(t_node)
         else:
             ai_nodes.append(null)
@@ -635,7 +636,6 @@ func _physics_process(delta):
             if replay_mode==false:
                 if player_setting[_team_id]=="ai":
                     var op= ai_nodes[_team_id].ai_get_op()
-                    
                     if op!= null and op["type"]=="chara":
                         temp_chara_input.append(op["ind"])
                 elif player_setting[_team_id]=="local":

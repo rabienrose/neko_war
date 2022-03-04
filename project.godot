@@ -27,7 +27,7 @@ _global_script_class_icons={
 [application]
 
 config/name="NekoWar"
-run/main_scene="res://game.tscn"
+run/main_scene="res://ui/splash.tscn"
 config/icon="res://icon.png"
 
 [autoload]

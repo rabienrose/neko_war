@@ -49,8 +49,8 @@ var cur_drag_chara=""
 var cur_drag_item=""
 
 var chara_lv_num=10
-var spawn_delay_num=7
-var cur_chara_type_ind=0
+var hardness_num=7
+var cur_level_page_ind=0
 
 func _ready():
     Global.connect("show_level_info",self, "on_show_level_info")
@@ -70,9 +70,9 @@ func _ready():
     click_cb = funcref(self, "item_item_click_cb")
     for c in item_hotkey.get_children():
         c.set_cb(click_cb)
-    init_tab_dots(len(Global.lv_chara_type_list))
+    init_tab_dots(len(Global.lv_name_list))
     set_tab_dot_sel(0)
-    update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
+    update_levels_ui(Global.lv_name_list[cur_level_page_ind])
     update_characters_ui()
     update_items_ui()
     update_status()
@@ -80,12 +80,13 @@ func _ready():
 
 func on_show_level_info(lv_name):
     cur_sel_level=lv_name
+    var vec_s=lv_name.split("/")
     var str_temp=""
-    var lv_info=Global.levels_tb[cur_sel_level]
+    var lv_info=Global.level_data
     str_temp=str_temp+str(lv_info["gold"])+" gold\n"
-    str_temp=str_temp+"lv: "+str(lv_info["lv"])+"s\n"
-    str_temp=str_temp+"delay: "+str(lv_info["spawn_delay"])+"s\n\n"
-    for chara_t in lv_info["cell_sequence"]:
+    str_temp=str_temp+"Lv: "+vec_s[1]+"\n"
+    str_temp=str_temp+"Difficulty: "+vec_s[2]+"\n\n"
+    for chara_t in lv_info["args"]["hotkey"]:
         str_temp=str_temp+chara_t+"\n"
     get_node(level_info_path).text=str_temp
 
@@ -166,8 +167,8 @@ func set_item_hk_slot(slot_id, item_name):
     Global.user_data["equip"]["item"][slot_id]=item_name
     Global.save_user_data()
 
-func make_lv_name(chara_type,chara_lv,delay_id):
-    return str(chara_type)+"/"+str(chara_lv)+"/"+str(delay_id)
+func make_lv_name(level_id,chara_lv,hard_id):
+    return str(level_id)+"/"+str(chara_lv)+"/"+str(hard_id)
 
 func add_lv_grid_item(lv_name):
     var level_item = level_item_res.instance()
@@ -178,11 +179,11 @@ func add_lv_grid_item(lv_name):
         level_item.set_lock(true, lv_name)
     level_grid.add_child(level_item)
 
-func update_levels_ui(chara_type):
+func update_levels_ui(level_id):
     Global.delete_children(level_grid)
     for chara_lv in range(chara_lv_num):
-        for delay_id in range(spawn_delay_num):
-            var lv_name=make_lv_name(chara_type,chara_lv,delay_id)
+        for hard_id in range(hardness_num):
+            var lv_name=make_lv_name(level_id,chara_lv,hard_id)
             add_lv_grid_item(lv_name)
 
 func update_characters_ui():
@@ -443,19 +444,19 @@ func _on_Start_gui_input(event):
 func _on_Left_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            if cur_chara_type_ind-1<0:
+            if cur_level_page_ind-1<0:
                 return
             else:
-                cur_chara_type_ind=cur_chara_type_ind-1
-                update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
-                set_tab_dot_sel(cur_chara_type_ind)
+                cur_level_page_ind=cur_level_page_ind-1
+                update_levels_ui(Global.lv_name_list[cur_level_page_ind])
+                set_tab_dot_sel(cur_level_page_ind)
 
 func _on_Right_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            if cur_chara_type_ind+1>=len(Global.lv_chara_type_list):
+            if cur_level_page_ind+1>=len(Global.lv_name_list):
                 return
             else:
-                cur_chara_type_ind=cur_chara_type_ind+1
-                update_levels_ui(Global.lv_chara_type_list[cur_chara_type_ind])
-                set_tab_dot_sel(cur_chara_type_ind)
+                cur_level_page_ind=cur_level_page_ind+1
+                update_levels_ui(Global.lv_name_list[cur_level_page_ind])
+                set_tab_dot_sel(cur_level_page_ind)

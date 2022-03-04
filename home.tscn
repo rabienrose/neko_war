@@ -161,6 +161,7 @@ __meta__ = {
 }
 
 [node name="Left" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+visible = false
 margin_left = 4.0
 margin_top = 370.0
 margin_right = 76.0
@@ -171,6 +172,7 @@ __meta__ = {
 }
 
 [node name="Right" type="TextureRect" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+visible = false
 margin_left = 1516.0
 margin_top = 370.0
 margin_right = 1589.0
@@ -181,6 +183,7 @@ __meta__ = {
 }
 
 [node name="Dots" type="CenterContainer" parent="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid"]
+visible = false
 margin_left = 622.0
 margin_top = 815.0
 margin_right = 1122.0

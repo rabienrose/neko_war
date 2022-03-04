@@ -8,6 +8,8 @@ signal show_level_info(lv)
 
 var char_tb_file_path="res://configs/characters.json"
 var user_data_path="user://user.json"
+var token_path="user://token.txt"
+var device_id_path="user://device_id.txt"
 var levels_info_path="res://configs/levels.json"
 var items_info_path="res://configs/items.json"
 var skills_info_path="res://configs/skills.json"
@@ -17,23 +19,27 @@ var item_img_file_path="res://binary/images/items/"
 
 var game_scene="res://game.tscn"
 var home_scene="res://home.tscn"
+var login_scene="res://ui/login.tscn"
 
+var level_data={}
 var user_data={}
 var chara_tb={}
 var items_tb={}
 var skills_tb={}
 var atk_buf_tb={}
 var chara_anim={}
-var lv_chara_type_list=[]
+var lv_name_list=[]
 
 var sel_level="0/0/0"
 
 var lottery_price=70
 
 var local_mode=true
+var token
+var device_id
 
 var http
-var server_url="127.0.0.1:9001"
+var server_url="http://127.0.0.1:9100"
 
 var rng 
 
@@ -59,8 +65,6 @@ func _ready():
             user_data["equip"]=equip_info
             user_data["levels"]={}
             user_data["items"]=[]
-    else:
-        check_update()
     var f=File.new()
     f.open(char_tb_file_path, File.READ)
     var content = f.get_as_text()
@@ -85,21 +89,41 @@ func _ready():
 func check_update():
     pass
 
-func update_data_remote():
+func update_user_remote():
+    if http!=null:
+        return
     http=HTTPRequest.new()
     http.connect("request_completed", self, "on_get_user")
     add_child(http)
     var query_info={}
-    query_info["token"]="Client.user_token"
+    query_info["token"]=token
     var query = JSON.print(query_info)
     var headers = ["Content-Type: application/json"]
-    http.request(server_url+"/on_get_user", headers, false, HTTPClient.METHOD_POST, query)
+    http.request(server_url+"/request_user_info", headers, false, HTTPClient.METHOD_POST, query)
+
+func update_levels_remote():
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.connect("request_completed", self, "on_get_levels")
+    add_child(http)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/request_levels_info", headers, false, HTTPClient.METHOD_POST)
 
 func on_get_user(result, response_code, headers, body):
     http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    user_data=re_json["data"]
+    update_levels_remote()
 
 func on_get_levels(result, response_code, headers, body):
-    pass
+    http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    lv_name_list.append(re_json["data"]["level_id"])
+    level_data=re_json["data"]["battle_data"]
+    get_tree().change_scene(home_scene)
 
 func save_user_data():
     var f=File.new()
@@ -183,3 +207,20 @@ func get_my_item_info(item_name):
 
 func _physics_process(delta):
     pass
+
+func check_token():
+    var f=File.new()
+    if f.file_exists(token_path):
+        f.open(token_path, File.READ)
+        var content = f.get_as_text()
+        token=content
+        f.close()
+        return true
+    else:
+        return false
+
+func store_token():
+    var f=File.new()
+    f.open(token_path, File.WRITE)
+    f.store_string(token)
+    f.close()

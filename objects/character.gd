@@ -446,11 +446,11 @@ func get_hit_pos(fx):
 func on_die(_chara):
     if gold>0:
         var discount_gold=gold*0.9
-        var hard_discount_gold=discount_gold*0.0
+        var hard_discount_gold=discount_gold*game.difficulty
         if team_id==0:
-            discount_gold=discount_gold+hard_discount_gold
-        else:
             discount_gold=discount_gold-hard_discount_gold
+        else:
+            discount_gold=discount_gold+hard_discount_gold
         game.change_meat(discount_gold, get_enemy_team_id())
         if team_id==1:
             var coin_ef_num=int(gold/10)+1

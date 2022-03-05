@@ -33,8 +33,9 @@ var lv_name_list=[]
 var sel_level="0/0/0"
 
 var lottery_price=70
+var difficulty_coef=[1, 0.5, 0.2, 0, -0.2, -0.5, -1]
 
-var local_mode=true
+var local_mode=false
 var token
 var device_id
 
@@ -111,6 +112,8 @@ func update_levels_remote():
     http.request(server_url+"/request_levels_info", headers, false, HTTPClient.METHOD_POST)
 
 func on_get_user(result, response_code, headers, body):
+    if response_code!=200:
+        return
     http.queue_free()
     http=null
     var re_json = JSON.parse(body.get_string_from_utf8()).result
@@ -118,19 +121,43 @@ func on_get_user(result, response_code, headers, body):
     update_levels_remote()
 
 func on_get_levels(result, response_code, headers, body):
+    if response_code!=200:
+        return
     http.queue_free()
     http=null
     var re_json = JSON.parse(body.get_string_from_utf8()).result
     lv_name_list.append(re_json["data"]["level_id"])
-    level_data=re_json["data"]["battle_data"]
+    level_data=re_json["data"]
     get_tree().change_scene(home_scene)
 
+func save_equip_info(b_chara, index, name):
+    if local_mode:
+        return
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.connect("request_completed", self, "default_http_cb")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=token
+    query_info["b_chara"]=b_chara
+    query_info["hk_index"]=index
+    query_info["name"]=name
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/update_equip_info", headers, false, HTTPClient.METHOD_POST, query)
+
 func save_user_data():
-    var f=File.new()
-    f.open(user_data_path, File.WRITE)
-    var temp_json_str=JSON.print(user_data)
-    f.store_string(temp_json_str)
-    f.close()
+    if local_mode:
+        var f=File.new()
+        f.open(user_data_path, File.WRITE)
+        var temp_json_str=JSON.print(user_data)
+        f.store_string(temp_json_str)
+        f.close()        
+
+func default_http_cb(result, response_code, headers, body):
+    http.queue_free()
+    http=null
 
 func save_battle_record(data):
     var f=File.new()

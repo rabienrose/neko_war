@@ -21,14 +21,14 @@ func ai_get_op():
             return op
     return null
 
-func init(_game, ai_info, _team_id):
+func init(_game, ai_info, _team_id, chara_lv):
     team_id=_team_id
     game=_game
     for i in range(len(ai_info)):
         var hk_info={}
         hk_info["countdown"]=0
-        hk_info["lv"]=ai_info[i]["lv"]
-        hk_info["name"]=ai_info[i]["name"]
+        hk_info["lv"]=chara_lv
+        hk_info["name"]=ai_info[i]
         game.chara_hotkey[team_id][i]=hk_info
 
 

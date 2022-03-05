@@ -30,6 +30,9 @@ class LevelMgr:
         query_ret["level_id"]=level_id
         return query_ret
 
+    def update_recording(self, level_id, stat_name, data):
+        config.level_table.update_one({"_id":ObjectId(level_id)},{"$set":{"record."+stat_name:data}})
+
     def update_level_stats(self, token, recording_data, battle_time, level_id, chara_lv, difficulty):
         query_ret=config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0})
         stats={}
@@ -39,25 +42,28 @@ class LevelMgr:
         user = UserInfo(token)
         user_info = user.get_info()
         if stat_name not in stats:
+            stats[stat_name]={}
             stats[stat_name]["num"]=1
             stats[stat_name]["time"]=battle_time
             stats[stat_name]["user"]=user_info["nickname"]
+            self.update_recording(level_id, stat_name, recording_data)
         else:
             stats[stat_name]["num"]=stats[stat_name]["num"]+1
         if stats[stat_name]["time"]>battle_time:
             stats[stat_name]["time"]=battle_time
             stats[stat_name]["user"]=user_info["nickname"]
-            config.level_table.update_one({"_id":ObjectId(level_id)},{"$set":{"record."+stat_name:recording_data}})
+            self.update_recording(level_id, stat_name, recording_data)
         config.level_table.update_one({"_id":ObjectId(level_id)},{"$set":{"stats":stats}})
 
         level_stat_name=level_id+"_"+str(chara_lv)+"_"+str(difficulty)
         if level_stat_name not in user_info["levels"]:
+            user_info["levels"][level_stat_name]={}
             user_info["levels"][level_stat_name]["num"]=1
             user_info["levels"][level_stat_name]["time"]=battle_time
         else:
             user_info["levels"][level_stat_name]["num"]=user_info["levels"][level_stat_name]["num"]+1
         if user_info["levels"][level_stat_name]["time"]>battle_time:
-            user_info["levels"][level_stat_name]=battle_time
+            user_info["levels"][level_stat_name]["time"]=battle_time
         config.user_table.update_one({"_id":ObjectId(token)},{"$set":{"levels":user_info["levels"]}})
         
 

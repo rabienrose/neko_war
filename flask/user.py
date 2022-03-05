@@ -76,5 +76,11 @@ class UserInfo:
         # query_re["token"]=self.token
         return query_re
 
+    def update_equip(self, b_chara, index, name):
+        equip_type="chara"
+        if b_chara==False:
+            equip_type="item"
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"equip."+equip_type+"."+str(index):name}})
+
     def draw_item_chara():
         pass

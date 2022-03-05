@@ -84,6 +84,17 @@ def request_levels_info():
     ret["data"]=lv_mgr.get_daliy_level()
     return json.dumps(ret)
 
+@app.route('/update_equip_info',methods=['POST'])
+def update_equip_info():
+    ret={"op":"update_equip_info"}
+    token=request.json["token"]
+    b_chara=request.json["b_chara"]
+    hk_index=request.json["hk_index"]
+    name=request.json["name"]
+    user = UserInfo(token)
+    user.update_equip(b_chara, hk_index, name)
+    return json.dumps(ret)    
+
 if __name__ == '__main__':
     app.config['SECRET_KEY'] = 'xxx'
     app.config['UPLOAD_FOLDER'] = './raw'

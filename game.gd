@@ -49,6 +49,8 @@ var recording_mask=[false, false]
 
 #input args
 var level_data={}
+var chara_lv=0
+var difficulty=1
 
 var peer
 var players_info={}
@@ -156,11 +158,10 @@ func _player_disconnected(id):
 
 func start_battle():
     #test
-    level_data["gold"]=100
-    level_data["base_hp"]=200
-    level_data["script"]="ai"
-    level_data["args"]={}
-    level_data["args"]["hotkey"] = [{"name":"sword","lv":10},{"name":"bow","lv":10},{"name":"bow","lv":10},{"name":"sword","lv":10},{"name":"sword","lv":10}]
+    level_data=Global.level_data["battle_data"]
+    var vec_s=Global.sel_level.split("/")
+    chara_lv=int(vec_s[1])
+    difficulty=Global.difficulty_coef[int(vec_s[2])]
     Global.rng.seed=0
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
@@ -183,7 +184,7 @@ func start_battle():
             var t_node=Node.new()
             t_node.set_script(load("res://ai/"+level_data["script"]+".gd"))
             add_child(t_node)
-            t_node.init(self, level_data["args"]["hotkey"], i)
+            t_node.init(self, level_data["args"]["hotkey"], i, chara_lv)
             ai_nodes.append(t_node)
         else:
             ai_nodes.append(null)
@@ -662,7 +663,7 @@ func _physics_process(delta):
                     var chara_info=Global.chara_tb[chara_name]
                     if chara_hotkey[_team_id][key]["countdown"]<0 and check_chara_build(chara_info["build_cost"],_team_id):
                         chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
-                        spawn_chara(chara_name, chara_hotkey[_team_id][key]["lv"], _team_id)
+                        spawn_chara(chara_name, chara_hotkey[_team_id][key]["lv"]+1, _team_id)
                         change_meat(-chara_info["build_cost"], _team_id)
                 if recording_mask[_team_id]==false:
                     recording_data[_team_id].append({"time":battle_time ,"input":temp_chara_input.duplicate()})
@@ -675,6 +676,8 @@ func _physics_process(delta):
         update_timer_ui()
     for _team_id in range(0,2):
         for item in chara_hotkey[_team_id]:
+            if item ==null:
+                continue
             item["countdown"]=item["countdown"]-delta
 
 func _on_Return_gui_input(event):

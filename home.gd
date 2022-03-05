@@ -83,11 +83,19 @@ func on_show_level_info(lv_name):
     var vec_s=lv_name.split("/")
     var str_temp=""
     var lv_info=Global.level_data
-    str_temp=str_temp+str(lv_info["gold"])+" gold\n"
+    str_temp=str_temp+str(lv_info["battle_data"]["gold"])+" gold\n"
     str_temp=str_temp+"Lv: "+vec_s[1]+"\n"
-    str_temp=str_temp+"Difficulty: "+vec_s[2]+"\n\n"
-    for chara_t in lv_info["args"]["hotkey"]:
-        str_temp=str_temp+chara_t+"\n"
+    str_temp=str_temp+"Difficulty: "+vec_s[2]+"\n"
+    var stat_name=vec_s[1]+"_"+vec_s[2]
+    if stat_name in Global.level_data["stats"]:
+        str_temp=str_temp+"Record: "+Global.level_data["stats"][stat_name]["user"]+" ("+str(Global.level_data["stats"][stat_name]["time"])+" s)\n"
+    var user_stat_name=vec_s[0]+"_"+vec_s[1]+"_"+vec_s[2]
+    if user_stat_name in Global.user_data["levels"]:
+        str_temp=str_temp+"My Record: "+str(Global.user_data["levels"][user_stat_name]["time"])+" s\n"
+        str_temp=str_temp+"Count: "+str(Global.user_data["levels"][user_stat_name]["num"])+"\n"
+    str_temp=str_temp+"\n"
+    for chara_t in lv_info["battle_data"]["args"]["hotkey"]:
+        str_temp=str_temp+chara_t+" "
     get_node(level_info_path).text=str_temp
 
 func chara_item_click_cb(chara_name):
@@ -146,13 +154,11 @@ func set_chara_hk_slot(slot_id, chara_name):
     item.set_num(info["lv"])
     item.set_data(chara_name)
     Global.user_data["equip"]["chara"][slot_id]=chara_name
-    Global.save_user_data()
 
 func clear_item_hk_slot(slot_id):
     var item = item_hotkey.get_child(slot_id)
     item.clear()
     Global.user_data["equip"]["item"][slot_id]=""
-    Global.save_user_data()
 
 func set_item_hk_slot(slot_id, item_name):
     var item = item_hotkey.get_child(slot_id)
@@ -165,7 +171,6 @@ func set_item_hk_slot(slot_id, item_name):
     item.set_num(info["num"])
     item.set_data(item_name)
     Global.user_data["equip"]["item"][slot_id]=item_name
-    Global.save_user_data()
 
 func make_lv_name(level_id,chara_lv,hard_id):
     return str(level_id)+"/"+str(chara_lv)+"/"+str(hard_id)
@@ -270,6 +275,7 @@ func _input(event):
                 if check_in_control(t_pos, c):
                     if cur_drag_chara!="":
                         set_chara_hk_slot(c.get_index(), cur_drag_chara)
+                        Global.save_equip_info(true,c.get_index(),cur_drag_chara)
                     if cur_drag_item!="":
                         for i in range(len(Global.user_data["equip"]["item"])):
                             if Global.user_data["equip"]["item"][i]==cur_drag_item:

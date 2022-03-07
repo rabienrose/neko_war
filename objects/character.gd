@@ -378,8 +378,8 @@ func check_if_outside(x):
         return false
 
 func _physics_process(delta):
-    # if Global.frame_sync_ready==false:
-    #     return
+    if Global.paused:
+        return
     for buf_name in bufs:
         if bufs[buf_name][0]["is_time_limit"]==true:
             for buf in bufs[buf_name]:

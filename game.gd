@@ -56,7 +56,7 @@ var replay_data=[[],[]]
 var live_chara_count=[0,0]
 var chara_count=[0,0]
 var chara_hotkey=[[null,null,null,null,null],[null,null,null,null,null]]
-var frame_delay=0.2
+var frame_delay=0.5
 var meat_num=[0,0]
 var diamond_num=[0,0]
 var team_charas=[[],[]]
@@ -188,7 +188,7 @@ func spawn_building(build_name, team_id):
     var temp_pos_node=get_node(base1_path)
     if team_id==1:
         temp_pos_node=get_node(base2_path)
-    init_object(new_build, temp_pos_node, build_name, 1, team_id)
+    init_object(new_build, temp_pos_node.position.x, build_name, 1, team_id)
     if Global.level_mode:
         new_build.max_hp=level_data["base_hp"]
     else:
@@ -199,7 +199,7 @@ func spawn_chara(chara_name, lv, team_id):
     var new_char = char_res.instance()
     char_root.add_child(new_char)
     var spawn_pos = spawn_nodes[team_id]
-    init_object(new_char, spawn_pos, chara_name, lv, team_id)
+    init_object(new_char, spawn_pos.position.x+Global.rng.randf_range(-50,50), chara_name, lv, team_id)
 
 func init_object(res, spawn_pos, chara_name, lv, team_id):
     res.on_create(self)
@@ -233,7 +233,7 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
     var anim_info=Global.chara_tb[chara_name]["appearance"]
     res.set_anim(anim_data, anim_info)
     res.set_team(team_id)
-    res.set_x_pos(spawn_pos.position.x)
+    res.set_x_pos(spawn_pos)
     update_chara_list_ui()
 
 func hp_comparison(a, b):
@@ -441,6 +441,7 @@ func update_stats_ui():
     get_node(diamond1_label_path).text="D: "+str(diamond_num[0])
     get_node(diamond2_label_path).text="D: "+str(diamond_num[1])
     get_node(diamond_pool_label_path).text=str(diamond_pool)
+    update_hk_mask()
 
 func update_timer_ui():
     var m = floor(battle_time/60)
@@ -486,11 +487,11 @@ func start_chara_cb(item):
     else:
         return false
 
-func update_hk_mask(val):
+func update_hk_mask():
     for c in chara_gen_ui.get_items():
         if c.has_item==false:
             continue
-        c.set_mask(c.custom_val>val)
+        c.set_mask(!check_chara_build(c.custom_val, find_local_team_id()))
 
 func update_hotkey_ui(_local_team_id):
     for i in range(len(Global.user_data["equip"]["chara"])):
@@ -523,6 +524,8 @@ func update_hotkey_ui(_local_team_id):
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
 func _physics_process(delta):
+    if Global.paused:
+        return
     if game_start==false:
         return
     if frame_time_countdown>0:
@@ -536,14 +539,20 @@ func _physics_process(delta):
                         chara_inputs[_team_id]=cache_chara_inputs[_team_id]
                         cache_chara_inputs[_team_id]=[]
                 server.sycn_local_input()
-                if other_frame_id!=frame_id:
+                if other_frame_id==frame_id-1:
                     wait_4_ack=true
-                    get_tree().paused=true
+                    # get_tree().paused=true
+                    Global.paused=true
                     return
+                elif other_frame_id==frame_id:
+                    pass
+                else:
+                    print("frame sync error!!!! (3)   ",other_frame_id," ",frame_id)
             else:
                 if other_frame_id!=frame_id:
-                    print("frame sync error!!!! (2)")
-                    get_tree().paused=true
+                    print("frame sync error!!!! (2)   ",other_frame_id," ",frame_id)
+                    # get_tree().paused=true
+                    Global.paused=true
                 wait_4_ack=false
         else:
             frame_id=frame_id+1

@@ -115,3 +115,10 @@ func _on_ClearBtn_gui_input(event):
         if event.pressed:
             get_node(account_path).text=""
             get_node(pw_path).text=""
+
+
+func _on_Login_gui_input(event):
+    if event is InputEventScreenTouch:
+        if event.pressed:
+            print("aaaa")
+            OS.hide_virtual_keyboard()

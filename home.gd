@@ -254,7 +254,7 @@ func drag_chara_icon_cb(chara_name, pos):
         cur_drag_chara=chara_name
         set_icon(drag_icon, false, chara_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_Global_position(pos+Vector2(-90,-90))
+    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
 func set_icon(icon_node, b_item, name):
     var icon_file_path=Global.item_img_file_path+name+"/icon.png"
@@ -268,13 +268,13 @@ func drag_item_icon_cb(item_name, pos):
         cur_drag_item=item_name
         set_icon(drag_icon, true, item_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_Global_position(pos+Vector2(-90,-90))
+    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
 func hide_drag_icon():
     drag_icon_bg.visible=false
 
 func check_in_control(query_pos, control):
-    return control.get_Global_rect().has_point(query_pos)
+    return control.get_global_rect().has_point(query_pos)
 
 func _input(event):
     if event is InputEventScreenTouch:

@@ -11,15 +11,16 @@ func _ready():
     lobby=game.get_node(game.lobby_path)
 
 func start_server():
+    print("start_server")
     peer= NetworkedMultiplayerENet.new()
-    peer.create_server(8001, 5)
+    peer.create_server(9001, 5)
     get_tree().network_peer = peer
     get_tree().connect("network_peer_connected", self, "_player_connected")
     get_tree().connect("network_peer_disconnected", self, "_player_disconnected")    
 
 func start_clinet():
     peer = NetworkedMultiplayerENet.new()
-    peer.create_client("127.0.0.1", 8001)
+    peer.create_client("47.100.93.238", 9001)
     get_tree().network_peer = peer
     lobby.visible=true
     get_tree().connect("connected_to_server", self, "_connected_to_server")
@@ -111,22 +112,24 @@ func _server_disconnected():
 func sycn_local_input():
     var team_id = game.find_local_team_id()
     if team_id!=-1:
-        if len(game.chara_inputs[team_id])>0:
-            print("send: ",game.chara_inputs[team_id], " ",game.frame_id)
+        # if len(game.chara_inputs[team_id])>0:
+        # print("send: ",game.chara_inputs[team_id], " ",game.frame_id)
         rpc_id(enemy_net_id,"on_get_input_ack", team_id, game.chara_inputs[team_id], game.frame_id)
 
 remote func on_get_input_ack(team_id, input_dat, _other_frame_id):
-    if len(input_dat)>0:
-        print("recv: ",input_dat, " ",_other_frame_id)
+    # if len(input_dat)>0:
+    # print("recv: ",input_dat, " ",_other_frame_id, "  ", game.wait_4_ack)
     game.other_frame_id=_other_frame_id
-    if game.other_frame_id==game.frame_id:
+    if game.frame_id==game.other_frame_id:
         game.chara_inputs[team_id]=input_dat
-        if get_tree().paused==true:
-            get_tree().paused=false
+        # if get_tree().paused==true:
+        #     get_tree().paused=false
+        if Global.paused==true:
+            Global.paused=false
     elif game.frame_id+1 == game.other_frame_id:
         game.chara_inputs[team_id]=input_dat
     else:
-        print("frame sync error!!!! (1)")
+        print("frame sync error!!!! (1)   ",game.other_frame_id," ",game.frame_id)
         get_tree().paused=true
 
 remote func joint_succ():

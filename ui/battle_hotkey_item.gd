@@ -64,6 +64,8 @@ func shake_box():
     $AnimationPlayer.play("shake")
 
 func _physics_process(_delta):
+    if Global.paused:
+        return
     if countdown>0:
         countdown=countdown-_delta
         progress_node.value=int(countdown/delay_time*100)

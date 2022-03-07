@@ -28,6 +28,8 @@ func play(_s_pos, _e_pos):
     b_play=true
 
 func _physics_process(delta):
+    if Global.paused:
+        return
     if b_play:
         remain_time=remain_time-delta
         position=(e_pos - s_pos)*(1-remain_time/total_time)+s_pos

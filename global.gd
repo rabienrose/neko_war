@@ -42,7 +42,7 @@ var token
 var device_id
 
 var http
-var server_url="http://127.0.0.1:9100"
+var server_url="http://47.100.93.238:9100"
 
 var rng 
 
@@ -50,6 +50,8 @@ var replay_mode=false
 var pvp_mode=false
 var level_mode=true
 var server_mode=false
+
+var paused=false
 
 func _ready():
     rng = RandomNumberGenerator.new()

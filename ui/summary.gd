@@ -11,14 +11,17 @@ export (NodePath) var ske_head_path
 export (NodePath) var gold_head_path
 export (NodePath) var next_btn_path
 
+var b_win=false
+
 func _ready():
     pass # Replace with function body.
 
-func show_summary(b_win, b_show, gold, b_show_next):
+func show_summary(_b_win, b_show, gold, b_show_next):
     get_tree().paused = true
     if b_show:
+        b_win=_b_win
         visible=true
-        if b_win:
+        if _b_win:
             get_node(ske_head_path).visible=false
             get_node(title_text_path).text="YOU WIN!"
             if b_show_next:
@@ -47,5 +50,7 @@ func _on_Next_gui_input(event):
 func _on_Home_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            get_tree().paused = false
-            Global.emit_signal("request_go_home")
+            if b_win:
+                Global.fetch_user_remote()
+            else:
+                Global.emit_signal("request_go_home")

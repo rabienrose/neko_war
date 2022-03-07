@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 from user import UserInfo
 from level_mgr import LevelMgr
-
+from rank import Rank
 
 app = Flask(__name__)
 
@@ -24,12 +24,10 @@ def user_login():
     device_type=request.json["device_type"]
     user = UserInfo("")
     ret_t = user.check_password(account, pw)
-    print(ret_t)
     ret={"op":"user_login"}
     if ret_t["ret"]=="ok":
         ret["ret"]="ok"
         ret["data"]={"token":user.token}
-        print("asdfasdfsfd")
         user.update_device(device_id, device_type, request.remote_addr)
     else:
         ret["ret"]=ret_t["ret"]
@@ -68,6 +66,8 @@ def request_user_info():
 
 @app.route('/update_level_stats',methods=['POST'])
 def update_level_stats():
+    ret={"op":"update_level_stats"}
+    ret["ret"]="ok"
     token=request.json["token"]
     recording_data=request.json["recording"]
     battle_time=request.json["time"]
@@ -76,6 +76,10 @@ def update_level_stats():
     difficulty=request.json["difficulty"]
     lv_mgr=LevelMgr()
     lv_mgr.update_level_stats(token, recording_data, battle_time, level_id, chara_lv, difficulty)
+    gold=lv_mgr.get_level_gold(chara_lv, difficulty, level_id)
+    user = UserInfo(token)
+    user.change_gold(gold)
+    return json.dumps(ret)
 
 @app.route('/request_levels_info',methods=['POST'])
 def request_levels_info():
@@ -94,6 +98,27 @@ def update_equip_info():
     user = UserInfo(token)
     user.update_equip(b_chara, hk_index, name)
     return json.dumps(ret)    
+
+@app.route('/request_rank_info',methods=['POST'])
+def request_rank_info():
+    ret={"op":"request_rank_info"}
+    rank=Rank()
+    ret["data"]=rank.get_ranks()
+    return json.dumps(ret)  
+
+@app.route('/pvp_summary',methods=['POST'])
+def pvp_summary():
+    ret={"op":"request_rank_info"}
+    ret["ret"]="ok"
+    token1=request.json["token1"]
+    token2=request.json["token2"]
+    result=request.json["result"]
+    diamond1=request.json["diamond1"]
+    diamond2=request.json["diamond2"]
+    rank=Rank()
+    if not rank.pvp_summary(token1, token2, diamond1, diamond2, result):
+        ret["ret"]="fail"
+    return json.dumps(ret)  
 
 if __name__ == '__main__':
     app.config['SECRET_KEY'] = 'xxx'

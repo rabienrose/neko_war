@@ -8,6 +8,7 @@ signal show_level_info(lv)
 
 var char_tb_file_path="res://configs/characters.json"
 var user_data_path="user://user.json"
+var global_data_path="res://configs/global.json"
 var token_path="user://token.txt"
 var device_id_path="user://device_id.txt"
 var levels_info_path="res://configs/levels.json"
@@ -21,6 +22,7 @@ var game_scene="res://game.tscn"
 var home_scene="res://home.tscn"
 var login_scene="res://ui/login.tscn"
 
+var rank_data=[]
 var level_data={}
 var user_data={}
 var chara_tb={}
@@ -29,10 +31,10 @@ var skills_tb={}
 var atk_buf_tb={}
 var chara_anim={}
 var lv_name_list=[]
+var global_data={}
 
-var sel_level="0/0/0"
+var sel_level="0_0_0"
 
-var lottery_price=70
 var difficulty_coef=[1, 0.5, 0.2, 0, -0.2, -0.5, -1]
 
 var local_mode=false
@@ -43,6 +45,11 @@ var http
 var server_url="http://127.0.0.1:9100"
 
 var rng 
+
+var replay_mode=false
+var pvp_mode=false
+var level_mode=true
+var server_mode=false
 
 func _ready():
     rng = RandomNumberGenerator.new()
@@ -84,16 +91,21 @@ func _ready():
     content = f.get_as_text()
     atk_buf_tb = JSON.parse(content).result
     f.close()
+    f.open(global_data_path, File.READ)
+    content = f.get_as_text()
+    global_data = JSON.parse(content).result
+    f.close()
     connect("request_battle",self,"on_request_start_battle")
     connect("request_go_home",self,"on_request_go_home")
 
 func check_update():
     pass
 
-func update_user_remote():
+func fetch_user_remote():
     if http!=null:
         return
     http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
     http.connect("request_completed", self, "on_get_user")
     add_child(http)
     var query_info={}
@@ -102,14 +114,25 @@ func update_user_remote():
     var headers = ["Content-Type: application/json"]
     http.request(server_url+"/request_user_info", headers, false, HTTPClient.METHOD_POST, query)
 
-func update_levels_remote():
+func fetch_levels_remote():
     if http!=null:
         return
     http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
     http.connect("request_completed", self, "on_get_levels")
     add_child(http)
     var headers = ["Content-Type: application/json"]
     http.request(server_url+"/request_levels_info", headers, false, HTTPClient.METHOD_POST)
+
+func fetch_rank_remote():
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "on_get_rank")
+    add_child(http)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/request_rank_info", headers, false, HTTPClient.METHOD_POST)
 
 func on_get_user(result, response_code, headers, body):
     if response_code!=200:
@@ -118,7 +141,7 @@ func on_get_user(result, response_code, headers, body):
     http=null
     var re_json = JSON.parse(body.get_string_from_utf8()).result
     user_data=re_json["data"]
-    update_levels_remote()
+    fetch_levels_remote()
 
 func on_get_levels(result, response_code, headers, body):
     if response_code!=200:
@@ -128,6 +151,15 @@ func on_get_levels(result, response_code, headers, body):
     var re_json = JSON.parse(body.get_string_from_utf8()).result
     lv_name_list.append(re_json["data"]["level_id"])
     level_data=re_json["data"]
+    fetch_rank_remote()
+
+func on_get_rank(result, response_code, headers, body):
+    if response_code!=200:
+        return
+    http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    rank_data=re_json["data"]
     get_tree().change_scene(home_scene)
 
 func save_equip_info(b_chara, index, name):
@@ -158,6 +190,24 @@ func save_user_data():
 func default_http_cb(result, response_code, headers, body):
     http.queue_free()
     http=null
+
+func save_battle_summery(recording, time, level_id, chara_lv, difficulty):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "default_http_cb")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=token
+    query_info["recording"]=recording
+    query_info["time"]=int(time)
+    query_info["level_id"]=level_id
+    query_info["chara_lv"]=chara_lv
+    query_info["difficulty"]=difficulty
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/update_level_stats", headers, false, HTTPClient.METHOD_POST, query)
 
 func save_battle_record(data):
     var f=File.new()

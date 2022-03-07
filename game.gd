@@ -22,6 +22,9 @@ export (NodePath) var meat1_label_path
 export (NodePath) var meat2_label_path
 export (NodePath) var diamond1_label_path
 export (NodePath) var diamond2_label_path
+export (NodePath) var diamond_pool_label_path
+export (NodePath) var server_path
+export (NodePath) var cam_path
 
 var fx_mgr
 var char_root
@@ -35,25 +38,19 @@ var stop=false
 var battle_time=0
 var timer_ui_delay=1
 
-var battle_init_meat=1000
 var next_replay_time=0
 var next_replay_index=0
 
 #batlle mode
-var replay_mode=false
-var pvp_mode=false
-var level_mode=true
-var server_mode=false
 var player_setting=["local","ai"] #local, remote, ai
 var recording_mask=[false, false]
 
 #input args
 var level_data={}
 var chara_lv=0
-var difficulty=1
+var difficulty=0
 
-var peer
-var players_info={}
+var server
 var recording_data=[[],[]]
 var replay_data=[[],[]]
 var live_chara_count=[0,0]
@@ -63,6 +60,7 @@ var frame_delay=0.2
 var meat_num=[0,0]
 var diamond_num=[0,0]
 var team_charas=[[],[]]
+var diamond_pool=0
 
 var chara_inputs=[[],[]]
 var item_inputs=[[],[]]
@@ -84,84 +82,33 @@ var other_frame_id=-1
 var wait_4_ack=false
 
 func _ready():
+    server=get_node(server_path)
     var cmds=OS.get_cmdline_args()
     if len(cmds)>=1:
         if cmds[0]=="server":
-            server_mode=true
+            Global.server_mode=true
     if len(cmds)>=2:
         if cmds[1]=="pvp_mode":
-            pvp_mode=true
-    if server_mode:
-        peer= NetworkedMultiplayerENet.new()
-        peer.create_server(8001, 5)
-        get_tree().network_peer = peer
-        get_tree().connect("network_peer_connected", self, "_player_connected")
-        get_tree().connect("network_peer_disconnected", self, "_player_disconnected")
+            Global.pvp_mode=true
+    if Global.server_mode:
+        server.start_server()
     else:
-        if pvp_mode==false:
+        if Global.pvp_mode==false:
+            level_data=Global.level_data["battle_data"]
+            var vec_s=Global.sel_level.split("_")
+            chara_lv=int(vec_s[1])
+            difficulty=Global.difficulty_coef[int(vec_s[2])]
+            get_node(diamond1_label_path).get_parent().visible=false
+            get_node(meat1_label_path).get_parent().visible=true
+            get_node(diamond2_label_path).get_parent().visible=false
+            get_node(meat2_label_path).get_parent().visible=true
+            meat_num[0]=Global.global_data["level_init_gold"]
+            meat_num[1]=Global.global_data["level_init_gold"]
             start_battle()
         else:
-            connect_2_server()
-            get_node(lobby_path).visible=true
-    
-func connect_2_server():
-    peer = NetworkedMultiplayerENet.new()
-    peer.create_client("127.0.0.1", 8001)
-    get_tree().network_peer = peer
-
-remote func start_battle_net(player_info):
-    var other_team_id = player_info["team"]
-    var my_team_id=-1
-    if other_team_id==0:
-        my_team_id=1
-    else:
-        my_team_id=0
-    player_setting[other_team_id]="remote"
-    player_setting[my_team_id]="local"
-    for i in range(len(player_info["equip"])):
-        chara_hotkey[other_team_id][i]=player_info["equip"][i].duplicate()
-        chara_hotkey[other_team_id][i]["countdown"]=0
-    get_node(lobby_path).visible=false
-    start_battle()
-
-remote func process_join(_info):
-    var id = get_tree().get_rpc_sender_id()
-    if id in players_info:
-        return
-    var find_player=false
-    for player_net_id in players_info:
-        if players_info[player_net_id]["status"]=="waiting":
-            var start_battle_info={}
-            start_battle_info["team"]=0
-            start_battle_info["equip"]=players_info[player_net_id]["info"]["equip"]
-            rpc_id(id, "start_battle_net", start_battle_info)
-            start_battle_info={}
-            start_battle_info["team"]=1
-            start_battle_info["equip"]=_info["equip"]
-            rpc_id(player_net_id, "start_battle_net", start_battle_info)
-            players_info[player_net_id]["status"]="battle"
-            players_info[id]={"status":"battle","info":_info}
-            find_player=true
-            break
-    
-    if find_player==false:
-        rpc_id(id, "joint_succ")
-        players_info[id]={"status":"waiting","info":_info}
-
-func _player_connected(id):
-    print("_player_connected: ",id)
-
-func _player_disconnected(id):
-    if id in players_info:
-        players_info.erase(id)
-    print("_player_disconnected: ",id)
+            server.start_clinet()
 
 func start_battle():
-    #test
-    level_data=Global.level_data["battle_data"]
-    var vec_s=Global.sel_level.split("/")
-    chara_lv=int(vec_s[1])
-    difficulty=Global.difficulty_coef[int(vec_s[2])]
     Global.rng.seed=0
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
@@ -171,8 +118,6 @@ func start_battle():
     item_use_ui=get_node(item_use_ui_path)
     spawn_building("base1", 0)
     spawn_building("base2", 1)
-    meat_num[0]=battle_init_meat
-    meat_num[1]=battle_init_meat
     var cancel_cb = funcref(self, "cancel_cb")
     var go_home_cb = funcref(self, "go_home_cb")
     get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
@@ -189,7 +134,7 @@ func start_battle():
         else:
             ai_nodes.append(null)
 
-    if replay_mode:
+    if Global.replay_mode:
         pass
 
     var has_local=false
@@ -204,25 +149,6 @@ func start_battle():
     var _team_id = find_local_team_id()
     if _team_id>=0:
         update_hotkey_ui(_team_id)
-    
-    if pvp_mode:
-        var local_team_id = find_local_team_id()
-        if local_team_id!=-1:
-            if local_team_id==0:
-                get_node(diamond1_label_path).get_parent().visible=true
-                get_node(meat1_label_path).get_parent().visible=true
-                get_node(diamond2_label_path).get_parent().visible=false
-                get_node(meat2_label_path).get_parent().visible=false
-            else:
-                get_node(diamond1_label_path).get_parent().visible=false
-                get_node(meat1_label_path).get_parent().visible=false
-                get_node(diamond2_label_path).get_parent().visible=true
-                get_node(meat2_label_path).get_parent().visible=true
-    else:
-        get_node(diamond1_label_path).get_parent().visible=false
-        get_node(meat1_label_path).get_parent().visible=true
-        get_node(diamond2_label_path).get_parent().visible=false
-        get_node(meat2_label_path).get_parent().visible=true
     game_start=true
 
 func cancel_cb():
@@ -234,22 +160,19 @@ func go_home_cb():
     Global.emit_signal("request_go_home")
 
 func stop_game(b_win):
-    if level_mode:
+    if Global.pvp_mode==false:
         var lv_gold=level_data["gold"]
         var show_next=true
         show_next=false
         if b_win==false:
             lv_gold=0
         get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
-        Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
-        var lv_str=Global.sel_level
         if b_win:
-            if not lv_str in Global.user_data["levels"]:
-                Global.user_data["levels"][lv_str]={"time":battle_time}
-            else:
-                if battle_time<Global.user_data["levels"][lv_str]["time"]:
-                    Global.user_data["levels"][lv_str]["time"]=battle_time
-            Global.save_user_data()
+            Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
+            var vec_s=Global.sel_level.split("_")
+            Global.save_battle_summery("asdfasdf", battle_time, vec_s[0], int(vec_s[1]), int(vec_s[2]))
+    else:
+        get_node(summary_path).show_summary(b_win, true,100,false)
 
 func get_charas_in_range(min_x, max_x, targets):
     var temp_chars=targets
@@ -266,7 +189,10 @@ func spawn_building(build_name, team_id):
     if team_id==1:
         temp_pos_node=get_node(base2_path)
     init_object(new_build, temp_pos_node, build_name, 1, team_id)
-    new_build.max_hp=level_data["base_hp"]
+    if Global.level_mode:
+        new_build.max_hp=level_data["base_hp"]
+    else:
+        new_build.max_hp=1000
     new_build.hp=new_build.max_hp
 
 func spawn_chara(chara_name, lv, team_id):
@@ -461,12 +387,14 @@ func change_meat(change_val, team_id):
     if change_val>0:
         meat_num[team_id]=meat_num[team_id]+change_val
     else:
-        if change_val<=meat_num[team_id]:
+        if -change_val<=meat_num[team_id]:
             meat_num[team_id]=meat_num[team_id]+change_val
         else:
-            var remain_cost=change_val-meat_num[team_id]
+            var remain_cost=-change_val-meat_num[team_id]
             if remain_cost<=diamond_num[team_id]:
+                meat_num[team_id]=0
                 diamond_num[team_id]=diamond_num[team_id]-remain_cost
+                diamond_pool=diamond_pool+remain_cost
             else:
                 print("expend meat error!!")
     update_stats_ui()
@@ -512,6 +440,7 @@ func update_stats_ui():
     get_node(meat2_label_path).text="Meat: "+str(meat_num[1])
     get_node(diamond1_label_path).text="D: "+str(diamond_num[0])
     get_node(diamond2_label_path).text="D: "+str(diamond_num[1])
+    get_node(diamond_pool_label_path).text=str(diamond_pool)
 
 func update_timer_ui():
     var m = floor(battle_time/60)
@@ -547,9 +476,11 @@ func start_chara_cb(item):
     var local_team=find_local_team_id()
     if local_team==-1:
         return
-    if meat_num[local_team]>=item.custom_val:
-        if not item.index in chara_inputs[local_team]:
-            chara_inputs[local_team].append(item.index)
+    if check_chara_build(item.custom_val,local_team):
+        # if wait_4_ack==true:
+        #     return false
+        if not item.index in cache_chara_inputs[local_team]:
+            cache_chara_inputs[local_team].append(item.index)
             return true
         return false
     else:
@@ -591,38 +522,20 @@ func update_hotkey_ui(_local_team_id):
         var click_cb = funcref(self, "use_item_cb")
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
-func sycn_local_input():
-    var team_id = find_local_team_id()
-    if team_id!=-1:
-        rpc("on_get_input_ack", team_id, chara_inputs[team_id], frame_id)
-
-remote func on_get_input_ack(team_id, input_dat, _other_frame_id):
-    if len(input_dat)>0:
-        print(input_dat)
-    other_frame_id=_other_frame_id
-    if other_frame_id==frame_id:
-        chara_inputs[team_id]=input_dat
-        if get_tree().paused==true:
-            get_tree().paused=false
-    elif frame_id+1 == other_frame_id:
-        chara_inputs[team_id]=input_dat
-    else:
-        print("frame sync error!!!! (1)")
-        get_tree().paused=true
-
-remote func joint_succ():
-    get_node(lobby_msg_path).text="Join success, please wait."
-
 func _physics_process(delta):
     if game_start==false:
         return
     if frame_time_countdown>0:
         frame_time_countdown=stepify(frame_time_countdown-delta, 0.01)
     else:
-        if pvp_mode:
+        if Global.pvp_mode:
             if wait_4_ack==false:
                 frame_id=frame_id+1
-                sycn_local_input()
+                for _team_id in range(0,2):
+                    if len(cache_chara_inputs[_team_id])>0:
+                        chara_inputs[_team_id]=cache_chara_inputs[_team_id]
+                        cache_chara_inputs[_team_id]=[]
+                server.sycn_local_input()
                 if other_frame_id!=frame_id:
                     wait_4_ack=true
                     get_tree().paused=true
@@ -632,15 +545,17 @@ func _physics_process(delta):
                     print("frame sync error!!!! (2)")
                     get_tree().paused=true
                 wait_4_ack=false
+        else:
+            frame_id=frame_id+1
         for _team_id in range(0,2):
             var temp_chara_input=[]
-            if replay_mode==false:
+            if Global.replay_mode==false:
                 if player_setting[_team_id]=="ai":
                     var op= ai_nodes[_team_id].ai_get_op()
                     if op!= null and op["type"]=="chara":
                         temp_chara_input.append(op["ind"])
                 elif player_setting[_team_id]=="local":
-                    if pvp_mode==false:
+                    if Global.pvp_mode==false:
                         temp_chara_input=chara_inputs[_team_id].duplicate()
                     else:
                         temp_chara_input=chara_inputs[_team_id].duplicate()
@@ -669,7 +584,7 @@ func _physics_process(delta):
                     recording_data[_team_id].append({"time":battle_time ,"input":temp_chara_input.duplicate()})
             chara_inputs[_team_id]=[]
         frame_time_countdown=stepify(frame_delay-delta,0.01)
-    battle_time=stepify(battle_time+delta,0.01)
+    battle_time=frame_id*frame_delay
     timer_ui_delay=timer_ui_delay-delta
     if timer_ui_delay<0:
         timer_ui_delay=1
@@ -690,17 +605,4 @@ func _on_Return_gui_input(event):
 func _on_Join_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed:
-            var join_info={}
-            join_info["equip"]=[]
-            for i in range(len(Global.user_data["equip"]["chara"])):
-                var chara_name=Global.user_data["equip"]["chara"][i]
-                if chara_name=="":
-                    join_info["equip"].append(null)
-                else:
-                    var my_chara_info = Global.get_my_chara_info(chara_name)
-                    var lv=my_chara_info["lv"]
-                    var hk_info={}
-                    hk_info["lv"]=lv
-                    hk_info["name"]=chara_name
-                    join_info["equip"].append(hk_info)
-            rpc_id(1,"process_join",join_info)
+            pass

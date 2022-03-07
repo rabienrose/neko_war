@@ -71,12 +71,17 @@ level_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Level/Label")
 chara_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Character/Label")
 item_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Item/Label")
 lottery_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/Lottery/Label")
+pvp_label_path = NodePath("NinePatchRect/VBoxContainer/Buttons/PVP/Label")
 level_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels")
 chara_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters")
 item_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Items")
 lottery_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery")
+pvp_container_path = NodePath("NinePatchRect/VBoxContainer/MidContent/PVP")
 lottery_price_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn/Label")
 tab_dots_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Dots/HBoxContainer")
+rank_path = NodePath("NinePatchRect/VBoxContainer/MidContent/PVP/Rank/VBoxContainer")
+pvp_cost_label_path = NodePath("NinePatchRect/VBoxContainer/MidContent/PVP/Control/GoBtn/Label")
+user_stats_path = NodePath("NinePatchRect/VBoxContainer/Status")
 level_item_res = ExtResource( 16 )
 drop_item_res = ExtResource( 19 )
 tab_dot_res = ExtResource( 13 )
@@ -126,6 +131,7 @@ margin_bottom = 958.0
 size_flags_vertical = 3
 
 [node name="Levels" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 50.0
@@ -641,6 +647,91 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="PVP" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 70.0
+margin_right = -50.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control" type="HBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/PVP"]
+margin_right = 600.0
+margin_bottom = 834.0
+rect_min_size = Vector2( 600, 0 )
+
+[node name="GoBtn" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/PVP/Control"]
+margin_left = 50.0
+margin_top = 167.0
+margin_right = 550.0
+margin_bottom = 667.0
+rect_min_size = Vector2( 500, 500 )
+mouse_filter = 0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource( 4 )
+patch_margin_left = 17
+patch_margin_top = 18
+patch_margin_right = 19
+patch_margin_bottom = 19
+
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/PVP/Control/GoBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 200.0
+custom_colors/font_color = Color( 0.67451, 0.823529, 0.968627, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 10
+custom_constants/shadow_offset_y = 10
+custom_fonts/font = SubResource( 4 )
+text = "100 Gold"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/PVP/Control/GoBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -50.0
+custom_colors/font_color = Color( 0.67451, 0.823529, 0.968627, 1 )
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+custom_constants/shadow_offset_x = 10
+custom_constants/shadow_offset_y = 10
+custom_fonts/font = SubResource( 5 )
+text = "Match"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Rank" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/MidContent/PVP"]
+margin_left = 604.0
+margin_right = 2244.0
+margin_bottom = 834.0
+size_flags_horizontal = 3
+texture = ExtResource( 14 )
+patch_margin_left = 43
+patch_margin_top = 44
+patch_margin_right = 41
+patch_margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NinePatchRect/VBoxContainer/MidContent/PVP/Rank"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 40.0
+margin_top = 40.0
+margin_right = -40.0
+margin_bottom = -40.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Buttons" type="HBoxContainer" parent="NinePatchRect/VBoxContainer"]
 margin_top = 962.0
 margin_right = 2364.0
@@ -772,7 +863,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Rank" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
+[node name="PVP" type="NinePatchRect" parent="NinePatchRect/VBoxContainer/Buttons"]
 margin_left = 1886.0
 margin_top = 25.0
 margin_right = 2286.0
@@ -786,15 +877,15 @@ patch_margin_top = 17
 patch_margin_right = 15
 patch_margin_bottom = 19
 
-[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/Rank"]
+[node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/Buttons/PVP"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-custom_colors/font_color = Color( 0.486275, 0.486275, 0.486275, 1 )
+custom_colors/font_color = Color( 0.807843, 0.807843, 0.807843, 1 )
 custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
 custom_constants/shadow_offset_x = 7
 custom_constants/shadow_offset_y = 7
 custom_fonts/font = SubResource( 1 )
-text = "RANK"
+text = "PVP"
 align = 1
 valign = 1
 __meta__ = {
@@ -833,8 +924,9 @@ __meta__ = {
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Characters/LevelInfo/VBoxContainer/Upgrade" to="." method="_on_Upgrade_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer/Buy" to="." method="_on_Buy_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Lottery/Control/TryBtn" to="." method="_on_TryBtn_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/PVP/Control/GoBtn" to="." method="_on_GoBtn_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Level" to="." method="_on_Level_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Character" to="." method="_on_Character_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Item" to="." method="_on_Item_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Lottery" to="." method="_on_Lottery_gui_input"]
-[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/Rank" to="." method="_on_Rank_gui_input"]
+[connection signal="gui_input" from="NinePatchRect/VBoxContainer/Buttons/PVP" to="." method="_on_PVP_gui_input"]

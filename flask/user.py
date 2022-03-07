@@ -65,6 +65,7 @@ class UserInfo:
     def reset_user(self):
         user_info={}
         user_info["gold"]=0
+        user_info["diamond"]=2000        
         user_info["characters"]=[{"name": "sword","lv": 1}]
         user_info["equip"]={"chara": ["sword","","","", ""],"item": ["","","","",""]}
         user_info["levels"]={}
@@ -82,5 +83,21 @@ class UserInfo:
             equip_type="item"
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"equip."+equip_type+"."+str(index):name}})
 
+    def change_gold(self, gold):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"gold":1})
+        new_gold=query_re["gold"]+gold
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"gold":new_gold}})
+
+    def change_diamond(self, val):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"diamond":1})
+        new_val=query_re["diamond"]+val
+        if new_val<=0:
+            return False
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"diamond":new_val}})
+        return True
+
+    def set_last_pvp(self):
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"last_pvp":int(time.time())}})
+        
     def draw_item_chara():
         pass

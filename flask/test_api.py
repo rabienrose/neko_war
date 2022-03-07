@@ -26,4 +26,10 @@ def update_level_stats():
     level_mgr = LevelMgr()
     level_mgr.update_level_stats(token, recording_data, battle_time, level_id, chara_lv, difficulty)
 
-update_level_stats()
+def get_lv_gold():
+    level_mgr = LevelMgr()
+    gold = level_mgr.get_level_gold(2,3,"6221d9414544092b0af2279b")
+    user=UserInfo("6221ab307521a80278ab3c05")
+    user.change_gold(gold)
+
+get_lv_gold()

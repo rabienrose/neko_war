@@ -18,12 +18,17 @@ export (NodePath) var level_label_path
 export (NodePath) var chara_label_path
 export (NodePath) var item_label_path
 export (NodePath) var lottery_label_path
+export (NodePath) var pvp_label_path
 export (NodePath) var level_container_path
 export (NodePath) var chara_container_path
 export (NodePath) var item_container_path
 export (NodePath) var lottery_container_path
+export (NodePath) var pvp_container_path
 export (NodePath) var lottery_price_path
 export (NodePath) var tab_dots_path
+export (NodePath) var rank_path
+export (NodePath) var pvp_cost_label_path
+export (NodePath) var user_stats_path
 
 export (Resource) var level_item_res
 export (Resource) var drop_item_res
@@ -53,6 +58,7 @@ var hardness_num=7
 var cur_level_page_ind=0
 
 func _ready():
+    get_tree().paused = false
     Global.connect("show_level_info",self, "on_show_level_info")
     level_grid=get_node(level_grid_path)
     level_info=get_node(level_info_path)
@@ -80,7 +86,7 @@ func _ready():
 
 func on_show_level_info(lv_name):
     cur_sel_level=lv_name
-    var vec_s=lv_name.split("/")
+    var vec_s=lv_name.split("_")
     var str_temp=""
     var lv_info=Global.level_data
     str_temp=str_temp+str(lv_info["battle_data"]["gold"])+" gold\n"
@@ -173,7 +179,7 @@ func set_item_hk_slot(slot_id, item_name):
     Global.user_data["equip"]["item"][slot_id]=item_name
 
 func make_lv_name(level_id,chara_lv,hard_id):
-    return str(level_id)+"/"+str(chara_lv)+"/"+str(hard_id)
+    return str(level_id)+"_"+str(chara_lv)+"_"+str(hard_id)
 
 func add_lv_grid_item(lv_name):
     var level_item = level_item_res.instance()
@@ -238,14 +244,17 @@ func update_items_ui():
         set_item_hk_slot(i, item_name)
 
 func update_lottery_ui():
-    get_node(lottery_price_path).text=str(Global.lottery_price)+" Gold"  
+    get_node(lottery_price_path).text=str(Global.global_data["lottery_price"])+" Gold"  
+
+func update_pvp_ui():
+    get_node(lottery_price_path).text=str(Global.global_data["pvp_price"])+" Diamond"  
 
 func drag_chara_icon_cb(chara_name, pos):
     if cur_drag_chara=="":
         cur_drag_chara=chara_name
         set_icon(drag_icon, false, chara_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
+    drag_icon_bg.set_Global_position(pos+Vector2(-90,-90))
 
 func set_icon(icon_node, b_item, name):
     var icon_file_path=Global.item_img_file_path+name+"/icon.png"
@@ -259,31 +268,32 @@ func drag_item_icon_cb(item_name, pos):
         cur_drag_item=item_name
         set_icon(drag_icon, true, item_name)
         drag_icon_bg.visible=true
-    drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
+    drag_icon_bg.set_Global_position(pos+Vector2(-90,-90))
 
 func hide_drag_icon():
     drag_icon_bg.visible=false
 
 func check_in_control(query_pos, control):
-    return control.get_global_rect().has_point(query_pos)
+    return control.get_Global_rect().has_point(query_pos)
 
 func _input(event):
     if event is InputEventScreenTouch:
         if event.pressed==false:
-            for c in chara_hotkey.get_children():
-                var t_pos=Vector2(event.position.x, event.position.y)
-                if check_in_control(t_pos, c):
-                    if cur_drag_chara!="":
-                        set_chara_hk_slot(c.get_index(), cur_drag_chara)
-                        Global.save_equip_info(true,c.get_index(),cur_drag_chara)
-                    if cur_drag_item!="":
-                        for i in range(len(Global.user_data["equip"]["item"])):
-                            if Global.user_data["equip"]["item"][i]==cur_drag_item:
-                                clear_item_hk_slot(i)
-                        set_item_hk_slot(c.get_index(), cur_drag_item)
-            cur_drag_chara=""
-            cur_drag_item=""
-            hide_drag_icon()
+            if get_node(chara_container_path).visible==true:
+                for c in chara_hotkey.get_children():
+                    var t_pos=Vector2(event.position.x, event.position.y)
+                    if check_in_control(t_pos, c):
+                        if cur_drag_chara!="":
+                            set_chara_hk_slot(c.get_index(), cur_drag_chara)
+                            Global.save_equip_info(true,c.get_index(),cur_drag_chara)
+                        if cur_drag_item!="":
+                            for i in range(len(Global.user_data["equip"]["item"])):
+                                if Global.user_data["equip"]["item"][i]==cur_drag_item:
+                                    clear_item_hk_slot(i)
+                            set_item_hk_slot(c.get_index(), cur_drag_item)
+                cur_drag_chara=""
+                cur_drag_item=""
+                hide_drag_icon()
 
 func init_tab_dots(num):
     var tab_dots=get_node(tab_dots_path)
@@ -312,9 +322,11 @@ func hide_all_tabs():
     get_node(chara_container_path).visible=false
     get_node(item_container_path).visible=false
     get_node(lottery_container_path).visible=false
+    get_node(pvp_container_path).visible=false
 
 func update_status():
-    Global.emit_signal("money_change",Global.user_data["gold"])
+    get_node(user_stats_path).set_gold(Global.user_data["gold"])
+    get_node(user_stats_path).set_diamond(Global.user_data["diamond"])
 
 func show_tab(name):
     if name=="level":
@@ -329,6 +341,9 @@ func show_tab(name):
     elif name=="lottery":
         get_node(lottery_label_path).add_color_override("font_color", Color.red)
         get_node(lottery_container_path).visible=true
+    elif name=="pvp":
+        get_node(pvp_label_path).add_color_override("font_color", Color.red)
+        get_node(pvp_container_path).visible=true
 
 func on_tab_button(btn_name, event):
     if event is InputEventScreenTouch:
@@ -364,7 +379,7 @@ func _on_Upgrade_gui_input(event:InputEvent):
 func _on_TryBtn_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed==true:
-            if Global.expend_user_money(Global.lottery_price)==false:
+            if Global.expend_user_money(Global.global_data["lottery_price"])==false:
                 return
             #draw chara
             var temp_my_charas=Global.get_my_charas_dict()
@@ -438,8 +453,8 @@ func _on_Item_gui_input(event):
 func _on_Lottery_gui_input(event):
     on_tab_button("lottery", event)
 
-func _on_Rank_gui_input(event):
-    on_tab_button("rank", event)
+func _on_PVP_gui_input(event):
+    on_tab_button("pvp", event)
 
 func _on_Start_gui_input(event):
     if event is InputEventScreenTouch:
@@ -466,3 +481,12 @@ func _on_Right_gui_input(event):
                 cur_level_page_ind=cur_level_page_ind+1
                 update_levels_ui(Global.lv_name_list[cur_level_page_ind])
                 set_tab_dot_sel(cur_level_page_ind)
+
+func _on_GoBtn_gui_input(event:InputEvent):
+    if event is InputEventScreenTouch:
+        if event.pressed:
+            if Global.user_data["diamond"]>=Global.global_data["pvp_price"]:
+                Global.pvp_mode=true
+                Global.level_mode=false
+                get_tree().change_scene(Global.game_scene)
+            

@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/game_status_ui.gd" type="Script" id=1]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://ui/texture/label_bg.tres" type="Texture" id=3]
 [ext_resource path="res://ui/texture/gold_ui.tres" type="Texture" id=4]
+[ext_resource path="res://ui/texture/diamond.tres" type="Texture" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 40
@@ -53,10 +54,11 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 gold_label_path = NodePath("Gold/LabelBG/Label")
+diamond_label_path = NodePath("Diamond/LabelBG/Label")
 
 [node name="Gold" type="Control" parent="."]
-margin_left = 850.0
-margin_right = 1150.0
+margin_left = 349.0
+margin_right = 649.0
 margin_bottom = 100.0
 rect_min_size = Vector2( 300, 0 )
 size_flags_horizontal = 6
@@ -86,6 +88,42 @@ __meta__ = {
 margin_right = 40.0
 margin_bottom = 40.0
 texture = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Diamond" type="Control" parent="."]
+margin_left = 1351.0
+margin_right = 1651.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 6
+
+[node name="LabelBG" type="TextureRect" parent="Diamond"]
+margin_left = 50.0
+margin_top = 15.0
+margin_right = 252.0
+margin_bottom = 86.0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Diamond/LabelBG"]
+anchor_left = 0.3
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "321"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DIcon" type="TextureRect" parent="Diamond"]
+margin_right = 40.0
+margin_bottom = 40.0
+texture = ExtResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

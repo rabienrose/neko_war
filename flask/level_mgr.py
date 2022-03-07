@@ -3,6 +3,7 @@ import config
 import random
 from game import Game
 from user import UserInfo
+import json
 
 class LevelMgr:
     def set_today_a_rand_level(self):
@@ -66,6 +67,14 @@ class LevelMgr:
             user_info["levels"][level_stat_name]["time"]=battle_time
         config.user_table.update_one({"_id":ObjectId(token)},{"$set":{"levels":user_info["levels"]}})
         
+    def get_level_gold(self, chara_lv, difficulty, level_id):
+        query_re = config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data.gold":1})
+        level_base_gold=query_re["battle_data"]["gold"]
+        f=open("../configs/global.json",'r')
+        global_info = json.load(f)
+        final_gold=level_base_gold*global_info["difficulty_gold_coef"][difficulty]*global_info["chara_gold_coef"][chara_lv]
+        f.close()
+        return final_gold
 
     def add_level(self, battle_data, chance):
         level_data={}

@@ -64,7 +64,7 @@ func on_regist_ret(result, response_code, headers, body):
         if "data" in re_json:
             Global.token=re_json["data"]["token"]
             Global.store_token()
-            Global.update_user_remote()
+            Global.fetch_user_remote()
         else:
             show_alert("Login failed!")
     else:

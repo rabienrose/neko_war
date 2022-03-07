@@ -250,10 +250,11 @@ func on_shoot_timeout():
     apply_attck()
 
 func change_animation(anim_name, _status):
-    anim_sprite.animation=anim_name
-    anim_sprite.frame=0
-    anim_sprite.play()
-    status=_status
+    if anim_sprite.frames.has_animation(anim_name):
+        anim_sprite.animation=anim_name
+        anim_sprite.frame=0
+        anim_sprite.play()
+        status=_status
 
 func _on_AnimatedSprite_animation_finished():
     if dead==true:
@@ -446,12 +447,12 @@ func get_hit_pos(fx):
 func on_die(_chara):
     if gold>0:
         var discount_gold=gold*0.9
-        var hard_discount_gold=discount_gold*game.difficulty
-        if team_id==0:
-            discount_gold=discount_gold-hard_discount_gold
-        else:
-            discount_gold=discount_gold+hard_discount_gold
-        game.change_meat(discount_gold, get_enemy_team_id())
+        # var hard_discount_gold=discount_gold*game.difficulty
+        # if team_id==0:
+        #     discount_gold=discount_gold-hard_discount_gold
+        # else:
+        #     discount_gold=discount_gold+hard_discount_gold
+        game.change_meat(int(discount_gold), get_enemy_team_id())
         if team_id==1:
             var coin_ef_num=int(gold/10)+1
             if coin_ef_num>10:

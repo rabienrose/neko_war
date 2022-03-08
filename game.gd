@@ -31,6 +31,7 @@ var char_root
 var chara_gen_ui
 var item_use_ui
 var frame_time_countdown=0
+var keyframe_step=5
 var scene_min=440
 var scene_max=3500
 
@@ -56,7 +57,7 @@ var replay_data=[[],[]]
 var live_chara_count=[0,0]
 var chara_count=[0,0]
 var chara_hotkey=[[null,null,null,null,null],[null,null,null,null,null]]
-var frame_delay=0.5
+var frame_delay=1.0/keyframe_step
 var meat_num=[0,0]
 var diamond_num=[0,0]
 var team_charas=[[],[]]
@@ -475,13 +476,9 @@ func find_local_team_id():
 
 func start_chara_cb(item):
     var local_team=find_local_team_id()
-    if local_team==-1:
-        return
     if check_chara_build(item.custom_val,local_team):
-        # if wait_4_ack==true:
-        #     return false
         if not item.index in cache_chara_inputs[local_team]:
-            cache_chara_inputs[local_team].append(item.index)
+            chara_inputs[local_team].append(item.index)
             return true
         return false
     else:
@@ -523,78 +520,9 @@ func update_hotkey_ui(_local_team_id):
         var click_cb = funcref(self, "use_item_cb")
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
-func _physics_process(delta):
-    if Global.paused:
-        return
-    if game_start==false:
-        return
-    if frame_time_countdown>0:
-        frame_time_countdown=stepify(frame_time_countdown-delta, 0.01)
-    else:
-        if Global.pvp_mode:
-            if wait_4_ack==false:
-                frame_id=frame_id+1
-                for _team_id in range(0,2):
-                    if len(cache_chara_inputs[_team_id])>0:
-                        chara_inputs[_team_id]=cache_chara_inputs[_team_id]
-                        cache_chara_inputs[_team_id]=[]
-                server.sycn_local_input()
-                if other_frame_id==frame_id-1:
-                    wait_4_ack=true
-                    # get_tree().paused=true
-                    Global.paused=true
-                    return
-                elif other_frame_id==frame_id:
-                    pass
-                else:
-                    print("frame sync error!!!! (3)   ",other_frame_id," ",frame_id)
-            else:
-                if other_frame_id!=frame_id:
-                    print("frame sync error!!!! (2)   ",other_frame_id," ",frame_id)
-                    # get_tree().paused=true
-                    Global.paused=true
-                wait_4_ack=false
-        else:
-            frame_id=frame_id+1
-        for _team_id in range(0,2):
-            var temp_chara_input=[]
-            if Global.replay_mode==false:
-                if player_setting[_team_id]=="ai":
-                    var op= ai_nodes[_team_id].ai_get_op()
-                    if op!= null and op["type"]=="chara":
-                        temp_chara_input.append(op["ind"])
-                elif player_setting[_team_id]=="local":
-                    if Global.pvp_mode==false:
-                        temp_chara_input=chara_inputs[_team_id].duplicate()
-                    else:
-                        temp_chara_input=chara_inputs[_team_id].duplicate()
-                        # cache_chara_inputs[_team_id]=chara_inputs[_team_id].duplicate()
-                elif player_setting[_team_id]=="remote":
-                    temp_chara_input=chara_inputs[_team_id].duplicate()
-                    # cache_chara_inputs[_team_id]=[]
-            else:
-                if next_replay_time<=battle_time:
-                    temp_chara_input=replay_data[_team_id][next_replay_index]["input"].duplicate()
-                    if next_replay_index+1<len(replay_data[_team_id]):
-                        next_replay_index=next_replay_index+1
-                        next_replay_time=replay_data[_team_id][next_replay_index]["time"]
-                    else:
-                        next_replay_time=10000
-            
-            if len(temp_chara_input)>0:
-                for key in temp_chara_input:
-                    var chara_name=chara_hotkey[_team_id][key]["name"]
-                    var chara_info=Global.chara_tb[chara_name]
-                    if chara_hotkey[_team_id][key]["countdown"]<0 and check_chara_build(chara_info["build_cost"],_team_id):
-                        chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
-                        spawn_chara(chara_name, chara_hotkey[_team_id][key]["lv"]+1, _team_id)
-                        change_meat(-chara_info["build_cost"], _team_id)
-                if recording_mask[_team_id]==false:
-                    recording_data[_team_id].append({"time":battle_time ,"input":temp_chara_input.duplicate()})
-            chara_inputs[_team_id]=[]
-        frame_time_countdown=stepify(frame_delay-delta,0.01)
-    battle_time=frame_id*frame_delay
-    timer_ui_delay=timer_ui_delay-delta
+func process_frame():
+    print(timer_ui_delay)
+    timer_ui_delay=timer_ui_delay-frame_delay
     if timer_ui_delay<0:
         timer_ui_delay=1
         update_timer_ui()
@@ -602,7 +530,22 @@ func _physics_process(delta):
         for item in chara_hotkey[_team_id]:
             if item ==null:
                 continue
-            item["countdown"]=item["countdown"]-delta
+            item["countdown"]=item["countdown"]-frame_delay
+
+func _physics_process(_delta):
+    if game_start==false:
+        return    
+    if frame_time_countdown>0:
+        frame_time_countdown=frame_time_countdown-1
+        process_frame()
+    else:
+        if server.process_keyframe()==false:
+            Global.paused=true
+            return  
+        else:
+            Global.paused=false
+            frame_time_countdown=keyframe_step
+            process_frame()
 
 func _on_Return_gui_input(event):
     if event is InputEventScreenTouch:

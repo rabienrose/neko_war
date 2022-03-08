@@ -5,6 +5,8 @@ var peer
 var lobby
 var players_info={}
 var enemy_net_id=-1
+var input_queue=[]
+var cur_frame=0
 
 func _ready():
     game=get_parent()
@@ -21,6 +23,7 @@ func start_server():
 func start_clinet():
     peer = NetworkedMultiplayerENet.new()
     peer.create_client("47.100.93.238", 9001)
+    # peer.create_client("127.0.0.1", 9001)
     get_tree().network_peer = peer
     lobby.visible=true
     get_tree().connect("connected_to_server", self, "_connected_to_server")
@@ -49,13 +52,13 @@ remote func start_battle_net(player_info):
             game.get_node(game.diamond1_label_path).get_parent().visible=true
             game.diamond_num[0]=Global.user_data["diamond"]
             game.get_node(game.meat1_label_path).get_parent().visible=true
-            game.get_node(game.diamond2_label_path).get_parent().visible=true
+            game.get_node(game.diamond2_label_path).get_parent().visible=false
             game.diamond_num[1]=player_info["diamond"]
-            game.get_node(game.meat2_label_path).get_parent().visible=true
+            game.get_node(game.meat2_label_path).get_parent().visible=false
         else:
-            game.get_node(game.diamond1_label_path).get_parent().visible=true
+            game.get_node(game.diamond1_label_path).get_parent().visible=false
             game.diamond_num[0]=player_info["diamond"]
-            game.get_node(game.meat1_label_path).get_parent().visible=true
+            game.get_node(game.meat1_label_path).get_parent().visible=false
             game.get_node(game.diamond2_label_path).get_parent().visible=true
             game.diamond_num[1]=Global.user_data["diamond"]
             game.get_node(game.meat2_label_path).get_parent().visible=true
@@ -109,31 +112,53 @@ func _connection_failed():
 func _server_disconnected():
     pass
 
-func sycn_local_input():
-    var team_id = game.find_local_team_id()
-    if team_id!=-1:
-        # if len(game.chara_inputs[team_id])>0:
-        # print("send: ",game.chara_inputs[team_id], " ",game.frame_id)
-        rpc_id(enemy_net_id,"on_get_input_ack", team_id, game.chara_inputs[team_id], game.frame_id)
-
-remote func on_get_input_ack(team_id, input_dat, _other_frame_id):
-    # if len(input_dat)>0:
-    # print("recv: ",input_dat, " ",_other_frame_id, "  ", game.wait_4_ack)
-    game.other_frame_id=_other_frame_id
-    if game.frame_id==game.other_frame_id:
-        game.chara_inputs[team_id]=input_dat
-        # if get_tree().paused==true:
-        #     get_tree().paused=false
-        if Global.paused==true:
-            Global.paused=false
-    elif game.frame_id+1 == game.other_frame_id:
-        game.chara_inputs[team_id]=input_dat
-    else:
-        print("frame sync error!!!! (1)   ",game.other_frame_id," ",game.frame_id)
-        get_tree().paused=true
-
 remote func joint_succ():
     game.get_node(game.lobby_msg_path).text="Join success, please wait."
+
+remote func on_get_keyframe(input_dat, _frame_id):
+    if len(input_queue)==_frame_id-1:
+        input_queue.append(input_dat)
+    else:
+        print("sycn wrong!!")
+
+func report_input(_team_id):
+    if len(game.chara_inputs[_team_id])>0:
+        rpc_id(enemy_net_id,"on_get_input", game.chara_inputs[_team_id], _team_id)
+        game.chara_inputs[_team_id]=[]
+
+remote func on_get_input(input_dat, _team_id):
+    game.chara_inputs[_team_id]=input_dat
+
+func check_new_keyframe():
+    return !(cur_frame==len(input_queue))
+
+func process_keyframe():
+    var _local_team=game.find_local_team_id()
+    if _local_team==0:
+        broadcast_keyframe()
+    else:
+        report_input(_local_team)
+    if check_new_keyframe():
+        var inputs = input_queue[cur_frame]
+        for _team_id in range(0,2):
+            if len(inputs[_team_id])>0:
+                for key in inputs[_team_id]:
+                    var chara_name=game.chara_hotkey[_team_id][key]["name"]
+                    var chara_info=Global.chara_tb[chara_name]
+                    if game.chara_hotkey[_team_id][key]["countdown"]<0 and game.check_chara_build(chara_info["build_cost"],_team_id):
+                        game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
+                        game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
+                        game.change_meat(-chara_info["build_cost"], _team_id)
+        cur_frame=cur_frame+1
+        return true
+    else:
+        return false
+
+func broadcast_keyframe():
+    rpc_id(enemy_net_id,"on_get_keyframe", game.chara_inputs, len(input_queue)+1)
+    on_get_keyframe(game.chara_inputs.duplicate(), len(input_queue)+1)
+    for i in range(0,2):
+        game.chara_inputs[i]=[]
 
 func request_join():
     var join_info={}

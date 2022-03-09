@@ -1,0 +1,59 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/rank_item.gd" type="Script" id=1]
+[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
+
+[sub_resource type="DynamicFont" id=1]
+size = 40
+outline_size = 2
+outline_color = Color( 0.592157, 0.258824, 0, 1 )
+font_data = ExtResource( 2 )
+
+[node name="RankItem" type="HBoxContainer"]
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+nickname_path = NodePath("UserName")
+diamond_path = NodePath("Diamond")
+past_time_path = NodePath("LastBattle")
+note_path = NodePath("Note")
+
+[node name="UserName" type="Label" parent="."]
+margin_right = 200.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 200, 0 )
+custom_fonts/font = SubResource( 1 )
+text = "chamo"
+align = 1
+valign = 1
+
+[node name="Diamond" type="Label" parent="."]
+margin_left = 204.0
+margin_right = 404.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 200, 0 )
+custom_fonts/font = SubResource( 1 )
+text = "10020"
+align = 1
+valign = 1
+
+[node name="LastBattle" type="Label" parent="."]
+margin_left = 408.0
+margin_right = 608.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 200, 0 )
+custom_fonts/font = SubResource( 1 )
+text = "2022/03/05"
+align = 1
+valign = 1
+
+[node name="Note" type="Label" parent="."]
+margin_left = 612.0
+margin_right = 738.0
+margin_bottom = 52.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 1 )
+text = "lalalalal"
+align = 1
+valign = 1

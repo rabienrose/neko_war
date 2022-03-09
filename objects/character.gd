@@ -39,7 +39,6 @@ var deff=0.1
 var flee=0.1
 var luk=0.1
 var cri=0.1
-var team_id=0
 var gold=20
 var atk_num=1
 var target_scheme=null
@@ -47,6 +46,9 @@ var self_destroy=false
 var hit_delay=0.5
 
 #static status
+var reward_discount=1
+var team_id=0
+var is_local=true
 var type=""
 var chara_name=""
 var atk_anim_name=""
@@ -123,6 +125,7 @@ func set_attr_data(data):
     atk_num=data["atk_num"]
     self_destroy=data["self_destroy"]
     chara_name=data["chara_name"]
+    reward_discount=data["reward_discount"]
 
 func add_back_buf(dist):
     var buf=Buf.new()
@@ -183,7 +186,7 @@ func play_hit(source_fx_info):
         in_hit_delay=true
 
 func show_miss():
-    if team_id==0:
+    if is_local:
         fct_mgr.show_value("Miss!", Color.red)
     else:
         fct_mgr.show_value("Miss!", Color.white)
@@ -285,8 +288,9 @@ func set_anim(anim_data, info):
     else:
         atk_anim_name=""
 
-func set_team(_team_id):
+func set_team(_team_id, _is_local):
     team_id=_team_id
+    is_local=_is_local
     name=chara_name+"_"+str(team_id)+"_"+str(chara_index)
     if team_id==1:
         mov_dir=-1
@@ -446,14 +450,9 @@ func get_hit_pos(fx):
 
 func on_die(_chara):
     if gold>0:
-        var discount_gold=gold*0.9
-        # var hard_discount_gold=discount_gold*game.difficulty
-        # if team_id==0:
-        #     discount_gold=discount_gold-hard_discount_gold
-        # else:
-        #     discount_gold=discount_gold+hard_discount_gold
+        var discount_gold=gold*0.9*reward_discount
         game.change_meat(int(discount_gold), get_enemy_team_id())
-        if team_id==1:
+        if is_local==false:
             var coin_ef_num=int(gold/10)+1
             if coin_ef_num>10:
                 coin_ef_num=10
@@ -477,11 +476,11 @@ func change_hp(val, chara, b_critical=false):
     if actual_val==0:
         return
     if val<0:
-        if team_id==1:
+        if is_local==false:
             fct_mgr.show_value(str(actual_val), Color.white,b_critical)
         else:
             fct_mgr.show_value(str(actual_val), Color.red,b_critical)
-        if team_id==1:
+        if is_local==false:
             anim_player.play("white")
         else:
             anim_player.play("red")

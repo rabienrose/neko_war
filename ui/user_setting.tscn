@@ -1,0 +1,145 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://ui/user_setting.gd" type="Script" id=1]
+[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://ui/texture/l_bg_green.tres" type="Texture" id=3]
+[ext_resource path="res://ui/texture/l_bg_blue.tres" type="Texture" id=4]
+[ext_resource path="res://ui/texture/l_bg_yellow.tres" type="Texture" id=5]
+
+[sub_resource type="DynamicFont" id=1]
+size = 40
+outline_size = 3
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 2 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 2 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.6, 0.6, 0.6, 0 )
+border_width_bottom = 4
+border_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="DynamicFont" id=4]
+size = 30
+font_data = ExtResource( 2 )
+
+[node name="Setting" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+note_edit_path = NodePath("CenterContainer/BG/HBoxContainer/NoteEdit")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BG" type="NinePatchRect" parent="CenterContainer"]
+margin_left = 682.0
+margin_top = 391.0
+margin_right = 1682.0
+margin_bottom = 791.0
+rect_min_size = Vector2( 1000, 400 )
+texture = ExtResource( 5 )
+region_rect = Rect2( 4.74738, 3.04064, 263.149, 93.9052 )
+patch_margin_left = 17
+patch_margin_top = 17
+patch_margin_right = 19
+patch_margin_bottom = 17
+
+[node name="HBoxContainer" type="VBoxContainer" parent="CenterContainer/BG"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 20.0
+margin_top = 20.0
+margin_right = -20.0
+margin_bottom = -20.0
+custom_constants/separation = 20
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CenterContainer/BG/HBoxContainer"]
+margin_right = 960.0
+margin_bottom = 52.0
+custom_fonts/font = SubResource( 1 )
+text = "NOTE"
+align = 1
+valign = 1
+
+[node name="NoteEdit" type="LineEdit" parent="CenterContainer/BG/HBoxContainer"]
+margin_top = 72.0
+margin_right = 960.0
+margin_bottom = 172.0
+rect_min_size = Vector2( 0, 100 )
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 2 )
+custom_styles/normal = SubResource( 3 )
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CenterContainer/BG/HBoxContainer"]
+margin_top = 236.0
+margin_right = 960.0
+margin_bottom = 316.0
+size_flags_vertical = 6
+custom_constants/separation = 20
+
+[node name="Control" type="Control" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3"]
+margin_right = 50.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 50, 0 )
+
+[node name="SubmitBtn" type="TextureRect" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3"]
+margin_left = 170.0
+margin_right = 370.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 200, 80 )
+size_flags_horizontal = 6
+texture = ExtResource( 4 )
+expand = true
+
+[node name="Label" type="Label" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3/SubmitBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 4 )
+text = "SUBMIT"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ClearBtn" type="TextureRect" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3"]
+margin_left = 590.0
+margin_right = 790.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 200, 80 )
+size_flags_horizontal = 6
+texture = ExtResource( 3 )
+expand = true
+
+[node name="Label" type="Label" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3/ClearBtn"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 4 )
+text = "CLEAR"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Control2" type="Control" parent="CenterContainer/BG/HBoxContainer/HBoxContainer3"]
+margin_left = 910.0
+margin_right = 960.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 50, 0 )
+
+[connection signal="gui_input" from="CenterContainer/BG/HBoxContainer/HBoxContainer3/SubmitBtn" to="." method="_on_SubmitBtn_gui_input"]
+[connection signal="gui_input" from="CenterContainer/BG/HBoxContainer/HBoxContainer3/ClearBtn" to="." method="_on_ClearBtn_gui_input"]

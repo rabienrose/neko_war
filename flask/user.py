@@ -42,7 +42,6 @@ class UserInfo:
         if self.token=="":
             return
         query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"devices":1})
-        print(query_re)
         has_device=False
         for d in query_re["devices"]:
             if d["id"]==device_id:
@@ -66,16 +65,31 @@ class UserInfo:
         user_info={}
         user_info["gold"]=0
         user_info["diamond"]=2000        
-        user_info["characters"]=[{"name": "sword","lv": 1}]
+        user_info["characters"]=[{"name": "sword","lv": 0}]
         user_info["equip"]={"chara": ["sword","","","", ""],"item": ["","","","",""]}
         user_info["levels"]={}
         user_info["items"]=[]
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":user_info})
 
+    def get_nickname(self):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"nickname":1})
+        return query_re["nickname"]
+
     def get_info(self):
         query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"account":0, "password":0, "devices":0})
         # query_re["token"]=self.token
         return query_re
+
+    def get_level_pass_num(self, level_name):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"levels":1})
+        if level_name=="":
+            return len(query_re["levels"])
+        else:
+            temp_num=0
+            for key in query_re["levels"]:
+                if level_name in key:
+                    temp_num=temp_num+1
+            return temp_num
 
     def update_equip(self, b_chara, index, name):
         equip_type="chara"
@@ -99,5 +113,17 @@ class UserInfo:
     def set_last_pvp(self):
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"last_pvp":int(time.time())}})
         
+    def get_setting(self):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"setting":1})
+        if "setting" in query_re:
+            return query_re["setting"]
+        else:
+            return {"note":""}
+
+    def modify_setting(self, note_str):
+        modify_data={}
+        modify_data["note"]=note_str
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"setting":modify_data}})
+
     def draw_item_chara():
         pass

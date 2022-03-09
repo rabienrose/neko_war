@@ -2,7 +2,8 @@
     "lottery_price":70,
     "pvp_price":100,
     "level_init_gold":1000,
-    "difficulty_coef":[1, 0.5, 0.2, 0, -0.2, -0.5, -1],
+    "level_reward_discount":[3, 2.0, 1.5, 1.0, 0.8, 0.5, 0.1],
+    "level_init_discount":[0.1, 0.5, 0.8, 1.0, 1.5, 2.0, 3],
     "difficulty_gold_coef":[1, 1.2, 1.5, 2, 3, 6, 10],
     "chara_gold_coef":[1, 1.2, 1.5, 2, 3, 4, 6, 8, 10, 13]
 }

@@ -27,8 +27,17 @@ class LevelMgr:
     def get_daliy_level(self):
         game=Game()
         level_id = game.get_cul_level()
-        query_ret=config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data":1,"stats":1})
+        query_ret=config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data":1,"stats":1,"record":1,"level_top":1})
         query_ret["level_id"]=level_id
+        game=Game()
+        query_ret["total_top"]=game.get_level_top()
+        top_info={}
+        if "level_top" in query_ret:
+            user = UserInfo(query_ret["level_top"]["user"])
+            nickname=user.get_nickname()
+            top_info["num"]=query_ret["level_top"]["num"]
+            top_info["user"]=nickname
+        query_ret["level_top"]=top_info
         return query_ret
 
     def update_recording(self, level_id, stat_name, data):
@@ -66,6 +75,16 @@ class LevelMgr:
         if user_info["levels"][level_stat_name]["time"]>battle_time:
             user_info["levels"][level_stat_name]["time"]=battle_time
         config.user_table.update_one({"_id":ObjectId(token)},{"$set":{"levels":user_info["levels"]}})
+
+        total_num = user.get_level_pass_num("")
+        daily_num = user.get_level_pass_num(level_id)
+        game=Game()
+        game.update_level_rank(total_num, token)
+        if "level_top" not in query_ret or query_ret["level_top"]["num"]<daily_num:
+            top_user_info={}
+            top_user_info["num"]=daily_num
+            top_user_info["user"]=token
+            config.level_table.update_one({"_id":ObjectId(level_id)},{"$set":{"level_top":top_user_info}})
         
     def get_level_gold(self, chara_lv, difficulty, level_id):
         query_re = config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data.gold":1})

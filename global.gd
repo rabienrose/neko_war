@@ -33,16 +33,17 @@ var chara_anim={}
 var lv_name_list=[]
 var global_data={}
 
-var sel_level="0_0_0"
+var replay_data={}
 
-var difficulty_coef=[1, 0.5, 0.2, 0, -0.2, -0.5, -1]
+var sel_level="0_0_0"
 
 var local_mode=false
 var token
 var device_id
 
 var http
-var server_url="http://47.100.93.238:9100"
+# var server_url="http://47.100.93.238:9100"
+var server_url="http://127.0.0.1:9100"
 
 var rng 
 
@@ -99,6 +100,17 @@ func _ready():
     f.close()
     connect("request_battle",self,"on_request_start_battle")
     connect("request_go_home",self,"on_request_go_home")
+
+func set_game_mode(mode):
+    Global.replay_mode=false
+    Global.pvp_mode=false
+    Global.level_mode=false
+    if mode=="pvp":
+        Global.pvp_mode=true
+    elif mode=="replay":
+        Global.replay_mode=true
+    elif mode=="level":
+        Global.level_mode=true
 
 func check_update():
     pass
@@ -193,7 +205,25 @@ func default_http_cb(result, response_code, headers, body):
     http.queue_free()
     http=null
 
-func save_battle_summery(recording, time, level_id, chara_lv, difficulty):
+func upload_pvp_summery(recording,result,token1,token2,diamond1,diamond2):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "default_http_cb")
+    add_child(http)
+    var query_info={}
+    query_info["result"]=result
+    query_info["token1"]=token1
+    query_info["token2"]=token2
+    query_info["diamond1"]=diamond1
+    query_info["diamond2"]=diamond2
+    query_info["recording"]=recording
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(server_url+"/pvp_summary", headers, false, HTTPClient.METHOD_POST, query)
+
+func upload_level_summery(recording, time, level_id, chara_lv, difficulty):
     if http!=null:
         return
     http=HTTPRequest.new()
@@ -303,3 +333,7 @@ func store_token():
     f.open(token_path, File.WRITE)
     f.store_string(token)
     f.close()
+
+func get_cur_level_info():
+    var vec_s=sel_level.split("_")
+    return {"id":vec_s[0], "chara_lv":int(vec_s[1]), "difficulty":int(vec_s[2])}

@@ -346,6 +346,7 @@ margin_bottom = 145.0
 b_right = true
 
 [node name="Diamond3" type="Control" parent="CanvasLayer"]
+visible = false
 margin_left = 1085.0
 margin_top = 123.0
 margin_right = 1385.0

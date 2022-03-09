@@ -9,29 +9,28 @@ export (NodePath) var star3e_path
 export (NodePath) var title_text_path
 export (NodePath) var ske_head_path
 export (NodePath) var gold_head_path
-export (NodePath) var next_btn_path
+export (NodePath) var repeat_btn_path
 
 var b_win=false
 
 func _ready():
     pass # Replace with function body.
 
-func show_summary(_b_win, b_show, gold, b_show_next):
+func show_summary(_b_win, b_show, gold, b_show_repeat):
     get_tree().paused = true
     if b_show:
         b_win=_b_win
         visible=true
+        if b_show_repeat:
+            get_node(repeat_btn_path).visible=true
+        else:
+            get_node(repeat_btn_path).visible=false
         if _b_win:
             get_node(ske_head_path).visible=false
             get_node(title_text_path).text="YOU WIN!"
-            if b_show_next:
-                get_node(next_btn_path).visible=true
-            else:
-                get_node(next_btn_path).visible=false
         else:
             get_node(ske_head_path).visible=true
             get_node(title_text_path).text="DEFEAT"
-            get_node(next_btn_path).visible=false
         get_node(gold_head_path).text=str(gold)
 
 

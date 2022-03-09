@@ -13,7 +13,7 @@ class Rank:
             else:
                 ret=False
         else:
-            if user2.change_diamond(-diamond1):
+            if user1.change_diamond(-diamond1):
                 user2.change_diamond(diamond1)
             else:
                 ret=False
@@ -22,7 +22,7 @@ class Rank:
         return ret
 
     def get_ranks(self):
-        query_re = config.user_table.find({},{"_id":0,"diamond":1,"last_pvp":1,"nickname":1}).sort([("diamond",-1)]).limit(10)
+        query_re = config.user_table.find({"last_pvp":{"$exists":True}},{"_id":0,"diamond":1,"last_pvp":1,"nickname":1,"setting.note":1}).sort([("diamond",-1)]).limit(10)
         rank_list=[]
         for x in query_re:
             rank_list.append(x)

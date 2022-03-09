@@ -120,5 +120,4 @@ func _on_ClearBtn_gui_input(event):
 func _on_Login_gui_input(event):
     if event is InputEventScreenTouch:
         if event.pressed:
-            print("aaaa")
             OS.hide_virtual_keyboard()

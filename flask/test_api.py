@@ -32,4 +32,6 @@ def get_lv_gold():
     user=UserInfo("6221ab307521a80278ab3c05")
     user.change_gold(gold)
 
-get_lv_gold()
+# get_lv_gold()
+# add_level()
+rand_a_level()

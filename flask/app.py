@@ -115,9 +115,29 @@ def pvp_summary():
     result=request.json["result"]
     diamond1=request.json["diamond1"]
     diamond2=request.json["diamond2"]
+    record=request.json["recording"]
     rank=Rank()
     if not rank.pvp_summary(token1, token2, diamond1, diamond2, result):
         ret["ret"]="fail"
+    return json.dumps(ret)  
+
+@app.route('/get_user_setting',methods=['POST'])
+def get_user_setting():
+    ret={"op":"get_user_setting"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    user=UserInfo(token)
+    ret["data"]=user.get_setting()
+    return json.dumps(ret)  
+
+@app.route('/modify_user_setting',methods=['POST'])
+def modify_user_setting():
+    ret={"op":"modify_user_setting"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    note=request.json["note"]
+    user=UserInfo(token)
+    user.modify_setting(note)
     return json.dumps(ret)  
 
 if __name__ == '__main__':

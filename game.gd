@@ -31,25 +31,26 @@ var char_root
 var chara_gen_ui
 var item_use_ui
 var frame_time_countdown=0
-var keyframe_step=5
+var frame_delay=0.02
+var fps=int(1/frame_delay)
+var keyframe_step=10
+var keyframe_p_s=int(fps/keyframe_step)
 var scene_min=440
 var scene_max=3500
 
 var stop=false
-var battle_time=0
 var timer_ui_delay=1
 
 var next_replay_time=0
 var next_replay_index=0
 
-#batlle mode
 var player_setting=["local","ai"] #local, remote, ai
-var recording_mask=[false, false]
 
 #input args
 var level_data={}
 var chara_lv=0
-var difficulty=0
+var reward_discount=[1,1]
+var base_hp
 
 var server
 var recording_data=[[],[]]
@@ -57,11 +58,12 @@ var replay_data=[[],[]]
 var live_chara_count=[0,0]
 var chara_count=[0,0]
 var chara_hotkey=[[null,null,null,null,null],[null,null,null,null,null]]
-var frame_delay=1.0/keyframe_step
+
 var meat_num=[0,0]
+var init_meat_num=[0,0]
 var diamond_num=[0,0]
+var init_diamond_num=[0,0]
 var team_charas=[[],[]]
-var diamond_pool=0
 
 var chara_inputs=[[],[]]
 var item_inputs=[[],[]]
@@ -94,20 +96,36 @@ func _ready():
     if Global.server_mode:
         server.start_server()
     else:
-        if Global.pvp_mode==false:
+        if Global.level_mode:
             level_data=Global.level_data["battle_data"]
-            var vec_s=Global.sel_level.split("_")
-            chara_lv=int(vec_s[1])
-            difficulty=Global.difficulty_coef[int(vec_s[2])]
+            var info_t=Global.get_cur_level_info()
+            chara_lv=info_t["chara_lv"]
+            reward_discount[1]=Global.global_data["level_reward_discount"][info_t["difficulty"]]
+            reward_discount[0]=stepify(1/reward_discount[1],0.1)
             get_node(diamond1_label_path).get_parent().visible=false
             get_node(meat1_label_path).get_parent().visible=true
             get_node(diamond2_label_path).get_parent().visible=false
             get_node(meat2_label_path).get_parent().visible=true
-            meat_num[0]=Global.global_data["level_init_gold"]
-            meat_num[1]=Global.global_data["level_init_gold"]
+            init_meat_num[0]=Global.global_data["level_init_gold"]
+            init_meat_num[1]=Global.global_data["level_init_gold"]*Global.global_data["level_init_discount"][info_t["difficulty"]]
+            base_hp=level_data["base_hp"]
+            meat_num[0]=init_meat_num[0]
+            meat_num[1]=init_meat_num[1]
+            ai_nodes=[]
+            ai_nodes.append(null)
+            var t_node=Node.new()
+            t_node.set_script(load("res://ai/"+level_data["script"]+".gd"))
+            add_child(t_node)
+            t_node.init(self, level_data["args"]["hotkey"], 1, chara_lv)
+            ai_nodes.append(t_node)
             start_battle()
-        else:
+            update_hotkey_ui(0)
+        if Global.pvp_mode:
             server.start_clinet()
+        if Global.replay_mode:
+            get_node(chara_gen_ui_path).visible=false
+            get_node(item_use_ui_path).visible=false
+            server.start_replay(Global.replay_data)
 
 func start_battle():
     Global.rng.seed=0
@@ -123,33 +141,7 @@ func start_battle():
     var go_home_cb = funcref(self, "go_home_cb")
     get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
     get_node(comfirm_path).set_btn2("Ok", go_home_cb)
-    update_timer_ui()
-    ai_nodes=[]
-    for i in range(0,2):
-        if player_setting[i]=="ai":
-            var t_node=Node.new()
-            t_node.set_script(load("res://ai/"+level_data["script"]+".gd"))
-            add_child(t_node)
-            t_node.init(self, level_data["args"]["hotkey"], i, chara_lv)
-            ai_nodes.append(t_node)
-        else:
-            ai_nodes.append(null)
-
-    if Global.replay_mode:
-        pass
-
-    var has_local=false
-    for i in range(0,2):
-        if player_setting[i]=="local":
-            has_local=true
-            break
-    if has_local==false:
-        get_node(chara_gen_ui_path).visible=false
-        get_node(item_use_ui_path).visible=false
-
-    var _team_id = find_local_team_id()
-    if _team_id>=0:
-        update_hotkey_ui(_team_id)
+    update_timer_ui()        
     game_start=true
 
 func cancel_cb():
@@ -160,20 +152,42 @@ func go_home_cb():
     get_tree().paused = false
     Global.emit_signal("request_go_home")
 
+func get_battle_time():
+    return server.cur_frame/keyframe_p_s
+
 func stop_game(b_win):
-    if Global.pvp_mode==false:
+    if Global.level_mode:
         var lv_gold=level_data["gold"]
-        var show_next=true
-        show_next=false
+        var lv_info=Global.get_cur_level_info()
+        lv_gold=lv_gold*Global.global_data["difficulty_gold_coef"][lv_info["difficulty"]]*Global.global_data["chara_gold_coef"][lv_info["chara_lv"]]
         if b_win==false:
             lv_gold=0
-        get_node(summary_path).show_summary(b_win, true,lv_gold,show_next)
+        get_node(summary_path).show_summary(b_win, true,lv_gold,true)
         if b_win:
             Global.user_data["gold"]=Global.user_data["gold"]+lv_gold
-            var vec_s=Global.sel_level.split("_")
-            Global.save_battle_summery("asdfasdf", battle_time, vec_s[0], int(vec_s[1]), int(vec_s[2]))
-    else:
-        get_node(summary_path).show_summary(b_win, true,100,false)
+            var recording=server.get_recording_data()
+            Global.upload_level_summery(recording, get_battle_time(), lv_info["id"], lv_info["chara_lv"], lv_info["difficulty"])
+    if Global.pvp_mode:
+        get_node(diamond_pool_label_path).get_parent().visible=false
+        var local_team=find_local_team_id()
+        var used_diamond=init_diamond_num[local_team]-diamond_num[local_team]
+        var diamond_change=0
+        if b_win:
+            diamond_change=get_total_used_diamond()-used_diamond
+        else:
+            diamond_change=-used_diamond
+        get_node(summary_path).show_summary(b_win, true,diamond_change,false)
+        if find_local_team_id()==0:
+            var recording=server.get_recording_data()
+            var result="team1"
+            if b_win==false:
+                result="team2"
+            Global.upload_pvp_summery(recording,result ,Global.token, server.enemy_token, used_diamond, get_total_used_diamond()-used_diamond)
+        server.exit_battle()    
+    if Global.replay_mode:
+        get_node(comfirm_path).hide_btn(1)
+        get_node(comfirm_path).visible=true
+        get_tree().paused = true
 
 func get_charas_in_range(min_x, max_x, targets):
     var temp_chars=targets
@@ -190,10 +204,7 @@ func spawn_building(build_name, team_id):
     if team_id==1:
         temp_pos_node=get_node(base2_path)
     init_object(new_build, temp_pos_node.position.x, build_name, 1, team_id)
-    if Global.level_mode:
-        new_build.max_hp=level_data["base_hp"]
-    else:
-        new_build.max_hp=1000
+    new_build.max_hp=base_hp
     new_build.hp=new_build.max_hp
 
 func spawn_chara(chara_name, lv, team_id):
@@ -225,6 +236,7 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
         create_info["atk_buf"]=chara_dat["atk_buf"]
         create_info["target_scheme"]=chara_dat["target_scheme"]
         create_info["self_destroy"]=chara_dat["self_destroy"]
+        create_info["reward_discount"]=reward_discount[team_id]
         chara_count[team_id]=chara_count[team_id]+1
         live_chara_count[team_id]=live_chara_count[team_id]+1
         create_info["index"]=chara_count[team_id]
@@ -233,7 +245,7 @@ func init_object(res, spawn_pos, chara_name, lv, team_id):
     var anim_data=Global.get_char_anim(chara_name, chara_dat["type"])
     var anim_info=Global.chara_tb[chara_name]["appearance"]
     res.set_anim(anim_data, anim_info)
-    res.set_team(team_id)
+    res.set_team(team_id, find_local_team_id()==team_id)
     res.set_x_pos(spawn_pos)
     update_chara_list_ui()
 
@@ -395,7 +407,6 @@ func change_meat(change_val, team_id):
             if remain_cost<=diamond_num[team_id]:
                 meat_num[team_id]=0
                 diamond_num[team_id]=diamond_num[team_id]-remain_cost
-                diamond_pool=diamond_pool+remain_cost
             else:
                 print("expend meat error!!")
     update_stats_ui()
@@ -436,15 +447,19 @@ func update_chara_list_ui():
         else:
             get_node(chara2_list_path).update_list(chara_infos)
 
+func get_total_used_diamond():
+    return init_diamond_num[0]-diamond_num[0]+init_diamond_num[1]-diamond_num[1]
+
 func update_stats_ui():
     get_node(meat1_label_path).text="Meat: "+str(meat_num[0])
     get_node(meat2_label_path).text="Meat: "+str(meat_num[1])
     get_node(diamond1_label_path).text="D: "+str(diamond_num[0])
     get_node(diamond2_label_path).text="D: "+str(diamond_num[1])
-    get_node(diamond_pool_label_path).text=str(diamond_pool)
+    get_node(diamond_pool_label_path).text=str(get_total_used_diamond())
     update_hk_mask()
 
 func update_timer_ui():
+    var battle_time=get_battle_time()
     var m = floor(battle_time/60)
     var s = floor(battle_time-m*60)
     if m<10:
@@ -521,7 +536,6 @@ func update_hotkey_ui(_local_team_id):
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
 
 func process_frame():
-    print(timer_ui_delay)
     timer_ui_delay=timer_ui_delay-frame_delay
     if timer_ui_delay<0:
         timer_ui_delay=1
@@ -553,8 +567,3 @@ func _on_Return_gui_input(event):
             if get_node(comfirm_path).visible==false:
                 get_node(comfirm_path).visible=true
                 get_tree().paused = true
-
-func _on_Join_gui_input(event:InputEvent):
-    if event is InputEventScreenTouch:
-        if event.pressed:
-            pass

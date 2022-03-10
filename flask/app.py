@@ -140,6 +140,16 @@ def modify_user_setting():
     user.modify_setting(note)
     return json.dumps(ret)  
 
+@app.route('/notify_start_pvp',methods=['POST'])
+def notify_start_pvp():
+    ret={"op":"modify_user_setting"}
+    ret["ret"]="ok"
+    rank=Rank()
+    token=request.json["token"]
+    print(token)
+    rank.notify_start_pvp(token)
+    return json.dumps(ret)  
+
 if __name__ == '__main__':
     app.config['SECRET_KEY'] = 'xxx'
     app.config['UPLOAD_FOLDER'] = './raw'

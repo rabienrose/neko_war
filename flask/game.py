@@ -1,6 +1,7 @@
 from bson.objectid import ObjectId
 import config
 from user import UserInfo
+import json
 
 class Game:
 
@@ -10,6 +11,10 @@ class Game:
             game_data=x
             break
         return game_data
+
+    def load_static_data(self):
+        f=open("../configs/global.json",'r')
+        return json.load(f)
 
     def set_cul_level(self,level_id):
         game_data=self.get_game_data()

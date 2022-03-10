@@ -52,4 +52,4 @@ func _on_Home_gui_input(event):
             if b_win:
                 Global.fetch_user_remote()
             else:
-                Global.emit_signal("request_go_home")
+                Global.fetch_user_remote()

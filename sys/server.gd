@@ -8,10 +8,56 @@ var enemy_net_id=-1
 var input_queue=[]
 var cur_frame=0
 var enemy_token=""
+var pvp_ai_node
+var check_waiting_delay=0
+var pvp_ai_chara_pool=["sword","bow","skeleton_shield"]
+var http
 
 func _ready():
     game=get_parent()
     lobby=game.get_node(game.lobby_path)
+
+func generate_ai(net_id):
+    var start_battle_info={}
+    start_battle_info["team"]=1
+    start_battle_info["net_id"]=-1
+    start_battle_info["token"]=""
+    var equips=[]
+    for _i in range(0,5):
+        var hk_info={}
+        var has_chara=false
+        hk_info["name"]=Global.rand_in_list(pvp_ai_chara_pool)
+        for item in equips:
+            if item["name"]==hk_info["name"]:
+                has_chara=true
+                hk_info["lv"]=item["lv"]
+                break
+        if has_chara==false:
+            hk_info["lv"]=floor(rand_range(0,9))
+        equips.append(hk_info)
+    start_battle_info["equip"]=equips
+    start_battle_info["diamond"]=int(rand_range(100,300))
+    start_battle_info["ai"]="pvp_ai"
+    rpc_id(net_id, "start_battle_net", start_battle_info)
+    players_info[net_id]["status"]="battle"
+
+func _physics_process(delta):
+    if players_info=={}:
+        return
+    if check_waiting_delay<=0:
+        check_waiting_delay=1
+        for net_id in players_info:
+            if players_info[net_id]["status"]=="waiting":
+                var t_rand = rand_range(0.3,1)
+                if players_info[net_id]["waiting_time"]>t_rand:
+                    generate_ai(net_id)
+                    print(players_info[net_id]["info"]["token"])
+                    notify_start_pvp(players_info[net_id]["info"]["token"])
+    else:
+        check_waiting_delay=check_waiting_delay-delta
+        for net_id in players_info:
+            if players_info[net_id]["status"]=="waiting":
+                players_info[net_id]["waiting_time"]=players_info[net_id]["waiting_time"]+delta
 
 func start_server():
     print("start_server")
@@ -40,7 +86,14 @@ remote func start_battle_net(player_info):
         my_team_id=1
     else:
         my_team_id=0
-    game.player_setting[other_team_id]="remote"
+    if enemy_net_id==-1:
+        pvp_ai_node=Node.new()
+        pvp_ai_node.set_script(load("res://ai/"+player_info["ai"]+".gd"))
+        add_child(pvp_ai_node)
+        pvp_ai_node.init(game)
+        game.player_setting[other_team_id]="ai"
+    else:
+        game.player_setting[other_team_id]="remote"
     game.player_setting[my_team_id]="local"
     for i in range(len(player_info["equip"])):
         game.chara_hotkey[other_team_id][i]=player_info["equip"][i].duplicate()
@@ -50,8 +103,8 @@ remote func start_battle_net(player_info):
     game.start_battle()
     var local_team_id = game.find_local_team_id()
     if local_team_id!=-1:
-        # Global.user_data["diamond"]=Global.user_data["diamond"]-Global.global_data["pvp_price"]
-        game.get_node(game.diamond_pool_label_path).get_parent().visible=true
+        Global.user_data["diamond"]=Global.user_data["diamond"]-Global.global_data["pvp_price"]
+        game.get_node(game.diamond_pool_path).visible=true
         if local_team_id==0:
             game.get_node(game.diamond1_label_path).get_parent().visible=true
             game.diamond_num[0]=Global.user_data["diamond"]
@@ -73,6 +126,23 @@ remote func start_battle_net(player_info):
         game.update_stats_ui()
         game.init_diamond_num=game.diamond_num.duplicate()
 
+func default_http_cb(result, response_code, headers, body):
+    http.queue_free()
+    http=null
+
+func notify_start_pvp(token):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "default_http_cb")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=token
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(Global.server_url+"/notify_start_pvp", headers, false, HTTPClient.METHOD_POST, query)
+
 remote func process_join(_info):
     var id = get_tree().get_rpc_sender_id()
     if id in players_info:
@@ -87,6 +157,7 @@ remote func process_join(_info):
             start_battle_info["equip"]=players_info[player_net_id]["info"]["equip"]
             start_battle_info["diamond"]=players_info[player_net_id]["info"]["diamond"]
             rpc_id(id, "start_battle_net", start_battle_info)
+            notify_start_pvp(start_battle_info["token"])
             start_battle_info={}
             start_battle_info["team"]=1
             start_battle_info["net_id"]=id
@@ -94,6 +165,7 @@ remote func process_join(_info):
             start_battle_info["equip"]=_info["equip"]
             start_battle_info["diamond"]=_info["diamond"]
             rpc_id(player_net_id, "start_battle_net", start_battle_info)
+            notify_start_pvp(start_battle_info["token"])
             players_info[player_net_id]["status"]="battle"
             players_info[id]={"status":"battle","info":_info}
             find_player=true
@@ -102,6 +174,7 @@ remote func process_join(_info):
     if find_player==false:
         rpc_id(id, "joint_succ")
         players_info[id]={"status":"waiting","info":_info}
+        players_info[id]["waiting_time"]=0
 
 func _player_connected(id):
     print("_player_connected: ",id)
@@ -169,18 +242,27 @@ func process_keyframe():
                 for key in inputs[_team_id]:
                     var chara_name=game.chara_hotkey[_team_id][key]["name"]
                     var chara_info=Global.chara_tb[chara_name]
-                    if game.chara_hotkey[_team_id][key]["countdown"]<0 and game.check_chara_build(chara_info["build_cost"],_team_id):
+                    if game.chara_hotkey[_team_id][key]["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"],_team_id):
                         game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
+                        print(chara_name,"  ",key)
                         game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
+                        print("change_meat  ",-chara_info["build_cost"])
                         game.change_meat(-chara_info["build_cost"], _team_id)
         cur_frame=cur_frame+1
         return true
     else:
         return false
 
+func process_pvp_ai():
+    if pvp_ai_node!=null:
+        game.chara_inputs[1]=pvp_ai_node.ai_get_op()
+
 func broadcast_keyframe():
+    
     if enemy_net_id>0:
         rpc_id(enemy_net_id,"on_get_keyframe", game.chara_inputs, len(input_queue)+1)
+    else:
+        process_pvp_ai()
     on_get_keyframe(game.chara_inputs.duplicate(), len(input_queue)+1)
     for i in range(0,2):
         game.chara_inputs[i]=[]

@@ -73,6 +73,7 @@ meat2_label_path = NodePath("CanvasLayer/OtherMeat/AiMeatLabel")
 diamond1_label_path = NodePath("CanvasLayer/Diamond/DiamondLabel")
 diamond2_label_path = NodePath("CanvasLayer/Diamond2/DiamondLabel")
 diamond_pool_label_path = NodePath("CanvasLayer/Diamond3/LabelBG/Label")
+diamond_pool_path = NodePath("CanvasLayer/Diamond3")
 server_path = NodePath("Server")
 cam_path = NodePath("Camera2D")
 
@@ -333,16 +334,16 @@ __meta__ = {
 }
 
 [node name="CharaList1" parent="CanvasLayer" instance=ExtResource( 19 )]
-margin_left = 27.0
-margin_top = 42.0
-margin_right = 327.0
-margin_bottom = 63.0
+margin_left = 13.0
+margin_top = 44.0
+margin_right = 413.0
+margin_bottom = 65.0
 
 [node name="CharaList2" parent="CanvasLayer" instance=ExtResource( 19 )]
-margin_left = 2048.0
-margin_top = 37.0
-margin_right = 2348.0
-margin_bottom = 145.0
+margin_left = 1947.0
+margin_top = 41.0
+margin_right = 2347.0
+margin_bottom = 149.0
 b_right = true
 
 [node name="Diamond3" type="Control" parent="CanvasLayer"]

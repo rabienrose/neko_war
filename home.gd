@@ -116,7 +116,7 @@ func chara_item_click_cb(chara_name):
     var my_chara_info = Global.get_my_chara_info(chara_name)
     cur_sel_chara=chara_name
     var lv=my_chara_info["lv"]
-    var t_attr_info=chara_db["attrs"][str(lv)]
+    var t_attr_info=chara_db["attrs"][str(lv+1)]
     var t_attr_info_next=null
     if lv<chara_db["max_lv"]:
         t_attr_info_next=chara_db["attrs"][str(lv+1)]

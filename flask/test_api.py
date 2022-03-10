@@ -33,5 +33,5 @@ def get_lv_gold():
     user.change_gold(gold)
 
 # get_lv_gold()
-# add_level()
+add_level()
 rand_a_level()

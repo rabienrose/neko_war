@@ -23,6 +23,7 @@ export (NodePath) var meat2_label_path
 export (NodePath) var diamond1_label_path
 export (NodePath) var diamond2_label_path
 export (NodePath) var diamond_pool_label_path
+export (NodePath) var diamond_pool_path
 export (NodePath) var server_path
 export (NodePath) var cam_path
 
@@ -168,7 +169,7 @@ func stop_game(b_win):
             var recording=server.get_recording_data()
             Global.upload_level_summery(recording, get_battle_time(), lv_info["id"], lv_info["chara_lv"], lv_info["difficulty"])
     if Global.pvp_mode:
-        get_node(diamond_pool_label_path).get_parent().visible=false
+        get_node(diamond_pool_path).visible=false
         var local_team=find_local_team_id()
         var used_diamond=init_diamond_num[local_team]-diamond_num[local_team]
         var diamond_change=0
@@ -448,6 +449,8 @@ func update_chara_list_ui():
             get_node(chara2_list_path).update_list(chara_infos)
 
 func get_total_used_diamond():
+    if init_diamond_num[0]==0 and init_diamond_num[1]==0:
+        return 0
     return init_diamond_num[0]-diamond_num[0]+init_diamond_num[1]-diamond_num[1]
 
 func update_stats_ui():

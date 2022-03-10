@@ -11,9 +11,10 @@ if use_internal:
     pass
 else:
     endpoint = os.getenv('OSS_TEST_ENDPOINT', 'https://oss-cn-shanghai.aliyuncs.com') # external net
-    mongo_conn="mongodb://139.196.20.251:27017"
+    # mongo_conn="mongodb://139.196.20.251:27017"
+    mongo_conn="mongodb://127.0.0.1:27017"
 
-bucket = oss2.Bucket(oss2.Auth(access_key_id, access_key_secret), endpoint, bucket_name)
+# bucket = oss2.Bucket(oss2.Auth(access_key_id, access_key_secret), endpoint, bucket_name)
 pp=pprint.PrettyPrinter(width=41, compact=True)
 myclient = pymongo.MongoClient(mongo_conn)
 myclient.server_info()

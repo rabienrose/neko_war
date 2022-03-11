@@ -89,7 +89,7 @@ class LevelMgr:
     def get_level_gold(self, chara_lv, difficulty, level_id):
         query_re = config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data.gold":1})
         level_base_gold=query_re["battle_data"]["gold"]
-        f=open("../configs/global.json",'r')
+        f=open("configs/global.json",'r')
         global_info = json.load(f)
         final_gold=level_base_gold*global_info["difficulty_gold_coef"][difficulty]*global_info["chara_gold_coef"][chara_lv]
         f.close()
@@ -99,5 +99,4 @@ class LevelMgr:
         level_data={}
         level_data["battle_data"]=battle_data
         level_data["chance"]=chance
-        print(level_data)
         config.level_table.insert_one(level_data)

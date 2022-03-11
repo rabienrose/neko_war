@@ -1,6 +1,7 @@
 from bson.objectid import ObjectId
 import config
 import time
+import random
 
 class UserInfo:
     token=""
@@ -91,6 +92,119 @@ class UserInfo:
                     temp_num=temp_num+1
             return temp_num
 
+    def get_chara_lv(self, chara_infos, chara_name):
+        for item in chara_infos:
+            if item["name"]==chara_name:
+                return item["lv"]
+        return -1
+
+    def inc_chara_lv(self, chara_infos, chara_name):
+        for item in chara_infos:
+            if item["name"]==chara_name:
+                if config.chara_tb[chara_name]["max_lv"]>=item["lv"]+1:
+                    item["lv"]=item["lv"]+1
+                    config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"characters":chara_infos}})
+                    return True
+        return False
+
+    def upgrade_chara(self, chara_name):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"levels":0})
+        chara_lv = self.get_chara_lv(query_re["characters"], chara_name)
+        if chara_lv==-1:
+            return False
+        upgrade_cost=config.chara_tb[chara_name]["attr"][str(chara_lv+1)]["upgrade_cost"]
+        if upgrade_cost>=query_re["gold"]:
+            if self.inc_chara_lv(query_re["characters"], chara_name):
+                self.change_gold(upgrade_cost)
+
+    def get_item_count(self, item_infos, item_name):
+        for item in item_infos:
+            if item["name"]==item_name:
+                return item["num"]
+        return -1
+
+    def inc_item_count(self, item_infos, item_name):
+        for item in item_infos:
+            if item["name"]==item_name:
+                    item["num"]=item["num"]+1
+                    config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"items":item_infos}})
+                    return True
+        return False
+
+    def buy_item(self, item_name):
+        item_price=config.item_tb[item_name]["price"]
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"diamond":1,"items":0})
+        if self.get_item_count(query_re["items"], item_name)!=-1:
+            if item_price<=query_re["diamond"]:
+                self.inc_item_count(self, query_re["items"], item_name)
+
+    def draw_lottory(self):
+        lottery_price=config.global_config["lottery_price"]
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"characters":1,"items":1})
+        result_info={}
+        if lottery_price<=query_re["diamond"]:
+            #draw chara
+            remain_charas=[]
+            result_chara=None
+            for chara_name in config.chara_tb:
+                chara=config.chara_tb[chara_name]
+                if chara_name in query_re["characters"]:
+                    continue
+                if chara["type"]!="chara":
+                    continue
+                t_rand = random.random()
+                if t_rand<chara["chance"]:
+                    remain_charas.append(chara)
+            if len(remain_charas)>1:
+                rand_i = random.randint(0,len(remain_charas)-1)
+                result_chara=remain_charas[rand_i]
+            elif len(remain_charas)==1:
+                result_chara=remain_charas[0]
+            if result_chara is not None:
+                lv = self.get_chara_lv(query_re["characters"], result_chara["name"])
+                if lv==-1:
+                    chara_info_t={}
+                    chara_info_t["name"]=result_chara["name"]
+                    chara_info_t["lv"]=1
+                    config.user_table.update_one({"_id":ObjectId(self.token)},{"$push":{"characters":chara_info_t}})
+                    re_info = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"characters":1})
+                    result_info["name"]=result_chara["name"]
+                    result_info["info"]=re_info["characters"]
+                    result_info["type"]="chara"
+            else:
+                #draw item
+                result_item=None
+                remain_items=[]
+                for item_name in config.items_tb:
+                    item = config.items_tb[item_name]
+                    t_rand = random.random()
+                    if t_rand<item["chance"]:
+                        remain_items.append(item)
+                    if len(remain_items)==0:
+                        temp_items=[]
+                        for item_name_1 in config.items_tb:
+                            temp_items.append(config.items_tb[item_name_1])
+                        rand_i = random.randint(0,len(temp_items)-1)
+                        result_item=temp_items[rand_i]
+                    elif len(remain_items)>1:
+                        rand_i = random.randint(0,len(temp_items)-1)
+                        result_item=remain_items[rand_i]
+                    else:
+                        result_item=remain_items[0]
+                num =self.get_item_count(query_re["items"], result_item["name"])
+                if num == -1 :
+                    item_info_t={}
+                    item_info_t["name"]=result_item["name"]
+                    item_info_t["num"]=1
+                    config.user_table.update_one({"_id":ObjectId(self.token)},{"$push":{"items":item_info_t}})
+                else:
+                    self.inc_item_count(query_re["items"], result_item["name"])
+                re_info = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"items":1})
+                result_info["name"]=result_item["name"]
+                result_info["info"]=re_info["items"]
+                result_info["type"]="item"
+        return 
+
     def update_equip(self, b_chara, index, name):
         equip_type="chara"
         if b_chara==False:
@@ -105,7 +219,7 @@ class UserInfo:
     def change_diamond(self, val):
         query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"diamond":1})
         new_val=query_re["diamond"]+val
-        if new_val<=0:
+        if new_val<0:
             return False
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"diamond":new_val}})
         return True

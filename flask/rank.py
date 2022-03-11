@@ -25,7 +25,6 @@ class Rank:
             if result=="team1":
                 user1.change_diamond(diamond2)
             else:
-                print(-diamond1)
                 user1.change_diamond(-diamond1)
             user1.set_last_pvp()
         return ret

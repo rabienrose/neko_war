@@ -13,7 +13,6 @@ app = Flask(__name__)
 
 @app.route('/test_port',methods=['GET','POST'])
 def test_port():
-    print(request.remote_addr,request.environ.get('REMOTE_PORT'))
     return json.dumps(["ok"])
 
 @app.route('/user_login',methods=['POST'])
@@ -41,7 +40,6 @@ def user_regist():
     pw=request.json["pw"]
     device_id=request.json["device_id"]
     device_type=request.json["device_type"]
-    print(request.json)
     ret={"op":"user_regist"}
     user = UserInfo("")
     ret_t=user.attach_name_pw(account,account,pw)
@@ -146,8 +144,36 @@ def notify_start_pvp():
     ret["ret"]="ok"
     rank=Rank()
     token=request.json["token"]
-    print(token)
     rank.notify_start_pvp(token)
+    return json.dumps(ret)  
+
+@app.route('/upgrade_chara',methods=['POST'])
+def upgrade_chara():
+    ret={"op":"upgrade_chara"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    chara_name=request.json["chara_name"]
+    user=UserInfo(token)
+    user.upgrade_chara(chara_name)
+    return json.dumps(ret)  
+
+@app.route('/draw_a_lottery',methods=['POST'])
+def draw_a_lottery():
+    ret={"op":"draw_a_lottery"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    user=UserInfo(token)
+    ret["data"]=user.draw_lottory()
+    return json.dumps(ret)  
+
+@app.route('/buy_item',methods=['POST'])
+def buy_item():
+    ret={"op":"buy_item"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    item_name=request.json["item_name"]
+    user=UserInfo(token)
+    user.buy_item(item_name)
     return json.dumps(ret)  
 
 if __name__ == '__main__':

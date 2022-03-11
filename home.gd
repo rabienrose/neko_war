@@ -60,6 +60,8 @@ var chara_lv_num=10
 var hardness_num=7
 var cur_level_page_ind=0
 
+var http
+
 func _ready():
     get_tree().paused = false
     Global.connect("show_level_info",self, "on_show_level_info")
@@ -87,6 +89,7 @@ func _ready():
     update_status()
     update_lottery_ui()
     update_pvp_ui()
+    
 
 func on_show_level_info(lv_name):
     Global.sel_level=lv_name
@@ -256,7 +259,7 @@ func update_pvp_ui():
     get_node(lottery_price_path).text=str(Global.global_data["pvp_price"])+" Diamond"  
     if len(Global.rank_data)==0:
         return
-    Global.remove_child(get_node(rank_list_path))
+    Global.delete_children(get_node(rank_list_path))
     for item in Global.rank_data:
         var new_item = rank_item_res.instance()
         var note=""
@@ -381,11 +384,9 @@ func _on_Buy_gui_input(event:InputEvent):
         if event.pressed==true:
             if cur_sel_item!="":
                 var item_sell_price=Global.items_tb[cur_sel_item]["price"]
-                if Global.expend_user_money(item_sell_price)==false:
+                if Global.user_data["diamond"]<item_sell_price:
                     return
-                var my_item_info = Global.get_my_item_info(cur_sel_item)
-                my_item_info["num"]=my_item_info["num"]+1
-                update_items_ui()
+                request_a_buy(cur_sel_item)
 
 func _on_Upgrade_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
@@ -396,75 +397,79 @@ func _on_Upgrade_gui_input(event:InputEvent):
                 var upgrade_price=Global.get_upgrade_price(cur_sel_chara, chara_lv)
                 if upgrade_price<0:
                     return
-                if Global.expend_user_money(upgrade_price)==false:
+                var item_sell_price=Global.items_tb[cur_sel_item]["price"]
+                if Global.user_data["gold"]<item_sell_price:
                     return
-                my_chara_info["lv"]=my_chara_info["lv"]+1
-                update_characters_ui()
+                request_a_upgrade(cur_sel_item)
+
+func request_a_draw():
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "on_draw_result")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=Global.token
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(Global.server_url+"/draw_a_lottery", headers, false, HTTPClient.METHOD_POST, query)
+
+func request_a_buy(item_name):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "on_buy_result")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=Global.token
+    query_info["item_name"]=item_name
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(Global.server_url+"/buy_item", headers, false, HTTPClient.METHOD_POST, query)
+
+func request_a_upgrade(chara_name):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "on_upgrade_result")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=Global.token
+    query_info["chara_name"]=chara_name
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(Global.server_url+"/upgrade_chara", headers, false, HTTPClient.METHOD_POST, query)
+
+func on_upgrade_result(result, response_code, headers, body):
+    pass
+
+func on_buy_result(result, response_code, headers, body):
+    pass
+
+func on_draw_result(result, response_code, headers, body):
+    if response_code!=200:
+        print("on_draw_result network error!")
+        return
+    http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    if re_json["data"]["type"]=="chara":
+        Global.user_data["characters"]=re_json["data"]["info"]
+        update_characters_ui()
+    else:
+        Global.user_data["items"]=re_json["data"]["info"]
+        update_items_ui()
+    set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
 
 func _on_TryBtn_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed==true:
-            if Global.expend_user_money(Global.global_data["lottery_price"])==false:
+            if Global.global_data["lottery_price"]>Global.user_data["diamond"]:
                 return
-            #draw chara
-            var temp_my_charas=Global.get_my_charas_dict()
-            var remain_charas=[]
-            var result_chara=null
-            for chara_name in Global.chara_tb:
-                var chara=Global.chara_tb[chara_name]
-                if chara_name in temp_my_charas:
-                    continue
-                if chara["type"]!="chara":
-                    continue
-                var t_rand = rand_range(0,1)
-                if t_rand<chara["chance"]:
-                    remain_charas.append(chara)
-            if len(remain_charas)>1:
-                var rand_i = floor(rand_range(0,len(remain_charas)))
-                result_chara=remain_charas[rand_i]
-            elif len(remain_charas)==1:
-                result_chara=remain_charas[0]
-            if result_chara!=null:
-                var my_chara_info = Global.get_my_chara_info(result_chara["name"])
-                if my_chara_info==null:
-                    var chara_info_t={}
-                    chara_info_t["name"]=result_chara["name"]
-                    chara_info_t["lv"]=1
-                    Global.user_data["characters"].append(chara_info_t)
-                    set_icon(get_node(lottory_item_path), false, result_chara["name"])
-                    Global.save_user_data()
-                    update_characters_ui()
-            else:
-                #draw item
-                var result_item=null
-                var remain_items=[]
-                for item_name in Global.items_tb:
-                    var item = Global.items_tb[item_name]
-                    var t_rand = rand_range(0,1)
-                    if t_rand<item["chance"]:
-                        remain_items.append(item)
-                    if len(remain_items)==0:
-                        var temp_items=[]
-                        for item_name_1 in Global.items_tb:
-                            temp_items.append(Global.items_tb[item_name_1])
-                        var rand_i = floor(rand_range(0,len(temp_items)))
-                        result_item=temp_items[rand_i]
-                    elif len(remain_items)>1:
-                        var rand_i = floor(rand_range(0,len(remain_items)))
-                        result_item=remain_items[rand_i]
-                    else:
-                        result_item=remain_items[0]
-                var my_item_info = Global.get_my_item_info(result_item["name"])
-                if my_item_info==null:
-                    var item_info_t={}
-                    item_info_t["name"]=result_item["name"]
-                    item_info_t["num"]=1
-                    Global.user_data["items"].append(item_info_t)
-                else:
-                    my_item_info["num"]=my_item_info["num"]+1
-                set_icon(get_node(lottory_item_path), true, result_item["name"])
-                Global.save_user_data()
-                update_items_ui()
+            request_a_draw()
     
 func _on_Level_gui_input(event):
     on_tab_button("level", event)

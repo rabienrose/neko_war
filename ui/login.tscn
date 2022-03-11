@@ -104,7 +104,6 @@ rect_min_size = Vector2( 200, 60 )
 size_flags_horizontal = 2
 custom_fonts/font = SubResource( 2 )
 custom_styles/normal = SubResource( 3 )
-text = "chamo"
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -136,7 +135,6 @@ rect_min_size = Vector2( 200, 60 )
 size_flags_horizontal = 2
 custom_fonts/font = SubResource( 2 )
 custom_styles/normal = SubResource( 3 )
-text = "123456"
 __meta__ = {
 "_edit_use_anchors_": false
 }

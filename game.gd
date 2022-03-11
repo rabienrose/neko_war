@@ -146,12 +146,17 @@ func start_battle():
     game_start=true
 
 func cancel_cb():
-    get_tree().paused = false
-    get_node(comfirm_path).visible=false
+    if Global.level_mode:
+        get_tree().paused = false
+        get_node(comfirm_path).visible=false
 
 func go_home_cb():
-    get_tree().paused = false
-    Global.emit_signal("request_go_home")
+    if Global.level_mode:
+        get_tree().paused = false
+        get_tree().change_scene(Global.home_scene)
+    elif Global.pvp_mode:
+        chara_inputs[find_local_team_id()].append(-1)
+        get_node(comfirm_path).visible=false
 
 func get_battle_time():
     return server.cur_frame/keyframe_p_s
@@ -569,4 +574,7 @@ func _on_Return_gui_input(event):
         if event.pressed:
             if get_node(comfirm_path).visible==false:
                 get_node(comfirm_path).visible=true
-                get_tree().paused = true
+                if Global.pvp_mode!=true:
+                    get_tree().paused = true
+                if Global.replay_mode:
+                    get_node(comfirm_path).hide_btn(1)

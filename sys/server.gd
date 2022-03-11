@@ -36,7 +36,7 @@ func generate_ai(net_id):
             hk_info["lv"]=floor(rand_range(0,9))
         equips.append(hk_info)
     start_battle_info["equip"]=equips
-    start_battle_info["diamond"]=int(rand_range(100,300))
+    start_battle_info["diamond"]=int(rand_range(Global.global_data["pvp_ai_diamond"][0],Global.global_data["pvp_ai_diamond"][1]))
     start_battle_info["ai"]="pvp_ai"
     rpc_id(net_id, "start_battle_net", start_battle_info)
     players_info[net_id]["status"]="battle"
@@ -48,10 +48,9 @@ func _physics_process(delta):
         check_waiting_delay=1
         for net_id in players_info:
             if players_info[net_id]["status"]=="waiting":
-                var t_rand = rand_range(0.3,1)
+                var t_rand = rand_range(Global.global_data["pvp_ai_waittime"][0],Global.global_data["pvp_ai_waittime"][1])
                 if players_info[net_id]["waiting_time"]>t_rand:
                     generate_ai(net_id)
-                    print(players_info[net_id]["info"]["token"])
                     notify_start_pvp(players_info[net_id]["info"]["token"])
     else:
         check_waiting_delay=check_waiting_delay-delta
@@ -69,8 +68,10 @@ func start_server():
 
 func start_clinet():
     peer = NetworkedMultiplayerENet.new()
-    # peer.create_client("47.100.93.238", 9001)
-    peer.create_client("127.0.0.1", 9001)
+    var game_ip="127.0.0.1"
+    if Global.global_data["b_local_server"]==0:
+        game_ip=Global.global_data["game_server_ip"]
+    peer.create_client(game_ip, 9001)
     get_tree().network_peer = peer
     lobby.visible=true
     get_tree().connect("connected_to_server", self, "_connected_to_server")
@@ -240,14 +241,18 @@ func process_keyframe():
         for _team_id in range(0,2):
             if len(inputs[_team_id])>0:
                 for key in inputs[_team_id]:
-                    var chara_name=game.chara_hotkey[_team_id][key]["name"]
-                    var chara_info=Global.chara_tb[chara_name]
-                    if game.chara_hotkey[_team_id][key]["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"],_team_id):
-                        game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
-                        print(chara_name,"  ",key)
-                        game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
-                        print("change_meat  ",-chara_info["build_cost"])
-                        game.change_meat(-chara_info["build_cost"], _team_id)
+                    if key==-1:
+                        if _team_id==game.find_local_team_id():
+                            game.stop_game(false)
+                        else:
+                            game.stop_game(true)
+                    else:
+                        var chara_name=game.chara_hotkey[_team_id][key]["name"]
+                        var chara_info=Global.chara_tb[chara_name]
+                        if game.chara_hotkey[_team_id][key]["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"],_team_id):
+                            game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
+                            game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
+                            game.change_meat(-chara_info["build_cost"], _team_id)
         cur_frame=cur_frame+1
         return true
     else:

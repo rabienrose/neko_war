@@ -13,7 +13,7 @@ class Game:
         return game_data
 
     def load_static_data(self):
-        f=open("../configs/global.json",'r')
+        f=open("configs/global.json",'r')
         return json.load(f)
 
     def set_cul_level(self,level_id):

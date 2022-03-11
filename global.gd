@@ -2,7 +2,6 @@ extends Node
 
 signal money_change(val)
 signal request_battle(lv)
-signal request_go_home
 signal show_level_info(lv)
 
 
@@ -42,8 +41,7 @@ var token
 var device_id
 
 var http
-# var server_url="http://47.100.93.238:9100"
-var server_url="http://127.0.0.1:9100"
+var server_url=""
 
 var rng 
 
@@ -98,8 +96,11 @@ func _ready():
     content = f.get_as_text()
     global_data = JSON.parse(content).result
     f.close()
+    if global_data["b_local_server"]==1:
+        server_url="http://127.0.0.1:9100"
+    else:
+        server_url="http://"+global_data["game_server_ip"]+":9100"
     connect("request_battle",self,"on_request_start_battle")
-    connect("request_go_home",self,"on_request_go_home")
 
 func set_game_mode(mode):
     Global.replay_mode=false
@@ -150,6 +151,7 @@ func fetch_rank_remote():
 
 func on_get_user(result, response_code, headers, body):
     if response_code!=200:
+        print("on_get_user network error!")
         return
     http.queue_free()
     http=null
@@ -159,6 +161,7 @@ func on_get_user(result, response_code, headers, body):
 
 func on_get_levels(result, response_code, headers, body):
     if response_code!=200:
+        print("on_get_levels network error!")
         return
     http.queue_free()
     http=null
@@ -169,6 +172,7 @@ func on_get_levels(result, response_code, headers, body):
 
 func on_get_rank(result, response_code, headers, body):
     if response_code!=200:
+        print("on_get_rank network error!")
         return
     http.queue_free()
     http=null
@@ -275,9 +279,6 @@ func rand_in_list(list_data):
 func on_request_start_battle(lv):
     sel_level=lv
     get_tree().change_scene(game_scene)
-
-func on_request_go_home():
-    get_tree().change_scene(home_scene)
 
 func delete_children(node):
     for n in node.get_children():

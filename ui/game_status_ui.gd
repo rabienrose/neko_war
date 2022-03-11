@@ -50,7 +50,6 @@ func on_get_user_setting(result, response_code, headers, body):
     http.queue_free()
     http=null
     var re_json = JSON.parse(body.get_string_from_utf8()).result
-    print(re_json)
     if "note" in re_json["data"]:
         setting_node.set_note(re_json["data"]["note"])
         setting_node.set_submit_cb(funcref(self, "on_setting_submit"))

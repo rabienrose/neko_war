@@ -12,7 +12,7 @@ func _ready():
     
 func ai_get_op():
     var temp_hk_config=game.chara_hotkey[team_id]
-    for i in range(len(temp_hk_config)):
+    for i in range(0,5):
         var item=temp_hk_config[i]
         var chara_info=Global.chara_tb[item["name"]]
         if item["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"], team_id):

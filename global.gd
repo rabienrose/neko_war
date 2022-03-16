@@ -290,13 +290,6 @@ func get_upgrade_price(chara_name, cur_lv):
         return -1
     return Global.chara_tb[chara_name]["attrs"][str(next_lv)]["upgrade_cost"]
 
-func expend_user_money(val):
-    if user_data["gold"]-val<0:
-        return false
-    user_data["gold"]=user_data["gold"]-val
-    emit_signal("money_change", user_data["gold"])
-    save_user_data()
-
 func get_my_chara_info(chara_name):
     for item in user_data["characters"]:
         if item["name"]==chara_name:

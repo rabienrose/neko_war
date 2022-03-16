@@ -58,19 +58,17 @@ var recording_data=[[],[]]
 var replay_data=[[],[]]
 var live_chara_count=[0,0]
 var chara_count=[0,0]
-var chara_hotkey=[[null,null,null,null,null],[null,null,null,null,null]]
+var chara_hotkey=[[null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null]]
 
 var meat_num=[0,0]
 var init_meat_num=[0,0]
 var diamond_num=[0,0]
 var init_diamond_num=[0,0]
 var team_charas=[[],[]]
+var last_items_num=[]
+var init_items_num=[]
 
 var chara_inputs=[[],[]]
-var item_inputs=[[],[]]
-
-var cache_chara_inputs=[[],[]]
-var cache_item_inputs=[[],[]]
 
 var ai_nodes=[]
 var spawn_nodes=[]
@@ -121,14 +119,19 @@ func _ready():
             ai_nodes.append(t_node)
             start_battle()
             update_hotkey_ui(0)
+            last_items_num=chara_hotkey.duplicate(true)
+            init_items_num=chara_hotkey.duplicate(true)
         if Global.pvp_mode:
             server.start_clinet()
         if Global.replay_mode:
             get_node(chara_gen_ui_path).visible=false
             get_node(item_use_ui_path).visible=false
+            get_node(diamond1_label_path).get_parent().visible=false
+            get_node(diamond2_label_path).get_parent().visible=false
             server.start_replay(Global.replay_data)
 
 func start_battle():
+    Global.rng=RandomNumberGenerator.new()
     Global.rng.seed=0
     fx_mgr=get_node("FxMgr")
     spawn_nodes.append(get_node(spawn1_path))
@@ -153,13 +156,26 @@ func cancel_cb():
 func go_home_cb():
     if Global.level_mode:
         get_tree().paused = false
-        get_tree().change_scene(Global.home_scene)
+        stop_game(false)
     elif Global.pvp_mode:
         chara_inputs[find_local_team_id()].append(-1)
-        get_node(comfirm_path).visible=false
+    elif Global.replay_mode:
+        get_tree().change_scene(Global.home_scene)
+    get_node(comfirm_path).visible=false
 
 func get_battle_time():
     return server.cur_frame/keyframe_p_s
+
+func get_item_used_stats(team_id):
+    var items={}
+    for i in range(5,10):
+        if last_items_num[team_id][i] != null:
+            var used_num = last_items_num[team_id][i]["num"]-chara_hotkey[team_id][i]["num"]
+            if used_num>0:
+                items[last_items_num[team_id][i]["name"]]=used_num
+    if items.empty()==false:
+        last_items_num=chara_hotkey.duplicate(true)
+    return items
 
 func stop_game(b_win):
     if Global.level_mode:
@@ -390,13 +406,13 @@ func request_skill(skill_data, team_id, self_chara):
         else:
             apply_skill(targets, skill_data, null)
 
-func request_use_item(item_name):
+func request_use_item(item_name, team_id):
     if item_name=="done_at_once":
         for item in chara_gen_ui.get_items():
             item.set_done()
     else:
         var item_dat=Global.items_tb[item_name]
-        request_skill(item_dat, 0, null)
+        request_skill(item_dat, team_id, null)
 
 func remove_chara(chara):
     team_charas[chara.team_id].erase(chara)
@@ -439,9 +455,9 @@ func update_chara_list_ui():
         var chara_infos=[]
         for chara_name in chara_num_stats[i]:
             var lv=0
-            for info in chara_hotkey[i]:
-                if chara_name==info["name"]:
-                    lv=info["lv"]
+            for j in range(0,5):
+                if chara_name==chara_hotkey[i][j]["name"]:
+                    lv=chara_hotkey[i][j]["lv"]
                     break
             var chara_info={}
             chara_info["name"]=chara_name
@@ -456,7 +472,16 @@ func update_chara_list_ui():
 func get_total_used_diamond():
     if init_diamond_num[0]==0 and init_diamond_num[1]==0:
         return 0
-    return init_diamond_num[0]-diamond_num[0]+init_diamond_num[1]-diamond_num[1]
+    var diamond_expand=init_diamond_num[0]-diamond_num[0]+init_diamond_num[1]-diamond_num[1]
+    var item_diamond=0
+    for team_id in range(0,2):
+        for i in range(5,10):
+            if init_items_num[team_id][i] != null:
+                var used_num = init_items_num[team_id][i]["num"]-chara_hotkey[team_id][i]["num"]
+                if used_num>0:
+                    var single_cost = Global.items_tb[init_items_num[team_id][i]["name"]]["price"]
+                    item_diamond=item_diamond+single_cost*used_num
+    return item_diamond+diamond_expand
 
 func update_stats_ui():
     get_node(meat1_label_path).text="Meat: "+str(meat_num[0])
@@ -482,13 +507,11 @@ func update_timer_ui():
     get_node(timer_label_path).text=str_time
 
 func use_item_cb(item):
-    request_use_item(item.custom_info["name"])
     if item.custom_val-1<0:
         return false
-    item.set_val(item.custom_val-1)
-    var my_item_info = Global.get_my_item_info(item.custom_info["name"])
-    my_item_info["num"]=item.custom_val
-    Global.save_user_data()
+    var local_team=find_local_team_id()
+    if not item.index in chara_inputs[local_team]:
+        chara_inputs[local_team].append(item.index+5)
     return true
 
 func find_local_team_id():
@@ -500,7 +523,7 @@ func find_local_team_id():
 func start_chara_cb(item):
     var local_team=find_local_team_id()
     if check_chara_build(item.custom_val,local_team):
-        if not item.index in cache_chara_inputs[local_team]:
+        if not item.index in chara_inputs[local_team]:
             chara_inputs[local_team].append(item.index)
             return true
         return false
@@ -542,8 +565,14 @@ func update_hotkey_ui(_local_team_id):
         var icon_texture=load(icon_file_path)
         var click_cb = funcref(self, "use_item_cb")
         item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
+        var hk_info={}
+        hk_info["countdown"]=0
+        hk_info["num"]=num
+        hk_info["name"]=item_name
+        chara_hotkey[_local_team_id][i+5]=hk_info
 
 func process_frame():
+    frame_id=frame_id+1
     timer_ui_delay=timer_ui_delay-frame_delay
     if timer_ui_delay<0:
         timer_ui_delay=1

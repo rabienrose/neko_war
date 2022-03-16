@@ -3,6 +3,7 @@
     "flask_ip":"47.100.93.238",
     "mongodb_ip":"139.196.20.251",
     "game_server_ip":"47.100.93.238",
+    "hit_delay":1.0,
     "pvp_ai_waittime":[100,200],
     "pvp_ai_diamond":[100,400],
     "lottery_price":70,

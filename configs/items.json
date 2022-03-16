@@ -7,8 +7,7 @@
         "target_scheme":{
             "group":["self"],
             "type":["chara"],
-            "amount":1,
-            "sel_type":"min_hp"
+            "amount":-1
         },
         "type":"instance",
         "info":{

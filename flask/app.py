@@ -62,6 +62,16 @@ def request_user_info():
     ret["data"]=user.get_info()
     return json.dumps(ret)
 
+@app.route('/notify_use_items',methods=['POST'])
+def notify_use_items():
+    ret={"op":"update_level_stats"}
+    ret["ret"]="ok"
+    items=request.json["items"]
+    token=request.json["token"]
+    user = UserInfo(token)
+    user.dec_item_count(items)
+    return json.dumps(ret)
+
 @app.route('/update_level_stats',methods=['POST'])
 def update_level_stats():
     ret={"op":"update_level_stats"}
@@ -154,7 +164,10 @@ def upgrade_chara():
     token=request.json["token"]
     chara_name=request.json["chara_name"]
     user=UserInfo(token)
-    user.upgrade_chara(chara_name)
+    re_data = user.upgrade_chara(chara_name)
+    if re_data is None:
+        ret["ret"]="fail"
+    ret["data"]=re_data
     return json.dumps(ret)  
 
 @app.route('/draw_a_lottery',methods=['POST'])
@@ -173,7 +186,11 @@ def buy_item():
     token=request.json["token"]
     item_name=request.json["item_name"]
     user=UserInfo(token)
-    user.buy_item(item_name)
+    re_info = user.buy_item(item_name)
+    if re_info is not None:
+        ret["data"]=re_info
+    else:
+        ret["ret"]="fail"
     return json.dumps(ret)  
 
 if __name__ == '__main__':

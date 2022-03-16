@@ -99,6 +99,7 @@ func _ready():
     fct_mgr=get_node(fct_mgr_path)
     hp_bar.rect_position.y=hp_bar.rect_position.y+rand_range(0,190)
     shoot_timer=get_node("ShootTimer")
+    hit_delay=Global.global_data["hit_delay"]
 
 func on_create(_game):
     game=_game
@@ -282,7 +283,7 @@ func set_anim(anim_data, info):
         if "atk" in n:
             temp_counter=temp_counter+1
     if temp_counter>0:
-        var temp_ind=ceil(rand_range(0,1)*temp_counter)
+        var temp_ind=Global.rng.randi_range(1,temp_counter)
         atk_anim_name="atk_"+str(temp_ind)
         atk_frame=info["atk_frame"][temp_ind-1]
     else:
@@ -340,15 +341,16 @@ func play_atk():
     var temp_atk_spd=apply_attr_buf("atk_spd")
     if temp_atk_spd<0.1:
         temp_atk_spd=0.1
-    var atk_period=1/temp_atk_spd
-    var atk_time=atk_period*float(atk_frame)/frame_num
+    var atk_period=stepify(1/temp_atk_spd, 0.01) 
+    var atk_time= stepify(atk_period*float(atk_frame)/frame_num, 0.01) 
     anim_sprite.speed_scale=1
-    var fps=frame_num/atk_period
-    anim_sprite.speed_scale=fps/10
+    var fps=int(frame_num/atk_period)
+    anim_sprite.speed_scale=fps/10.0
     atk_pre_countdown=atk_time
     atk_after_countdown=atk_period
     in_atk_pre=true
     in_atk_after=true
+    # print("atk: ",name,"  ",game.frame_id)
 
 func process_skills():
     if status=="skill" and dead==true:
@@ -402,7 +404,6 @@ func _physics_process(delta):
         position.x=position.x + mov_dir*delta*dash_spd
     if status=="mov":
         position.x = position.x + mov_dir*delta*mov_spd
-        # print("chara: ",game.frame_id)
         if check_if_outside(global_position.x):
             game.remove_chara(self)
             return
@@ -472,6 +473,7 @@ func change_hp(val, chara, b_critical=false):
         on_die(chara)
         new_hp=0
     var actual_val=new_hp-hp
+    # print("damage: ",actual_val,"  ",chara.name,"  ",game.frame_id)
     hp=new_hp
     if actual_val==0:
         return

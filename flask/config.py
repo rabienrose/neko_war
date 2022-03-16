@@ -9,7 +9,7 @@ global_config = json.load(f)
 f=open("configs/characters.json",'r')
 chara_tb = json.load(f)
 f=open("configs/items.json",'r')
-item_tb = json.load(f)
+items_tb = json.load(f)
 f=open("configs/skills.json",'r')
 skills_tb = json.load(f)
 

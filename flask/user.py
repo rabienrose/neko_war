@@ -111,11 +111,13 @@ class UserInfo:
         query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"levels":0})
         chara_lv = self.get_chara_lv(query_re["characters"], chara_name)
         if chara_lv==-1:
-            return False
-        upgrade_cost=config.chara_tb[chara_name]["attr"][str(chara_lv+1)]["upgrade_cost"]
-        if upgrade_cost>=query_re["gold"]:
+            return None
+        upgrade_cost=config.chara_tb[chara_name]["attrs"][str(chara_lv+1)]["upgrade_cost"]
+        if upgrade_cost<=query_re["gold"]:
             if self.inc_chara_lv(query_re["characters"], chara_name):
-                self.change_gold(upgrade_cost)
+                self.change_gold(-upgrade_cost)
+                return {"name":chara_name, "lv":chara_lv+1, "cost":upgrade_cost}
+        return None
 
     def get_item_count(self, item_infos, item_name):
         for item in item_infos:
@@ -131,18 +133,33 @@ class UserInfo:
                     return True
         return False
 
+    def dec_item_count(self, item_changes):
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"items":1})
+        item_infos=query_re["items"]
+        for item_name in item_changes:
+            for item in item_infos:
+                if item["name"]==item_name:
+                    item["num"]=item["num"]-item_changes[item_name]
+                    break
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"items":item_infos}})
+        return False
+
     def buy_item(self, item_name):
-        item_price=config.item_tb[item_name]["price"]
-        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"diamond":1,"items":0})
-        if self.get_item_count(query_re["items"], item_name)!=-1:
+        item_price=config.items_tb[item_name]["price"]
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"diamond":1,"items":1})
+        item_num=self.get_item_count(query_re["items"], item_name)
+        if item_num!=-1:
             if item_price<=query_re["diamond"]:
-                self.inc_item_count(self, query_re["items"], item_name)
+                self.inc_item_count(query_re["items"], item_name)
+                return {"name":item_name, "num":item_num, "cost":item_price}
+        return None
 
     def draw_lottory(self):
         lottery_price=config.global_config["lottery_price"]
-        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"characters":1,"items":1})
+        query_re = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"characters":1,"items":1,"diamond":1})
         result_info={}
         if lottery_price<=query_re["diamond"]:
+            self.change_diamond(-lottery_price)
             #draw chara
             remain_charas=[]
             result_chara=None
@@ -203,7 +220,7 @@ class UserInfo:
                 result_info["name"]=result_item["name"]
                 result_info["info"]=re_info["items"]
                 result_info["type"]="item"
-        return 
+        return result_info
 
     def update_equip(self, b_chara, index, name):
         equip_type="chara"

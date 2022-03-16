@@ -42,7 +42,7 @@ func generate_ai(net_id):
     players_info[net_id]["status"]="battle"
 
 func _physics_process(delta):
-    if players_info=={}:
+    if players_info.empty():
         return
     if check_waiting_delay<=0:
         check_waiting_delay=1
@@ -97,8 +97,9 @@ remote func start_battle_net(player_info):
         game.player_setting[other_team_id]="remote"
     game.player_setting[my_team_id]="local"
     for i in range(len(player_info["equip"])):
-        game.chara_hotkey[other_team_id][i]=player_info["equip"][i].duplicate()
-        game.chara_hotkey[other_team_id][i]["countdown"]=0
+        if player_info["equip"][i]!=null:
+            game.chara_hotkey[other_team_id][i]=player_info["equip"][i].duplicate()
+            game.chara_hotkey[other_team_id][i]["countdown"]=0
     game.get_node(game.lobby_path).visible=false
     game.base_hp=1000
     game.start_battle()
@@ -126,6 +127,8 @@ remote func start_battle_net(player_info):
         game.meat_num[1]=Global.global_data["pvp_price"]
         game.update_stats_ui()
         game.init_diamond_num=game.diamond_num.duplicate()
+        game.last_items_num=game.chara_hotkey.duplicate(true)
+        game.init_items_num=game.chara_hotkey.duplicate(true)
 
 func default_http_cb(result, response_code, headers, body):
     http.queue_free()
@@ -246,24 +249,53 @@ func process_keyframe():
                             game.stop_game(false)
                         else:
                             game.stop_game(true)
-                    else:
+                    elif key<5:
                         var chara_name=game.chara_hotkey[_team_id][key]["name"]
                         var chara_info=Global.chara_tb[chara_name]
                         if game.chara_hotkey[_team_id][key]["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"],_team_id):
                             game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
                             game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
                             game.change_meat(-chara_info["build_cost"], _team_id)
+                    else:
+                        var item_name=game.chara_hotkey[_team_id][key]["name"]
+                        game.chara_hotkey[_team_id][key]["num"]=game.chara_hotkey[_team_id][key]["num"]-1
+                        game.request_use_item(item_name, _team_id)
+                        if _team_id==game.find_local_team_id():
+                            var ui_item=game.item_use_ui.get_child(key-5)
+                            ui_item.set_val(game.chara_hotkey[_team_id][key]["num"])
+                        game.update_stats_ui()
+        if Global.level_mode:
+            var items_change = game.get_item_used_stats(0)
+            if items_change.empty()==false:
+                notify_item_used(items_change)
+        elif Global.pvp_mode:
+            var items_change = game.get_item_used_stats(game.find_local_team_id())
+            if items_change.empty()==false:
+                notify_item_used(items_change)
         cur_frame=cur_frame+1
         return true
     else:
         return false
+
+func notify_item_used(items_change):
+    if http!=null:
+        return
+    http=HTTPRequest.new()
+    http.pause_mode=Node.PAUSE_MODE_PROCESS
+    http.connect("request_completed", self, "default_http_cb")
+    add_child(http)
+    var query_info={}
+    query_info["token"]=Global.token
+    query_info["items"]=items_change
+    var query = JSON.print(query_info)
+    var headers = ["Content-Type: application/json"]
+    http.request(Global.server_url+"/notify_use_items", headers, false, HTTPClient.METHOD_POST, query)
 
 func process_pvp_ai():
     if pvp_ai_node!=null:
         game.chara_inputs[1]=pvp_ai_node.ai_get_op()
 
 func broadcast_keyframe():
-    
     if enemy_net_id>0:
         rpc_id(enemy_net_id,"on_get_keyframe", game.chara_inputs, len(input_queue)+1)
     else:
@@ -275,7 +307,7 @@ func broadcast_keyframe():
 func get_recording_data():
     var recording_data={}
     recording_data["ops"]=input_queue
-    recording_data["hotkeys"]=game.chara_hotkey
+    recording_data["hotkeys"]=game.init_items_num
     recording_data["reward_discount"]=game.reward_discount
     recording_data["init_meat_num"]=game.init_meat_num
     recording_data["init_diamond_num"]=[game.init_diamond_num[0]-game.diamond_num[0], game.init_diamond_num[1]-game.diamond_num[1]]
@@ -322,6 +354,17 @@ func request_join():
             var hk_info={}
             hk_info["lv"]=lv
             hk_info["name"]=chara_name
+            join_info["equip"].append(hk_info)
+    for i in range(len(Global.user_data["equip"]["item"])):
+        var item_name=Global.user_data["equip"]["item"][i]
+        if item_name=="":
+            join_info["equip"].append(null)
+        else:
+            var my_item_info = Global.get_my_item_info(item_name)
+            var num=my_item_info["num"]
+            var hk_info={}
+            hk_info["num"]=num
+            hk_info["name"]=item_name
             join_info["equip"].append(hk_info)
     join_info["diamond"]=Global.user_data["diamond"]
     join_info["token"]=Global.token

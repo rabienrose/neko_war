@@ -298,18 +298,22 @@ func check_in_control(query_pos, control):
 func _input(event):
     if event is InputEventScreenTouch:
         if event.pressed==false:
-            if get_node(chara_container_path).visible==true:
+            if get_node(chara_container_path).visible==true or get_node(item_container_path).visible==true:
                 for c in chara_hotkey.get_children():
                     var t_pos=Vector2(event.position.x, event.position.y)
                     if check_in_control(t_pos, c):
                         if cur_drag_chara!="":
                             set_chara_hk_slot(c.get_index(), cur_drag_chara)
                             Global.save_equip_info(true,c.get_index(),cur_drag_chara)
+                for c in item_hotkey.get_children():
+                    var t_pos=Vector2(event.position.x, event.position.y)
+                    if check_in_control(t_pos, c):
                         if cur_drag_item!="":
                             for i in range(len(Global.user_data["equip"]["item"])):
                                 if Global.user_data["equip"]["item"][i]==cur_drag_item:
                                     clear_item_hk_slot(i)
                             set_item_hk_slot(c.get_index(), cur_drag_item)
+                            Global.save_equip_info(false,c.get_index(),cur_drag_item)
                 cur_drag_chara=""
                 cur_drag_item=""
                 hide_drag_icon()
@@ -397,10 +401,9 @@ func _on_Upgrade_gui_input(event:InputEvent):
                 var upgrade_price=Global.get_upgrade_price(cur_sel_chara, chara_lv)
                 if upgrade_price<0:
                     return
-                var item_sell_price=Global.items_tb[cur_sel_item]["price"]
-                if Global.user_data["gold"]<item_sell_price:
+                if Global.user_data["gold"]<upgrade_price:
                     return
-                request_a_upgrade(cur_sel_item)
+                request_a_upgrade(cur_sel_chara)
 
 func request_a_draw():
     if http!=null:
@@ -443,11 +446,50 @@ func request_a_upgrade(chara_name):
     var headers = ["Content-Type: application/json"]
     http.request(Global.server_url+"/upgrade_chara", headers, false, HTTPClient.METHOD_POST, query)
 
+func change_gold(val):
+    Global.user_data["gold"]=Global.user_data["gold"]+val
+    update_status()
+
+func change_diamond(val):
+    Global.user_data["diamond"]=Global.user_data["diamond"]+val
+    update_status()
+
 func on_upgrade_result(result, response_code, headers, body):
-    pass
+    if response_code!=200:
+        print("on_upgrade_result network error!")
+        return
+    http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    if re_json["ret"]=="ok":
+        var chara_name=re_json["data"]["name"]
+        var lv=re_json["data"]["lv"]
+        var cost=re_json["data"]["cost"]
+        for chara in Global.user_data["characters"]:
+            if chara["name"]==chara_name:
+                chara["lv"]=lv
+                change_gold(-cost)
+                update_characters_ui()
+                break
 
 func on_buy_result(result, response_code, headers, body):
-    pass
+    if response_code!=200:
+        print("on_buy_result network error!")
+        return
+    http.queue_free()
+    http=null
+    var re_json = JSON.parse(body.get_string_from_utf8()).result
+    if re_json["ret"]=="ok":
+        var chara_name=re_json["data"]["name"]
+        var num=re_json["data"]["num"]
+        var cost=re_json["data"]["cost"]
+        for chara in Global.user_data["items"]:
+            print(chara["name"])
+            if chara["name"]==chara_name:
+                chara["num"]=num
+                change_diamond(-cost)
+                update_items_ui()
+                break
 
 func on_draw_result(result, response_code, headers, body):
     if response_code!=200:
@@ -463,6 +505,7 @@ func on_draw_result(result, response_code, headers, body):
         Global.user_data["items"]=re_json["data"]["info"]
         update_items_ui()
     set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
+    change_diamond(-Global.global_data["lottery_price"])
 
 func _on_TryBtn_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:

@@ -501,10 +501,11 @@ func on_draw_result(result, response_code, headers, body):
     if re_json["data"]["type"]=="chara":
         Global.user_data["characters"]=re_json["data"]["info"]
         update_characters_ui()
+        set_icon(get_node(lottory_item_path), false, re_json["data"]["name"])
     else:
         Global.user_data["items"]=re_json["data"]["info"]
         update_items_ui()
-    set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
+        set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
     change_diamond(-Global.global_data["lottery_price"])
 
 func _on_TryBtn_gui_input(event:InputEvent):

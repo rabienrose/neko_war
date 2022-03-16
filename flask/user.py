@@ -182,13 +182,13 @@ class UserInfo:
                 if lv==-1:
                     chara_info_t={}
                     chara_info_t["name"]=result_chara["name"]
-                    chara_info_t["lv"]=1
+                    chara_info_t["lv"]=0
                     config.user_table.update_one({"_id":ObjectId(self.token)},{"$push":{"characters":chara_info_t}})
                     re_info = config.user_table.find_one({"_id":ObjectId(self.token)},{"_id":0,"characters":1})
                     result_info["name"]=result_chara["name"]
                     result_info["info"]=re_info["characters"]
                     result_info["type"]="chara"
-            else:
+            if "name" not in result_info:
                 #draw item
                 result_item=None
                 remain_items=[]
@@ -204,7 +204,7 @@ class UserInfo:
                         rand_i = random.randint(0,len(temp_items)-1)
                         result_item=temp_items[rand_i]
                     elif len(remain_items)>1:
-                        rand_i = random.randint(0,len(temp_items)-1)
+                        rand_i = random.randint(0,len(remain_items)-1)
                         result_item=remain_items[rand_i]
                     else:
                         result_item=remain_items[0]

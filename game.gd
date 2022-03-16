@@ -177,7 +177,7 @@ func get_item_used_stats(team_id):
         last_items_num=chara_hotkey.duplicate(true)
     return items
 
-func stop_game(b_win):
+func stop_game(b_win, force_summary=false):
     if Global.level_mode:
         var lv_gold=level_data["gold"]
         var lv_info=Global.get_cur_level_info()
@@ -194,17 +194,23 @@ func stop_game(b_win):
         var local_team=find_local_team_id()
         var used_diamond=init_diamond_num[local_team]-diamond_num[local_team]
         var diamond_change=0
+        var diamond_pool=get_total_used_diamond()
         if b_win:
-            diamond_change=get_total_used_diamond()-used_diamond
+            diamond_change=diamond_pool-used_diamond
         else:
             diamond_change=-used_diamond
         get_node(summary_path).show_summary(b_win, true,diamond_change,false)
-        if find_local_team_id()==0:
+        if force_summary or find_local_team_id()==0:
             var recording=server.get_recording_data()
-            var result="team1"
-            if b_win==false:
-                result="team2"
-            Global.upload_pvp_summery(recording,result ,Global.token, server.enemy_token, used_diamond, get_total_used_diamond()-used_diamond)
+            var diamond1=0
+            var diamond2=0
+            if b_win==true:
+                diamond1=diamond_pool-used_diamond
+                diamond2=-used_diamond
+            else:
+                diamond1=-used_diamond
+                diamond2=diamond_pool-used_diamond
+            Global.upload_pvp_summery(recording ,Global.token, server.enemy_token, diamond1, diamond2)
         server.exit_battle()    
     if Global.replay_mode:
         get_node(comfirm_path).hide_btn(1)

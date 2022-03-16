@@ -33,7 +33,6 @@ def user_login():
         ret["desc"]=ret_t["desc"]
     return json.dumps(ret)
 
-
 @app.route('/user_regist',methods=['POST'])
 def user_regist():
     account=request.json["account"]
@@ -120,12 +119,11 @@ def pvp_summary():
     ret["ret"]="ok"
     token1=request.json["token1"]
     token2=request.json["token2"]
-    result=request.json["result"]
     diamond1=request.json["diamond1"]
     diamond2=request.json["diamond2"]
     record=request.json["recording"]
     rank=Rank()
-    if not rank.pvp_summary(token1, token2, diamond1, diamond2, result):
+    if not rank.pvp_summary(token1, token2, diamond1, diamond2):
         ret["ret"]="fail"
     return json.dumps(ret)  
 

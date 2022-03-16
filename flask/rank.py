@@ -4,28 +4,18 @@ from user import UserInfo
 from game import Game
 
 class Rank:
-    def pvp_summary(self, token1, token2, diamond1, diamond2, result):
+    def pvp_summary(self, token1, token2, diamond1, diamond2):
         ret=True
         user1=UserInfo(token1)
         if token2!="":
             user2=UserInfo(token2)
-            if result=="team1":
-                if user2.change_diamond(-diamond2):
-                    user1.change_diamond(diamond2)
-                else:
-                    ret=False
-            else:
-                if user1.change_diamond(-diamond1):
-                    user2.change_diamond(diamond1)
-                else:
-                    ret=False
+            user1.change_diamond(diamond1)
+            user2.change_diamond(diamond2)
             user1.set_last_pvp()
             user2.set_last_pvp()
         else:
-            if result=="team1":
-                user1.change_diamond(diamond2)
-            else:
-                user1.change_diamond(-diamond1)
+            print(diamond1)
+            user1.change_diamond(diamond1)
             user1.set_last_pvp()
         return ret
 

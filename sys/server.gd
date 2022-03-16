@@ -39,7 +39,11 @@ func generate_ai(net_id):
     start_battle_info["diamond"]=int(rand_range(Global.global_data["pvp_ai_diamond"][0],Global.global_data["pvp_ai_diamond"][1]))
     start_battle_info["ai"]="pvp_ai"
     rpc_id(net_id, "start_battle_net", start_battle_info)
-    players_info[net_id]["status"]="battle"
+
+remote func battle_end():
+    var net_id=get_tree().get_rpc_sender_id()
+    print(net_id)
+    players_info.erase(net_id)
 
 func _physics_process(delta):
     if players_info.empty():
@@ -52,6 +56,7 @@ func _physics_process(delta):
                 if players_info[net_id]["waiting_time"]>t_rand:
                     generate_ai(net_id)
                     notify_start_pvp(players_info[net_id]["info"]["token"])
+                    players_info.erase(net_id)
     else:
         check_waiting_delay=check_waiting_delay-delta
         for net_id in players_info:
@@ -171,7 +176,8 @@ remote func process_join(_info):
             rpc_id(player_net_id, "start_battle_net", start_battle_info)
             notify_start_pvp(start_battle_info["token"])
             players_info[player_net_id]["status"]="battle"
-            players_info[id]={"status":"battle","info":_info}
+            players_info[player_net_id]["opponent"]=id
+            players_info[id]={"status":"battle","info":_info,"opponent":player_net_id}
             find_player=true
             break
     
@@ -183,8 +189,14 @@ remote func process_join(_info):
 func _player_connected(id):
     print("_player_connected: ",id)
 
+remote func notify_client_battle_end():
+    game.stop_game(true,true)
+
 func _player_disconnected(id):
     if id in players_info:
+        if players_info[id]["status"]=="battle":
+            var opponent_id = players_info[id]["opponent"]
+            rpc_id(opponent_id, "notify_client_battle_end")
         players_info.erase(id)
     print("_player_disconnected: ",id)
 
@@ -339,6 +351,7 @@ func start_replay(replay_data):
     game.start_battle()
 
 func exit_battle():
+    rpc_id(1, "battle_end")
     get_tree().network_peer = null
 
 func request_join():

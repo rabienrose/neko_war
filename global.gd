@@ -209,7 +209,7 @@ func default_http_cb(result, response_code, headers, body):
     http.queue_free()
     http=null
 
-func upload_pvp_summery(recording,result,token1,token2,diamond1,diamond2):
+func upload_pvp_summery(recording,token1,token2,diamond1,diamond2):
     if http!=null:
         return
     http=HTTPRequest.new()
@@ -217,7 +217,6 @@ func upload_pvp_summery(recording,result,token1,token2,diamond1,diamond2):
     http.connect("request_completed", self, "default_http_cb")
     add_child(http)
     var query_info={}
-    query_info["result"]=result
     query_info["token1"]=token1
     query_info["token2"]=token2
     query_info["diamond1"]=diamond1

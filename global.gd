@@ -99,7 +99,7 @@ func _ready():
     if global_data["b_local_server"]==1:
         server_url="http://127.0.0.1:9100"
     else:
-        server_url="http://"+global_data["game_server_ip"]+":9100"
+        server_url="http://"+global_data["flask_ip"]+":9100"
     connect("request_battle",self,"on_request_start_battle")
 
 func set_game_mode(mode):

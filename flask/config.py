@@ -24,7 +24,7 @@ else:
     if global_config["b_local_server"]==1:
         mongo_conn="mongodb://127.0.0.1:27017"
     else:
-        mongo_conn="mongodb://"+global_config["flask_ip"]+":27017"
+        mongo_conn="mongodb://"+global_config["mongodb_ip"]+":27017"
 
 # bucket = oss2.Bucket(oss2.Auth(access_key_id, access_key_secret), endpoint, bucket_name)
 pp=pprint.PrettyPrinter(width=41, compact=True)

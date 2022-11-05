@@ -1,6 +1,6 @@
 
 
-ip=8.208.102.164
+ip=8.208.28.127
 ssh root@$ip
 mkdir neko_war
 pip3 install flask

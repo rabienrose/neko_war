@@ -59,6 +59,7 @@ def request_user_info():
     user = UserInfo(token)
     ret["ret"]="ok"
     ret["data"]=user.get_info()
+    print(ret["data"])
     return json.dumps(ret)
 
 @app.route('/notify_use_items',methods=['POST'])
@@ -189,6 +190,16 @@ def buy_item():
         ret["data"]=re_info
     else:
         ret["ret"]="fail"
+    return json.dumps(ret)  
+
+@app.route('/set_tip_flag',methods=['POST'])
+def set_tip_flag():
+    ret={"op":"set_tip_flag"}
+    ret["ret"]="ok"
+    token=request.json["token"]
+    tip_name=request.json["tip_name"]
+    user=UserInfo(token)
+    user.set_tip_flag(tip_name)
     return json.dumps(ret)  
 
 if __name__ == '__main__':

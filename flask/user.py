@@ -36,6 +36,7 @@ class UserInfo:
             user_info["nickname"]=nickname
             user_info["password"]=password
             user_info["devices"]=[]
+            user_info["tips"]={}
             self.token = str(config.user_table.insert_one(user_info).inserted_id)
         return ret
 
@@ -256,5 +257,5 @@ class UserInfo:
         modify_data["note"]=note_str
         config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"setting":modify_data}})
 
-    def draw_item_chara():
-        pass
+    def set_tip_flag(flag_name):
+        config.user_table.update_one({"_id":ObjectId(self.token)},{"$set":{"tips."+flag_name:1}})

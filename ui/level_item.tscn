@@ -19,9 +19,6 @@ rect_min_size = Vector2( 150, 150 )
 mouse_filter = 2
 size_flags_horizontal = 6
 script = ExtResource( 4 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 lock_path = NodePath("CenterContainer/Lock")
 unlock_path = NodePath("CenterContainer/UnLock")
 lv_label_path = NodePath("CenterContainer/UnLock/Lv")

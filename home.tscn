@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=2]
+[gd_scene load_steps=31 format=2]
 
 [ext_resource path="res://ui/texture/s_bg_yellow.tres" type="Texture" id=1]
 [ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=2]
@@ -24,6 +24,7 @@
 [ext_resource path="res://ui/texture/icon_next.tres" type="Texture" id=22]
 [ext_resource path="res://ui/rank_item.tscn" type="PackedScene" id=23]
 [ext_resource path="res://ui/user_setting.tscn" type="PackedScene" id=24]
+[ext_resource path="res://ui/anima_arrow.tscn" type="PackedScene" id=25]
 
 [sub_resource type="DynamicFont" id=2]
 size = 40
@@ -48,14 +49,7 @@ font_data = ExtResource( 3 )
 [node name="Home" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -3.0
-margin_top = -3.0
-margin_right = -3.0
-margin_bottom = -3.0
 script = ExtResource( 7 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 level_grid_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/ScrollContainer/GridContainer")
 level_info_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/Label")
 chara_grid_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Characters/Control/GridContainer")
@@ -88,6 +82,7 @@ pvp_cost_label_path = NodePath("NinePatchRect/VBoxContainer/MidContent/PVP/Contr
 user_stats_path = NodePath("NinePatchRect/VBoxContainer/Status")
 replay_btn_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/HBoxContainer/Replay")
 user_setting_path = NodePath("Setting")
+tip_start_battle_arrow_path = NodePath("TipStart")
 level_item_res = ExtResource( 16 )
 drop_item_res = ExtResource( 19 )
 tab_dot_res = ExtResource( 13 )
@@ -942,6 +937,13 @@ __meta__ = {
 
 [node name="Setting" parent="." instance=ExtResource( 24 )]
 visible = false
+
+[node name="TipStart" parent="." instance=ExtResource( 25 )]
+visible = false
+position = Vector2( 1964, 699 )
+rotation = 1.5708
+scale = Vector2( 0.5, 1 )
+frame = 3
 
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Left" to="." method="_on_Left_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Right" to="." method="_on_Right_gui_input"]

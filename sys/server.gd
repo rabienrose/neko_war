@@ -182,6 +182,7 @@ remote func process_join(_info):
             break
     
     if find_player==false:
+        print("aaaaaa")
         rpc_id(id, "joint_succ")
         players_info[id]={"status":"waiting","info":_info}
         players_info[id]["waiting_time"]=0

@@ -128,12 +128,10 @@ remote func start_battle_net(player_info):
             game.diamond_num[1]=Global.user_data["diamond"]
             game.get_node(game.meat2_label_path).get_parent().visible=true
             game.update_hotkey_ui(1)
-        game.meat_num[0]=Global.global_data["pvp_price"]
-        game.meat_num[1]=Global.global_data["pvp_price"]
+        game.coin_num[0]=Global.global_data["pvp_price"]
+        game.coin_num[1]=Global.global_data["pvp_price"]
         game.update_stats_ui()
         game.init_diamond_num=game.diamond_num.duplicate()
-        game.last_items_num=game.chara_hotkey.duplicate(true)
-        game.init_items_num=game.chara_hotkey.duplicate(true)
 
 func default_http_cb(result, response_code, headers, body):
     http.queue_free()
@@ -182,7 +180,6 @@ remote func process_join(_info):
             break
     
     if find_player==false:
-        print("aaaaaa")
         rpc_id(id, "joint_succ")
         players_info[id]={"status":"waiting","info":_info}
         players_info[id]["waiting_time"]=0
@@ -268,7 +265,7 @@ func process_keyframe():
                         if game.chara_hotkey[_team_id][key]["countdown"]<=0 and game.check_chara_build(chara_info["build_cost"],_team_id):
                             game.chara_hotkey[_team_id][key]["countdown"]=chara_info["build_time"]
                             game.spawn_chara(chara_name, game.chara_hotkey[_team_id][key]["lv"]+1, _team_id)
-                            game.change_meat(-chara_info["build_cost"], _team_id)
+                            game.change_coin(-chara_info["build_cost"], _team_id)
                     else:
                         var item_name=game.chara_hotkey[_team_id][key]["name"]
                         game.chara_hotkey[_team_id][key]["num"]=game.chara_hotkey[_team_id][key]["num"]-1
@@ -277,14 +274,6 @@ func process_keyframe():
                             var ui_item=game.item_use_ui.get_child(key-5)
                             ui_item.set_val(game.chara_hotkey[_team_id][key]["num"])
                         game.update_stats_ui()
-        if Global.level_mode:
-            var items_change = game.get_item_used_stats(0)
-            if items_change.empty()==false:
-                notify_item_used(items_change)
-        elif Global.pvp_mode:
-            var items_change = game.get_item_used_stats(game.find_local_team_id())
-            if items_change.empty()==false:
-                notify_item_used(items_change)
         cur_frame=cur_frame+1
         return true
     else:
@@ -324,7 +313,7 @@ func get_recording_data():
     recording_data["reward_discount"]=game.reward_discount
     recording_data["init_meat_num"]=game.init_meat_num
     recording_data["init_diamond_num"]=[game.init_diamond_num[0]-game.diamond_num[0], game.init_diamond_num[1]-game.diamond_num[1]]
-    recording_data["final_meat_num"]=game.meat_num
+    recording_data["final_meat_num"]=game.coin_num
     recording_data["base_hp"]=game.base_hp
     var chara_num_stats=[{},{}]
     for c in game.char_root.get_children():
@@ -340,7 +329,7 @@ func get_recording_data():
 
 func start_replay(replay_data):
     input_queue=replay_data["ops"]
-    game.meat_num=replay_data["init_meat_num"]
+    game.coin_num=replay_data["init_meat_num"]
     game.diamond_num=replay_data["init_diamond_num"]
     game.chara_hotkey=replay_data["hotkeys"]
     game.reward_discount=replay_data["reward_discount"]

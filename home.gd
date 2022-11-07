@@ -83,9 +83,9 @@ func _ready():
 	click_cb = funcref(self, "item_item_click_cb")
 	for c in item_hotkey.get_children():
 		c.set_cb(click_cb)
-	init_tab_dots(len(Global.lv_name_list))
+	init_tab_dots(1)
 	set_tab_dot_sel(0)
-	update_levels_ui(Global.lv_name_list[cur_level_page_ind])
+	update_levels_ui()
 	update_characters_ui()
 	update_items_ui()
 	update_status()
@@ -96,24 +96,21 @@ func on_show_level_info(lv_name):
 #    if not "start_level" in Global.user_data["tips"]:
 #        get_node(tip_start_battle_arrow_path).visible=true
 	Global.sel_level=lv_name
-	var level_info=Global.get_cur_level_info()
+	var level_name=Global.sel_level
 	var str_temp=""
-	str_temp=str_temp+str(Global.level_data["battle_data"]["gold"])+" gold\n"
-	str_temp=str_temp+"Lv: "+str(level_info["chara_lv"])+"\n"
-	str_temp=str_temp+"Difficulty: "+str(level_info["difficulty"])+"\n"
-	var stat_name=str(level_info["chara_lv"])+"_"+str(level_info["difficulty"])
-	if "record" in Global.level_data and stat_name in Global.level_data["record"]:
-		get_node(replay_btn_path).visible=true
-	else:
-		get_node(replay_btn_path).visible=false
-	if "stats" in Global.level_data and stat_name in Global.level_data["stats"]:
-		str_temp=str_temp+"Record: "+Global.level_data["stats"][stat_name]["user"]+" ("+str(Global.level_data["stats"][stat_name]["time"])+" s)\n"
-	if Global.sel_level in Global.user_data["levels"]:
-		str_temp=str_temp+"My Record: "+str(Global.user_data["levels"][Global.sel_level]["time"])+" s\n"
-		str_temp=str_temp+"Count: "+str(Global.user_data["levels"][Global.sel_level]["num"])+"\n"
-	str_temp=str_temp+"\n"
-	for chara_t in Global.level_data["battle_data"]["args"]["hotkey"]:
-		str_temp=str_temp+chara_t+" "
+	str_temp=str_temp+"Name: "+Global.levels_tb[level_name]["name"]+"\n"
+	# if "record" in Global.level_data and stat_name in Global.level_data["record"]:
+	# 	get_node(replay_btn_path).visible=true
+	# else:
+	# 	get_node(replay_btn_path).visible=false
+	if lv_name in Global.level_data:
+		str_temp=str_temp+"Record: "+Global.level_data[lv_name]["stats"]["user"]+" ("+str(Global.level_data[lv_name]["stats"]["cost"])+" gold)\n"
+	# if Global.sel_level in Global.user_data["levels"]:
+	# 	str_temp=str_temp+"My Record: "+str(Global.user_data["levels"][Global.sel_level]["time"])+" s\n"
+	# 	str_temp=str_temp+"Count: "+str(Global.user_data["levels"][Global.sel_level]["num"])+"\n"
+	# str_temp=str_temp+"\n"
+	# for chara_t in Global.level_data["battle_data"]["args"]["hotkey"]:
+	# 	str_temp=str_temp+chara_t+" "
 	get_node(level_info_path).text=str_temp
 
 func chara_item_click_cb(chara_name):
@@ -190,9 +187,6 @@ func set_item_hk_slot(slot_id, item_name):
 	item.set_data(item_name)
 	Global.user_data["equip"]["item"][slot_id]=item_name
 
-func make_lv_name(level_id,chara_lv,hard_id):
-	return str(level_id)+"_"+str(chara_lv)+"_"+str(hard_id)
-
 func add_lv_grid_item(lv_name):
 	var level_item = level_item_res.instance()
 	level_item.container=level_grid
@@ -202,14 +196,24 @@ func add_lv_grid_item(lv_name):
 		level_item.set_lock(true, lv_name)
 	level_grid.add_child(level_item)
 
-func update_levels_ui(level_id):
+func update_levels_ui():
 	Global.delete_children(level_grid)
-	for chara_lv in range(chara_lv_num):
-		for hard_id in range(hardness_num):
-			var lv_name=make_lv_name(level_id,chara_lv,hard_id)
-			add_lv_grid_item(lv_name)
-	if Global.sel_level=="":
-		on_show_level_info(make_lv_name(level_id,0,0))
+	var first_lv=""
+	for lv_key in Global.user_data["levels"]:
+		add_lv_grid_item(lv_key)
+	for lv_key in Global.levels_tb:
+		var pre_level=Global.levels_tb[lv_key]["pre_level"]
+		if pre_level=="":
+			first_lv=lv_key
+			if not lv_key in Global.user_data["levels"]:
+				add_lv_grid_item(lv_key)
+		else:
+			if pre_level in Global.user_data["levels"] and (not lv_key in Global.user_data["levels"]):
+				add_lv_grid_item(lv_key)
+	var default_lv=first_lv
+	if Global.user_data["last_level"]!="":
+		default_lv=Global.user_data["last_level"]
+	on_show_level_info(default_lv)
 
 func update_characters_ui(): 
 	var click_cb = funcref(self, "chara_item_click_cb")
@@ -270,7 +274,7 @@ func update_pvp_ui():
 		var note=""
 		if "setting" in item and "not" in item["setting"]:
 			note=item["setting"]["note"]
-		new_item.set_data(item["nickname"],item["diamond"],item["last_pvp"],note)
+		new_item.set_data(item["nickname"],item["gold"],item["last_pvp"],note)
 		get_node(rank_list_path).add_child(new_item)
 
 func drag_chara_icon_cb(chara_name, pos):
@@ -356,13 +360,6 @@ func hide_all_tabs():
 func update_status():
 	get_node(user_stats_path).setting_node=get_node(user_setting_path)
 	get_node(user_stats_path).set_gold(Global.user_data["gold"])
-	get_node(user_stats_path).set_diamond(Global.user_data["diamond"])
-	if "user" in Global.level_data["total_top"]:
-		var top_info=Global.level_data["total_top"]
-		get_node(user_stats_path).set_total_top(top_info["user"],top_info["num"])
-	if "user" in Global.level_data["level_top"]:
-		var top_info=Global.level_data["level_top"]
-		get_node(user_stats_path).set_level_top(top_info["user"],top_info["num"])
 	get_node(user_stats_path).set_user_name(Global.user_data["nickname"])
 
 func show_tab(name):
@@ -548,17 +545,17 @@ func _on_Left_gui_input(event):
 				return
 			else:
 				cur_level_page_ind=cur_level_page_ind-1
-				update_levels_ui(Global.lv_name_list[cur_level_page_ind])
+				update_levels_ui()
 				set_tab_dot_sel(cur_level_page_ind)
 
 func _on_Right_gui_input(event):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if cur_level_page_ind+1>=len(Global.lv_name_list):
+			if cur_level_page_ind+1>=0:
 				return
 			else:
 				cur_level_page_ind=cur_level_page_ind+1
-				update_levels_ui(Global.lv_name_list[cur_level_page_ind])
+				update_levels_ui()
 				set_tab_dot_sel(cur_level_page_ind)
 
 func _on_GoBtn_gui_input(event:InputEvent):
@@ -572,7 +569,6 @@ func _on_Replay_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			Global.set_game_mode("replay")
-			var lv_info = Global.get_cur_level_info()
-			var recording_name=str(lv_info["chara_lv"])+"_"+str(lv_info["difficulty"])
-			Global.replay_data=JSON.parse(Global.level_data["record"][recording_name]).result
-			get_tree().change_scene(Global.game_scene)
+			# var recording_name=str(lv_info["chara_lv"])+"_"+str(lv_info["difficulty"])
+			# Global.replay_data=JSON.parse(Global.level_data["record"][recording_name]).result
+			# get_tree().change_scene(Global.game_scene)

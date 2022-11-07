@@ -1,108 +1,12 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://objects/character.gd" type="Script" id=1]
 [ext_resource path="res://ui/fct_mgr.gd" type="Script" id=2]
 [ext_resource path="res://ui/fct.tscn" type="PackedScene" id=3]
-[ext_resource path="res://binary/images/ui/barHorizontal_green.png" type="Texture" id=4]
-[ext_resource path="res://binary/images/ui/barHorizontal_yellow.png" type="Texture" id=5]
-[ext_resource path="res://binary/images/ui/barHorizontal_red.png" type="Texture" id=6]
-[ext_resource path="res://binary/images/ui/barHorizontal_frame_narrow.png" type="Texture" id=7]
-[ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=8]
-
-[sub_resource type="Shader" id=1]
-code = "shader_type canvas_item;
-uniform vec4 u_color_key : hint_color;
-
-void fragment() {
-    vec4 col = texture(TEXTURE, UV);
-    if (col.a>0.0 && u_color_key.a>0.0){
-        COLOR = u_color_key*0.6+col*0.4;
-    }else{
-        COLOR=col;
-    }
-}
-"
-
-[sub_resource type="ShaderMaterial" id=5]
-shader = SubResource( 1 )
-shader_param/u_color_key = Color( 1, 0, 0, 0 )
-
-[sub_resource type="Animation" id=4]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/path = NodePath("AnimatedSprite:material:shader_param/u_color_key")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
-"update": 0,
-"values": [ Color( 1, 0, 0, 0 ) ]
-}
-
-[sub_resource type="Animation" id=3]
-resource_name = "red"
-length = 0.1
-tracks/0/type = "value"
-tracks/0/path = NodePath("AnimatedSprite:material:shader_param/u_color_key")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1 ),
-"transitions": PoolRealArray( 1, 1 ),
-"update": 0,
-"values": [ Color( 1, 0, 0, 1 ), Color( 1, 0, 0, 0 ) ]
-}
-
-[sub_resource type="Animation" id=6]
-resource_name = "white"
-length = 0.1
-tracks/0/type = "value"
-tracks/0/path = NodePath("AnimatedSprite:material:shader_param/u_color_key")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1 ),
-"transitions": PoolRealArray( 1, 1 ),
-"update": 0,
-"values": [ Color( 1, 1, 1, 1 ), Color( 1, 0, 0, 0 ) ]
-}
-
-[sub_resource type="DynamicFont" id=7]
-size = 30
-font_data = ExtResource( 8 )
 
 [node name="Chara" type="Node2D"]
 script = ExtResource( 1 )
-sprite_anim_path = NodePath("AnimatedSprite")
-hp_bar_path = NodePath("ProgressBar")
 fct_mgr_path = NodePath("FCTMgr")
-lv_label_path = NodePath("Lv/Label")
-bar_red = ExtResource( 6 )
-bar_green = ExtResource( 4 )
-bar_yellow = ExtResource( 5 )
-
-[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
-material = SubResource( 5 )
-
-[node name="ProgressBar" type="TextureProgress" parent="."]
-visible = false
-margin_left = -30.0
-margin_top = 6.0
-margin_bottom = 14.0
-value = 50.0
-texture_over = ExtResource( 7 )
-texture_progress = ExtResource( 4 )
-nine_patch_stretch = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="FCTMgr" type="Node2D" parent="."]
 position = Vector2( 0, -200 )
@@ -112,42 +16,7 @@ fct_res = ExtResource( 3 )
 [node name="FxPos" type="Node2D" parent="."]
 position = Vector2( 0, -100 )
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-anims/RESET = SubResource( 4 )
-anims/red = SubResource( 3 )
-anims/white = SubResource( 6 )
-
 [node name="ShootTimer" type="Timer" parent="."]
 one_shot = true
 
-[node name="TeleportTimer" type="Timer" parent="."]
-one_shot = true
-
-[node name="Lv" type="TextureRect" parent="."]
-visible = false
-margin_left = -25.0
-margin_top = -220.0
-margin_right = 25.0
-margin_bottom = -170.0
-expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Label" type="Label" parent="Lv"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-custom_colors/font_color_shadow = Color( 0.219608, 0.184314, 0.101961, 1 )
-custom_constants/shadow_offset_x = 2
-custom_constants/shadow_offset_y = 2
-custom_fonts/font = SubResource( 7 )
-text = "20"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_AnimatedSprite_animation_finished"]
 [connection signal="timeout" from="ShootTimer" to="." method="on_shoot_timeout"]
-[connection signal="timeout" from="TeleportTimer" to="." method="on_teleport"]

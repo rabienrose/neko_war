@@ -1,34 +1,6 @@
 {
-    "teleport_long":{
-        "name":"teleport_long",
-        "type":"teleport",
+    "heal":{
         "distance":500,
         "delay":1
-    },
-    "dash_short":{
-        "target_scheme":{
-            "group":["enemy"],
-            "type":["chara"],
-            "sel_type":"min_hp"
-        },
-        "name":"dash_short",
-        "type":"dash",
-        "distance":300
-    },
-    "heal_all":{
-        "target_scheme":{
-            "group":["self"],
-            "type":["chara"],
-            "sel_type":"min_hp"
-        },
-        "name":"heal_all",
-        "type":"instance",
-        "info":{
-            "type":"hp",
-            "data":{
-                "op":"add",
-                "val":100
-            }
-        }
     }
 }

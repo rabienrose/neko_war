@@ -17,9 +17,7 @@ func set_lock(b_lock, _lv_name):
 	else:
 		get_node(lock_path).visible=false
 		get_node(unlock_path).visible=true
-		var v_s = lv_name.split("_")
-		get_node(lv_label_path).text=v_s[1]
-		get_node(delay_label_path).text=v_s[2]
+		get_node(lv_label_path).text=lv_name
 
 func _ready():
 	get_node(unlock_path).material=get_node(unlock_path).material.duplicate()

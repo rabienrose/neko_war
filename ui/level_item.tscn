@@ -1,8 +1,7 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/texture/level_unlock_bg.tres" type="Texture" id=1]
 [ext_resource path="res://ui/texture/level_lock_bg.tres" type="Texture" id=2]
-[ext_resource path="res://ui/texture/label_bg.tres" type="Texture" id=3]
 [ext_resource path="res://ui/level_item.gd" type="Script" id=4]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=5]
 [ext_resource path="res://ui/shader/level_item.tres" type="Material" id=6]
@@ -22,7 +21,6 @@ script = ExtResource( 4 )
 lock_path = NodePath("CenterContainer/Lock")
 unlock_path = NodePath("CenterContainer/UnLock")
 lv_label_path = NodePath("CenterContainer/UnLock/Lv")
-delay_label_path = NodePath("CenterContainer/UnLock/Delay")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchor_right = 1.0
@@ -46,43 +44,13 @@ __meta__ = {
 [node name="Lv" type="Label" parent="CenterContainer/UnLock"]
 margin_left = 16.0
 margin_top = 18.0
-margin_right = 86.0
-margin_bottom = 82.0
+margin_right = 135.0
+margin_bottom = 132.0
 custom_colors/font_color = Color( 0, 0, 0, 1 )
 custom_fonts/font = SubResource( 1 )
 text = "1"
 align = 1
 valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Delay" type="Label" parent="CenterContainer/UnLock"]
-margin_left = 63.0
-margin_top = 71.0
-margin_right = 133.0
-margin_bottom = 135.0
-custom_colors/font_color = Color( 0, 0, 0, 1 )
-custom_fonts/font = SubResource( 1 )
-text = "1"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="TextureRect" type="TextureRect" parent="CenterContainer/UnLock"]
-margin_left = 29.0
-margin_top = 119.0
-margin_right = 159.0
-margin_bottom = 124.0
-rect_rotation = -45.0
-mouse_filter = 2
-texture = ExtResource( 3 )
-expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Lock" type="TextureRect" parent="CenterContainer"]
 visible = false

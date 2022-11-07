@@ -20,7 +20,7 @@ class Rank:
         return ret
 
     def get_ranks(self):
-        query_re = config.user_table.find({"last_pvp":{"$exists":True}},{"_id":0,"diamond":1,"last_pvp":1,"nickname":1,"setting.note":1}).sort([("diamond",-1)]).limit(10)
+        query_re = config.user_table.find({"last_pvp":{"$exists":True}},{"_id":0,"gold":1,"last_pvp":1,"nickname":1,"setting.note":1}).sort([("diamond",-1)]).limit(10)
         rank_list=[]
         for x in query_re:
             rank_list.append(x)

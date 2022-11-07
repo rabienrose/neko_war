@@ -93,7 +93,8 @@ def update_level_stats():
 def request_levels_info():
     ret={"op":"request_levels_info"}
     lv_mgr = LevelMgr()
-    ret["data"]=lv_mgr.get_daliy_level()
+    ret["data"]=lv_mgr.get_level_stats()
+    print(ret["data"])
     return json.dumps(ret)
 
 @app.route('/update_equip_info',methods=['POST'])

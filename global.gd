@@ -25,6 +25,7 @@ var rank_data=[]
 var level_data={}
 var user_data={}
 var chara_tb={}
+var levels_tb={}
 var items_tb={}
 var skills_tb={}
 var atk_buf_tb={}
@@ -96,6 +97,10 @@ func _ready():
 	content = f.get_as_text()
 	global_data = JSON.parse(content).result
 	f.close()
+	f = File.new()
+	f.open(levels_info_path, File.READ)
+	content = f.get_as_text()
+	levels_tb = JSON.parse(content).result
 	if global_data["b_local_server"]==1:
 		server_url="http://127.0.0.1:9100"
 	else:
@@ -166,8 +171,10 @@ func on_get_levels(result, response_code, headers, body):
 	http.queue_free()
 	http=null
 	var re_json = JSON.parse(body.get_string_from_utf8()).result
-	lv_name_list.append(re_json["data"]["level_id"])
-	level_data=re_json["data"]
+	var level_data_list=re_json["data"]
+	level_data={}
+	for i in range(len(level_data_list)):
+		level_data[level_data_list[i]["name"]]=level_data_list[i]
 	fetch_rank_remote()
 
 func on_get_rank(result, response_code, headers, body):

@@ -1,103 +1,26 @@
 {
-    "hp_recover":{
-        "name":"hp_recover",
-        "price":10,
-        "chance":0.9,
+    "cd_zero":{
+        "name":"疯狂制造",
+        "desc":"己方建造时间变为0",
+        "chance":0.001,
         "delay":1,
-        "target_scheme":{
-            "group":["self"],
-            "type":["chara"],
-            "amount":-1
-        },
-        "type":"instance",
-        "info":{
-            "type":"hp",
-            "data":{
-                "op":"add",
-                "val":100
-            }
-        },
-        "desc":"Recover all characters 100 hp."
+        "val":0,
+        "type":"player"
     },
-    "add_atk":{
-        "name":"add_atk",
-        "price":10,
-        "chance":0.1,
-        "delay":0.2,
-        "target_scheme":{
-            "group":["self"],
-            "type":["chara"],
-            "amount":-1
-        },
-        "type":"buf",
-        "info":{
-            "buf_name":"add_atk",
-            "max_layer":10,
-            "duration":2,
-            "type":"attr",
-            "data":{
-                "attr":"atk",
-                "op":"add",
-                "val":10
-            }
-        },
-        "desc":"Increase atk 10 points for all characters."
+    "cost_zero":{
+        "name":"无限制造",
+        "desc":"己方建造成本变为0",
+        "chance":0.001,
+        "delay":1,
+        "val":0,
+        "type":"player"
     },
-    "add_atk_spd":{
-        "name":"add_atk_spd",
-        "price":10,
-        "chance":0.1,
-        "delay":0.2,
-        "target_scheme":{
-            "group":["self"],
-            "type":["chara"],
-            "amount":-1,
-            "sel_type":"rand"
-        },
-        "type":"buf",
-        "info":{
-            "buf_name":"add_atk_spd",
-            "max_layer":10,
-            "duration":5,
-            "is_time_limit":true,
-            "type":"attr",            
-            "data":{
-                "attr":"atk_spd",
-                "op":"mul",
-                "val":2
-            }
-        },
-        "desc":"Increase attack speed for all characters."
-    },
-    "add_atk_num":{
-        "name":"add_atk_num",
-        "price":10,
-        "chance":0.1,
-        "delay":0.2,
-        "target_scheme":{
-            "group":["self"],
-            "type":["chara"],
-            "amount":-1,
-            "sel_type":"rand"
-        },
-        "type":"buf",
-        "info":{
-            "buf_name":"add_atk_num",
-            "max_layer":10,
-            "duration":5,
-            "type":"atk_num",
-            "data":{
-                "val":1,
-                "op":"add"
-            }
-        },
-        "desc":"Increase attack speed for all characters."
-    },
-    "done_at_once":{
-        "name":"done_at_once",
-        "price":10,
-        "chance":0.01,
-        "delay":5,
-        "desc":"Finish all ongoing task."
+    "range_char_slow":{
+        "name":"远程靠后",
+        "desc":"己方所有远程角色移动速度减少一半",
+        "chance":0.001,
+        "delay":1,
+        "val":0,
+        "type":"player"
     }
 }

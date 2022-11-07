@@ -24,20 +24,10 @@ class LevelMgr:
             game=Game()
             game.set_cul_level(str(level_ids[level_ind]))
 
-    def get_daliy_level(self):
-        game=Game()
-        level_id = game.get_cul_level()
-        query_ret=config.level_table.find_one({"_id":ObjectId(level_id)},{"_id":0,"battle_data":1,"stats":1,"record":1,"level_top":1})
-        query_ret["level_id"]=level_id
-        game=Game()
-        query_ret["total_top"]=game.get_level_top()
-        top_info={}
-        if "level_top" in query_ret:
-            user = UserInfo(query_ret["level_top"]["user"])
-            nickname=user.get_nickname()
-            top_info["num"]=query_ret["level_top"]["num"]
-            top_info["user"]=nickname
-        query_ret["level_top"]=top_info
+    def get_level_stats(self):
+        query_ret=[]
+        for x in config.level_table.find({},{"_id":0,"stats":1,"record":1,"name":1}):
+            query_ret.append(x)
         return query_ret
 
     def update_recording(self, level_id, stat_name, data):

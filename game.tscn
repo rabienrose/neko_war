@@ -1,21 +1,8 @@
-[gd_scene load_steps=34 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
-[ext_resource path="res://binary/images/bg/tree/bg_forest_1.png" type="Texture" id=2]
-[ext_resource path="res://sys/hori_cam.tscn" type="PackedScene" id=3]
-[ext_resource path="res://binary/images/bg/tree/bg_forest_2.png" type="Texture" id=4]
-[ext_resource path="res://binary/images/bg/tree/bg_forest_4.png" type="Texture" id=5]
-[ext_resource path="res://binary/images/bg/tree/bg_forest_3.png" type="Texture" id=6]
-[ext_resource path="res://binary/images/bg/tree/bg_forest_5.png" type="Texture" id=7]
-[ext_resource path="res://tileset/outside.tres" type="TileSet" id=8]
+[ext_resource path="res://binary/images/bg/bg.jpg" type="Texture" id=2]
 [ext_resource path="res://objects/building.tscn" type="PackedScene" id=9]
-[ext_resource path="res://binary/images/objects/building/crystal_2.png" type="Texture" id=10]
-[ext_resource path="res://binary/images/objects/vegetable/tree_3.png" type="Texture" id=11]
-[ext_resource path="res://binary/images/objects/vegetable/tree_1.png" type="Texture" id=12]
-[ext_resource path="res://binary/images/objects/vegetable/tree_2.png" type="Texture" id=13]
-[ext_resource path="res://binary/images/objects/vegetable/stone_2.png" type="Texture" id=14]
-[ext_resource path="res://binary/images/objects/vegetable/grass_5.png" type="Texture" id=15]
-[ext_resource path="res://objects/character.tscn" type="PackedScene" id=16]
 [ext_resource path="res://ui/summary.tscn" type="PackedScene" id=17]
 [ext_resource path="res://ui/battle_hotkeys.tscn" type="PackedScene" id=18]
 [ext_resource path="res://ui/realtime_chara_list_ui.tscn" type="PackedScene" id=19]
@@ -27,18 +14,11 @@
 [ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=25]
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=26]
 [ext_resource path="res://ui/texture/rect_empty.tres" type="Texture" id=27]
-[ext_resource path="res://ui/texture/diamond.tres" type="Texture" id=28]
-[ext_resource path="res://ui/texture/label_bg.tres" type="Texture" id=29]
 
 [sub_resource type="DynamicFont" id=1]
 size = 50
 outline_size = 5
 outline_color = Color( 0, 0, 0, 0.364706 )
-font_data = ExtResource( 26 )
-
-[sub_resource type="DynamicFont" id=4]
-size = 40
-extra_spacing_char = 2
 font_data = ExtResource( 26 )
 
 [sub_resource type="DynamicFont" id=2]
@@ -51,130 +31,38 @@ font_data = ExtResource( 26 )
 
 [node name="Game" type="Node2D"]
 script = ExtResource( 1 )
-char_res = ExtResource( 16 )
 build_res = ExtResource( 9 )
 char_root_path = NodePath("Charas")
 spawn1_path = NodePath("Team1Spawn")
 spawn2_path = NodePath("Team2Spawn")
 chara_gen_ui_path = NodePath("CanvasLayer/CharaGen")
 item_use_ui_path = NodePath("CanvasLayer/Items")
-base1_path = NodePath("Foreground/Base1Pos")
-base2_path = NodePath("Foreground/Base2Pos")
-foreground_path = NodePath("Foreground")
 summary_path = NodePath("CanvasLayer/CenterContainer/Summary")
 comfirm_path = NodePath("CanvasLayer/CenterContainer/Comfirm")
-timer_label_path = NodePath("CanvasLayer/Timer/Label")
 lobby_path = NodePath("CanvasLayer/Lobby")
 lobby_msg_path = NodePath("CanvasLayer/Lobby/Msg")
 chara1_list_path = NodePath("CanvasLayer/CharaList1")
 chara2_list_path = NodePath("CanvasLayer/CharaList2")
-meat1_label_path = NodePath("CanvasLayer/SelfMeat/SelfMeatLabel")
-meat2_label_path = NodePath("CanvasLayer/OtherMeat/AiMeatLabel")
-diamond1_label_path = NodePath("CanvasLayer/Diamond/DiamondLabel")
-diamond2_label_path = NodePath("CanvasLayer/Diamond2/DiamondLabel")
-diamond_pool_label_path = NodePath("CanvasLayer/Diamond3/LabelBG/Label")
-diamond_pool_path = NodePath("CanvasLayer/Diamond3")
+coin1_label_path = NodePath("CanvasLayer/SelfCoin/SelfCoinLabel")
+coin2_label_path = NodePath("CanvasLayer/OtherCoin/AiCoinLabel")
 server_path = NodePath("Server")
-cam_path = NodePath("Camera2D")
-
-[node name="Camera2D" parent="." instance=ExtResource( 3 )]
-position = Vector2( 950, 0 )
-anchor_mode = 0
-current = true
-
-[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
-
-[node name="tree5" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.1, 1 )
-motion_mirroring = Vector2( 3575, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/tree5"]
-texture = ExtResource( 7 )
-centered = false
-
-[node name="tree4" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.2, 1 )
-motion_mirroring = Vector2( 3575, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/tree4"]
-texture = ExtResource( 5 )
-centered = false
-
-[node name="tree3" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.4, 1 )
-motion_mirroring = Vector2( 3575, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/tree3"]
-texture = ExtResource( 6 )
-centered = false
-
-[node name="tree2" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.6, 1 )
-motion_mirroring = Vector2( 3575, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/tree2"]
-texture = ExtResource( 4 )
-centered = false
-
-[node name="tree1" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.8, 1 )
-motion_mirroring = Vector2( 3575, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/tree1"]
-texture = ExtResource( 2 )
-centered = false
-
-[node name="Foreground" type="Node2D" parent="."]
-
-[node name="Tree" type="Sprite" parent="Foreground"]
-position = Vector2( 1516, 358 )
-texture = ExtResource( 11 )
-
-[node name="Tree2" type="Sprite" parent="Foreground"]
-position = Vector2( 5945, 400 )
-scale = Vector2( -1, 1 )
-texture = ExtResource( 13 )
-
-[node name="Tree3" type="Sprite" parent="Foreground"]
-position = Vector2( 4189, 386 )
-scale = Vector2( -1, 1 )
-texture = ExtResource( 12 )
-
-[node name="Grass" type="Sprite" parent="Foreground"]
-position = Vector2( 802, 749 )
-texture = ExtResource( 15 )
-
-[node name="Stone" type="Sprite" parent="Foreground"]
-position = Vector2( 2513, 748 )
-texture = ExtResource( 14 )
-
-[node name="Base1Pos" type="Node2D" parent="Foreground"]
-position = Vector2( 427, 690 )
-
-[node name="Base2Pos" type="Node2D" parent="Foreground"]
-position = Vector2( 3497, 696 )
-
-[node name="Cristal" type="Sprite" parent="Foreground"]
-position = Vector2( 1848, 678 )
-texture = ExtResource( 10 )
-
-[node name="TileMap" type="TileMap" parent="."]
-tile_set = ExtResource( 8 )
-cell_size = Vector2( 256, 256 )
-format = 1
-tile_data = PoolIntArray( 196608, 1, 0, 196609, 1, 0, 196610, 3, 0, 196611, 1, 0, 196612, 0, 0, 196613, 1, 0, 196614, 3, 0, 196615, 0, 0, 196616, 1, 0, 196617, 3, 0, 196618, 0, 0, 196619, 3, 0, 196620, 3, 0, 196621, 3, 0, 196622, 0, 0, 196623, 1, 0, 196624, 0, 0, 196625, 1, 0, 196626, 3, 0, 196627, 0, 0, 196628, 3, 0, 196629, 3, 0, 196630, 3, 0, 196631, 1, 0, 196632, 0, 0, 196633, 3, 0, 196634, 3, 0, 196635, 1, 0, 262144, 2, 0, 262145, 2, 0, 262146, 2, 0, 262147, 2, 0, 262148, 2, 0, 262149, 2, 0, 262150, 2, 0, 262151, 2, 0, 262152, 2, 0, 262153, 2, 0, 262154, 2, 0, 262155, 2, 0, 262156, 2, 0, 262157, 2, 0, 262158, 2, 0, 262159, 2, 0, 262160, 2, 0, 262161, 2, 0, 262162, 2, 0, 262163, 2, 0, 262164, 2, 0, 262165, 2, 0, 262166, 2, 0, 262167, 2, 0, 262168, 2, 0, 262169, 2, 0, 262170, 2, 0, 262171, 2, 0 )
 
 [node name="Charas" type="Node2D" parent="."]
 
 [node name="FxMgr" parent="." instance=ExtResource( 20 )]
 
 [node name="Team1Spawn" type="Node2D" parent="."]
-position = Vector2( 219, 695 )
+position = Vector2( 88, 695 )
 
 [node name="Team2Spawn" type="Node2D" parent="."]
-position = Vector2( 3662, 700 )
+position = Vector2( 2285, 704 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 2 )
 
 [node name="CharaGen" parent="CanvasLayer" instance=ExtResource( 18 )]
 margin_left = -1040.0
@@ -212,109 +100,52 @@ margin_top = 303.0
 margin_right = 1476.0
 margin_bottom = 637.0
 
-[node name="Timer" type="TextureRect" parent="CanvasLayer"]
-margin_left = 1013.0
-margin_top = 38.0
-margin_right = 1268.0
-margin_bottom = 115.0
-texture = ExtResource( 27 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Label" type="Label" parent="CanvasLayer/Timer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-custom_fonts/font = SubResource( 1 )
-text = "0:0"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="SelfMeat" type="TextureRect" parent="CanvasLayer"]
+[node name="SelfCoin" type="TextureRect" parent="CanvasLayer"]
 margin_left = 422.0
 margin_top = 32.0
 margin_right = 722.0
 margin_bottom = 109.0
 texture = ExtResource( 27 )
 expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="SelfMeatLabel" type="Label" parent="CanvasLayer/SelfMeat"]
+[node name="SelfCoinLabel" type="Label" parent="CanvasLayer/SelfCoin"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_fonts/font = SubResource( 1 )
-text = "Meat: 30"
+text = "Coin: 30"
 align = 1
 valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="OtherMeat" type="TextureRect" parent="CanvasLayer"]
+[node name="ExpCoin" type="TextureRect" parent="CanvasLayer"]
+margin_left = 929.0
+margin_top = 39.0
+margin_right = 1229.0
+margin_bottom = 116.0
+texture = ExtResource( 27 )
+expand = true
+
+[node name="ExpCoinLabel" type="Label" parent="CanvasLayer/ExpCoin"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "Exp: 0"
+align = 1
+valign = 1
+
+[node name="OtherCoin" type="TextureRect" parent="CanvasLayer"]
+visible = false
 margin_left = 1636.0
 margin_top = 37.0
 margin_right = 1936.0
 margin_bottom = 114.0
 texture = ExtResource( 27 )
 expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="AiMeatLabel" type="Label" parent="CanvasLayer/OtherMeat"]
+[node name="AiCoinLabel" type="Label" parent="CanvasLayer/OtherCoin"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_fonts/font = SubResource( 1 )
 text = "Meat: 100"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Diamond" type="TextureRect" parent="CanvasLayer"]
-margin_left = 722.0
-margin_top = 36.0
-margin_right = 977.0
-margin_bottom = 113.0
-rect_pivot_offset = Vector2( -217, 120 )
-texture = ExtResource( 27 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="DiamondLabel" type="Label" parent="CanvasLayer/Diamond"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-custom_fonts/font = SubResource( 1 )
-text = "D: 10"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Diamond2" type="TextureRect" parent="CanvasLayer"]
-margin_left = 1392.0
-margin_top = 33.0
-margin_right = 1647.0
-margin_bottom = 110.0
-rect_pivot_offset = Vector2( -217, 120 )
-texture = ExtResource( 27 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="DiamondLabel" type="Label" parent="CanvasLayer/Diamond2"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-custom_fonts/font = SubResource( 1 )
-text = "D: 10"
 align = 1
 valign = 1
 __meta__ = {
@@ -345,47 +176,6 @@ margin_top = 41.0
 margin_right = 2347.0
 margin_bottom = 149.0
 b_right = true
-
-[node name="Diamond3" type="Control" parent="CanvasLayer"]
-visible = false
-margin_left = 1085.0
-margin_top = 123.0
-margin_right = 1385.0
-margin_bottom = 223.0
-rect_min_size = Vector2( 300, 0 )
-size_flags_horizontal = 6
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="LabelBG" type="TextureRect" parent="CanvasLayer/Diamond3"]
-margin_left = 50.0
-margin_top = 15.0
-margin_right = 252.0
-margin_bottom = 86.0
-texture = ExtResource( 29 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Label" type="Label" parent="CanvasLayer/Diamond3/LabelBG"]
-anchor_left = 0.3
-anchor_right = 1.0
-anchor_bottom = 1.0
-custom_fonts/font = SubResource( 4 )
-text = "321"
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="DIcon" type="TextureRect" parent="CanvasLayer/Diamond3"]
-margin_right = 40.0
-margin_bottom = 40.0
-texture = ExtResource( 28 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Lobby" type="NinePatchRect" parent="CanvasLayer"]
 visible = false

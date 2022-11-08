@@ -62,6 +62,7 @@ func play_frame_fx(res_info, posi):
         fx.animation=anim_name
         add_child(fx)
         fx.play()
+        fx.z_index=2000
     elif res_type=="prefab":
         var fx_file=prefab_root+res_name+".tscn"
         var fx_prefab = load(fx_file).instance()

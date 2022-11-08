@@ -14,8 +14,9 @@ var levels_info_path="res://configs/levels.json"
 var items_info_path="res://configs/items.json"
 var skills_info_path="res://configs/skills.json"
 var atk_bufs_info_path="res://configs/atk_buf.json"
-var char_img_file_path="res://binary/images/charas/"
+var char_img_file_path="res://binary/images/icons/"
 var item_img_file_path="res://binary/images/items/"
+var chara_file_path="res://objects/"
 
 var game_scene="res://game.tscn"
 var home_scene="res://home.tscn"
@@ -215,6 +216,12 @@ func save_user_data():
 func default_http_cb(result, response_code, headers, body):
 	http.queue_free()
 	http=null
+
+func get_enmey_team_id(team_id):
+	var ret=[0,1]
+	if team_id==1:
+		ret=[1,0]
+	return ret
 
 func upload_pvp_summery(recording,token1,token2,diamond1,diamond2):
 	if http!=null:

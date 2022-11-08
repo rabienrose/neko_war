@@ -44,25 +44,16 @@
         "name": "sword",
         "type": "chara",
         "desc": "La la la la la.",
-        "max_lv": 10,
+        "max_lv": 2,
         "build_cost": 20,
-        "build_time": 2.0,
-        "skills": [],
-        "target_scheme": {
-            "group": [
-                "enemy"
-            ],
-            "type": [
-                "chara",
-                "building"
-            ],
-            "sel_type": "min_hp"
-        },
+        "build_time": 0.5,
+        "tar_chara":true,
+        "tar_building":true,
         "attrs": {
             "1": {
                 "hp": 30,
                 "atk": 5,
-                "mov_spd": 200,
+                "mov_spd": 300,
                 "atk_spd": 0.5,
                 "range": 200,
                 "upgrade_cost": 100
@@ -70,7 +61,7 @@
             "2": {
                 "hp": 40,
                 "atk": 6,
-                "mov_spd": 200,
+                "mov_spd": 50,
                 "atk_spd": 0.5,
                 "range": 200,
                 "upgrade_cost": 300

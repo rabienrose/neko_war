@@ -62,7 +62,6 @@ var team_id_2_net_id=[]
 var game_start=false
 
 var frame_id=-1
-var other_frame_id=-1
 
 var wait_4_ack=false
 
@@ -79,7 +78,7 @@ func _ready():
 		server.start_server()
 	else:
 		if Global.level_mode:
-			level_data=Global.level_data[Global.sel_level]
+			level_data=Global.levels_tb[Global.sel_level]
 			get_node(coin1_label_path).get_parent().visible=true
 			get_node(coin2_label_path).get_parent().visible=false
 			init_coin_num[0]=Global.user_data["gold"]
@@ -118,6 +117,7 @@ func start_battle():
 	get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
 	get_node(comfirm_path).set_btn2("Ok", go_home_cb)     
 	game_start=true
+	update_stats_ui()
 
 func cancel_cb():
 	if Global.level_mode:
@@ -141,21 +141,22 @@ func spawn_building(build_name, team_id):
 	var new_char = build_res.instance()
 	char_root.add_child(new_char)
 	var spawn_pos = spawn_nodes[team_id]
-	init_object(new_char, spawn_pos.position.x, build_name, "1", team_id)
+	init_object(new_char, spawn_pos.position, build_name, "1", team_id, false)
 
 func spawn_chara(chara_name, lv, team_id):
-	pass
-	# var new_char = char_res.instance()
-	# char_root.add_child(new_char)
-	# var spawn_pos = spawn_nodes[team_id]
-	# init_object(new_char, spawn_pos.position.x+Global.rng.randf_range(-50,50), chara_name, lv, team_id)
+	var char_res=load(Global.chara_file_path+chara_name+".tscn")
+	var new_char = char_res.instance()
+	char_root.add_child(new_char)
+	var spawn_pos = spawn_nodes[team_id]
+	init_object(new_char, spawn_pos.position, chara_name, str(lv), team_id, true)
 
-func init_object(res, spawn_pos, chara_name, lv, team_id):
+func init_object(res, spawn_pos, chara_name, lv, team_id, b_rand_y):
 	res.on_create(self)
 	team_charas[team_id].append(res)
-	res.set_attr_data(Global.chara_tb[chara_name], lv)
+	chara_count[team_id]=chara_count[team_id]+1
+	res.set_attr_data(Global.chara_tb[chara_name], lv, chara_count[team_id])
 	res.set_team(team_id, find_local_team_id()==team_id)
-	res.set_x_pos(spawn_pos)
+	res.set_x_pos(spawn_pos,b_rand_y)
 	update_chara_list_ui()
 
 func request_use_item(item_name, team_id):
@@ -166,26 +167,16 @@ func remove_chara(chara):
 	chara.queue_free()    
 	
 func change_coin(change_val, team_id):
-	# if change_val>0:
-	# 	coin_num[team_id]=coin_num[team_id]+change_val
-	# else:
-	# 	if -change_val<=coin_num[team_id]:
-	# 		coin_num[team_id]=coin_num[team_id]+change_val
-	# 	else:
-	# 		var remain_cost=-change_val-coin_num[team_id]
-	# 		if remain_cost<=diamond_num[team_id]:
-	# 			coin_num[team_id]=0
-	# 			diamond_num[team_id]=diamond_num[team_id]-remain_cost
-	# 		else:
-	# 			print("expend meat error!!")
+	if change_val>0:
+		coin_num[team_id]=coin_num[team_id]+change_val
+	else:
+		if -change_val<=coin_num[team_id]:
+			coin_num[team_id]=coin_num[team_id]+change_val
 	update_stats_ui()
 
 func check_chara_build(chara_cost, team_id):
-	# if chara_cost<=coin_num[team_id]:
-	# 	return true
-	# else:
-	# 	if chara_cost<=diamond_num[team_id]+coin_num[team_id]:
-	# 		return true
+	if chara_cost<=coin_num[team_id]:
+		return true
 	return false
 
 func update_chara_list_ui():
@@ -205,6 +196,8 @@ func update_chara_list_ui():
 		for chara_name in chara_num_stats[i]:
 			var lv=0
 			for j in range(0,5):
+				if chara_hotkey[i][j]==null:
+					continue
 				if chara_name==chara_hotkey[i][j]["name"]:
 					lv=chara_hotkey[i][j]["lv"]
 					break
@@ -276,7 +269,7 @@ func update_hotkey_ui(_local_team_id):
 		var lv=my_chara_info["lv"]
 		var build_cost=Global.chara_tb[chara_name]["build_cost"]
 		var build_time=Global.chara_tb[chara_name]["build_time"]
-		var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
+		var icon_file_path=Global.char_img_file_path+chara_name+".png"
 		var icon_texture=load(icon_file_path)
 		var click_cb = funcref(self, "start_chara_cb")
 		chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i)
@@ -292,7 +285,7 @@ func update_hotkey_ui(_local_team_id):
 		var my_item_info = Global.get_my_item_info(item_name)
 		var item_db=Global.items_tb[item_name]
 		var num=my_item_info["num"]
-		var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
+		var icon_file_path=Global.item_img_file_path+item_name+".png"
 		var icon_texture=load(icon_file_path)
 		var click_cb = funcref(self, "use_item_cb")
 		item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)

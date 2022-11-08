@@ -47,22 +47,24 @@ coin1_label_path = NodePath("CanvasLayer/SelfCoin/SelfCoinLabel")
 coin2_label_path = NodePath("CanvasLayer/OtherCoin/AiCoinLabel")
 server_path = NodePath("Server")
 
+[node name="TextureRect" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = 2364.0
+margin_bottom = 1182.0
+texture = ExtResource( 2 )
+
 [node name="Charas" type="Node2D" parent="."]
 
 [node name="FxMgr" parent="." instance=ExtResource( 20 )]
 
 [node name="Team1Spawn" type="Node2D" parent="."]
-position = Vector2( 88, 695 )
+position = Vector2( 35, 725 )
 
 [node name="Team2Spawn" type="Node2D" parent="."]
-position = Vector2( 2285, 704 )
+position = Vector2( 2329, 707 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = ExtResource( 2 )
 
 [node name="CharaGen" parent="CanvasLayer" instance=ExtResource( 18 )]
 margin_left = -1040.0
@@ -81,9 +83,6 @@ anchor_right = 1.0
 anchor_bottom = 0.9
 margin_top = 35.0
 margin_bottom = -87.7999
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Summary" parent="CanvasLayer/CenterContainer" instance=ExtResource( 17 )]
 pause_mode = 2

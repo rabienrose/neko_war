@@ -133,22 +133,19 @@ remote func start_battle_net(player_info):
 		game.update_stats_ui()
 		game.init_diamond_num=game.diamond_num.duplicate()
 
-func default_http_cb(result, response_code, headers, body):
-	http.queue_free()
-	http=null
-
 func notify_start_pvp(token):
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "default_http_cb")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=token
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/notify_start_pvp", headers, false, HTTPClient.METHOD_POST, query)
+	pass
+	# if http!=null:
+	# 	return
+	# http=HTTPRequest.new()
+	# http.pause_mode=Node.PAUSE_MODE_PROCESS
+	# http.connect("request_completed", self, "default_http_cb")
+	# add_child(http)
+	# var query_info={}
+	# query_info["token"]=token
+	# var query = JSON.print(query_info)
+	# var headers = ["Content-Type: application/json"]
+	# http.request(Global.server_url+"/notify_start_pvp", headers, false, HTTPClient.METHOD_POST, query)
 
 remote func process_join(_info):
 	var id = get_tree().get_rpc_sender_id()
@@ -280,18 +277,19 @@ func process_keyframe():
 		return false
 
 func notify_item_used(items_change):
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "default_http_cb")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=Global.token
-	query_info["items"]=items_change
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/notify_use_items", headers, false, HTTPClient.METHOD_POST, query)
+	pass
+	# if http!=null:
+	# 	return
+	# http=HTTPRequest.new()
+	# http.pause_mode=Node.PAUSE_MODE_PROCESS
+	# http.connect("request_completed", self, "default_http_cb")
+	# add_child(http)
+	# var query_info={}
+	# query_info["token"]=Global.token
+	# query_info["items"]=items_change
+	# var query = JSON.print(query_info)
+	# var headers = ["Content-Type: application/json"]
+	# http.request(Global.server_url+"/notify_use_items", headers, false, HTTPClient.METHOD_POST, query)
 
 func process_pvp_ai():
 	if pvp_ai_node!=null:
@@ -345,30 +343,30 @@ func exit_battle():
 	get_tree().network_peer = null
 
 func request_join():
-	var join_info={}
-	join_info["equip"]=[]
-	for i in range(len(Global.user_data["equip"]["chara"])):
-		var chara_name=Global.user_data["equip"]["chara"][i]
-		if chara_name=="":
-			join_info["equip"].append(null)
-		else:
-			var my_chara_info = Global.get_my_chara_info(chara_name)
-			var lv=my_chara_info["lv"]
-			var hk_info={}
-			hk_info["lv"]=lv
-			hk_info["name"]=chara_name
-			join_info["equip"].append(hk_info)
-	for i in range(len(Global.user_data["equip"]["item"])):
-		var item_name=Global.user_data["equip"]["item"][i]
-		if item_name=="":
-			join_info["equip"].append(null)
-		else:
-			var my_item_info = Global.get_my_item_info(item_name)
-			var num=my_item_info["num"]
-			var hk_info={}
-			hk_info["num"]=num
-			hk_info["name"]=item_name
-			join_info["equip"].append(hk_info)
-	join_info["diamond"]=Global.user_data["diamond"]
-	join_info["token"]=Global.token
-	rpc_id(1,"process_join",join_info)
+	pass
+	# var join_info={}
+	# join_info["equip"]=[]
+	# for i in range(len(Global.user_data["equip"][0])):
+	# 	var chara_name=Global.user_data["equip"][0][i]
+	# 	if chara_name=="":
+	# 		join_info["equip"].append(null)
+	# 	else:
+	# 		var lv = Global.get_my_chara_info(chara_name)
+	# 		var hk_info={}
+	# 		hk_info["lv"]=lv
+	# 		hk_info["name"]=chara_name
+	# 		join_info["equip"].append(hk_info)
+	# for i in range(len(Global.user_data["equip"][1])):
+	# 	var item_name=Global.user_data["equip"][1][i]
+	# 	if item_name=="":
+	# 		join_info["equip"].append(null)
+	# 	else:
+	# 		var my_item_info = Global.get_my_item_info(item_name)
+	# 		var num=my_item_info["num"]
+	# 		var hk_info={}
+	# 		hk_info["num"]=num
+	# 		hk_info["name"]=item_name
+	# 		join_info["equip"].append(hk_info)
+	# join_info["diamond"]=Global.user_data["diamond"]
+	# join_info["token"]=Global.token
+	# rpc_id(1,"process_join",join_info)

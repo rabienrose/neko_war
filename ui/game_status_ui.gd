@@ -29,22 +29,19 @@ func set_gold(val):
 	get_node(gold_label_path).text=str(val)
 
 func on_setting_submit(setting_data):
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "default_http_cb")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=Global.token
-	query_info["note"]=setting_data["note"]
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/modify_user_setting", headers, false, HTTPClient.METHOD_POST, query)
-
-func default_http_cb(result, response_code, headers, body):
-	http.queue_free()
-	http=null
+	pass
+	# if http!=null:
+	# 	return
+	# http=HTTPRequest.new()
+	# http.pause_mode=Node.PAUSE_MODE_PROCESS
+	# http.connect("request_completed", self, "default_http_cb")
+	# add_child(http)
+	# var query_info={}
+	# query_info["token"]=Global.token
+	# query_info["note"]=setting_data["note"]
+	# var query = JSON.print(query_info)
+	# var headers = ["Content-Type: application/json"]
+	# http.request(Global.server_url+"/modify_user_setting", headers, false, HTTPClient.METHOD_POST, query)
 
 func on_get_user_setting(result, response_code, headers, body):
 	http.queue_free()

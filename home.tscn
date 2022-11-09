@@ -937,6 +937,7 @@ visible = false
 position = Vector2( 1964, 699 )
 rotation = 1.5708
 scale = Vector2( 0.5, 1 )
+frame = 2
 
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Left" to="." method="_on_Left_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Right" to="." method="_on_Right_gui_input"]

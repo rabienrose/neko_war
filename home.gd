@@ -116,9 +116,8 @@ func on_show_level_info(lv_name):
 func chara_item_click_cb(chara_name):
 	var chara_db = Global.chara_tb[chara_name]
 	var str_temp=""
-	var my_chara_info = Global.get_my_chara_info(chara_name)
+	var lv = Global.get_my_chara_info(chara_name)
 	cur_sel_chara=chara_name
-	var lv=my_chara_info["lv"]
 	var t_attr_info=chara_db["attrs"][str(lv+1)]
 	var t_attr_info_next=null
 	if lv<chara_db["max_lv"]:
@@ -145,7 +144,6 @@ func chara_item_click_cb(chara_name):
 func item_item_click_cb(item_name):
 	var item_db = Global.items_tb[item_name]
 	var str_temp=""
-	var my_item_info = Global.get_my_item_info(item_name)
 	cur_sel_item=item_name
 	str_temp=str_temp+item_db["name"]+"\n\n"
 	str_temp=str_temp+"Price: "+str(item_db["price"])+"\n\n"
@@ -160,32 +158,32 @@ func clear_grid_highlight(grid_node):
 
 func set_chara_hk_slot(slot_id, chara_name):
 	var item = chara_hotkey.get_child(slot_id)
-	var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
+	var icon_file_path=Global.char_img_file_path+chara_name+".png"
 	var icon_texture=load(icon_file_path)
 	item.set_icon(icon_texture)
-	var info = Global.get_my_chara_info(chara_name)
-	if info==null:
+	var lv = Global.get_my_chara_info(chara_name)
+	if lv==null:
 		return
-	item.set_num(info["lv"])
+	item.set_num(lv)
 	item.set_data(chara_name)
-	Global.user_data["equip"]["chara"][slot_id]=chara_name
+	Global.user_data["equip"][0][slot_id]=chara_name
 
 func clear_item_hk_slot(slot_id):
 	var item = item_hotkey.get_child(slot_id)
 	item.clear()
-	Global.user_data["equip"]["item"][slot_id]=""
+	Global.user_data["equip"][1][slot_id]=""
 
 func set_item_hk_slot(slot_id, item_name):
 	var item = item_hotkey.get_child(slot_id)
-	var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
+	var icon_file_path=Global.item_img_file_path+item_name+".png"
 	var icon_texture=load(icon_file_path)
 	item.set_icon(icon_texture)
-	var info = Global.get_my_item_info(item_name)
-	if info==null:
+	var num = Global.get_my_item_info(item_name)
+	if num==null:
 		return
-	item.set_num(info["num"])
+	item.set_num(num)
 	item.set_data(item_name)
-	Global.user_data["equip"]["item"][slot_id]=item_name
+	Global.user_data["equip"][1][slot_id]=item_name
 
 func add_lv_grid_item(lv_name):
 	var level_item = level_item_res.instance()
@@ -220,17 +218,17 @@ func update_characters_ui():
 	var drag_cb = funcref(self, "drag_chara_icon_cb")
 	Global.delete_children(chara_grid)
 	for chara in Global.user_data["characters"]:
-		var chara_name=chara["name"]
+		var lv=Global.user_data["characters"][chara]
 		var item = drop_item_res.instance()
-		var icon_file_path=Global.char_img_file_path+chara_name+"/icon.png"
+		var icon_file_path=Global.char_img_file_path+chara+".png"
 		var icon_texture=load(icon_file_path)
 		item.set_icon(icon_texture)
-		item.set_num(chara["lv"])
-		item.set_data(chara_name)
+		item.set_num(lv)
+		item.set_data(chara)
 		item.set_cb(click_cb)
 		item.drag_cb=drag_cb
 		chara_grid.add_child(item)
-	var chara_equip_info=Global.user_data["equip"]["chara"]
+	var chara_equip_info=Global.user_data["equip"][0]
 	for i in range(len(chara_equip_info)):
 		var chara_name=chara_equip_info[i]
 		if chara_name=="":
@@ -244,17 +242,18 @@ func update_items_ui():
 	var drag_cb = funcref(self, "drag_item_icon_cb")
 	Global.delete_children(item_grid)
 	for item in Global.user_data["items"]:
-		var item_name=item["name"]
+		var num=Global.user_data["items"][item]
+		var item_name=item
 		var itemitem = drop_item_res.instance()
 		var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
 		var icon_texture=load(icon_file_path)
 		itemitem.set_icon(icon_texture)
-		itemitem.set_num(item["num"])
+		itemitem.set_num(num)
 		itemitem.set_data(item_name)
 		itemitem.set_cb(click_cb)
 		itemitem.drag_cb=drag_cb
 		item_grid.add_child(itemitem)
-	var item_equip_info=Global.user_data["equip"]["item"]
+	var item_equip_info=Global.user_data["equip"][1]
 	for i in range(len(item_equip_info)):
 		var item_name=item_equip_info[i]
 		if item_name=="":
@@ -318,8 +317,8 @@ func _input(event):
 					var t_pos=Vector2(event.position.x, event.position.y)
 					if check_in_control(t_pos, c):
 						if cur_drag_item!="":
-							for i in range(len(Global.user_data["equip"]["item"])):
-								if Global.user_data["equip"]["item"][i]==cur_drag_item:
+							for i in range(len(Global.user_data["equip"][1])):
+								if Global.user_data["equip"][1][i]==cur_drag_item:
 									clear_item_hk_slot(i)
 							set_item_hk_slot(c.get_index(), cur_drag_item)
 							Global.save_equip_info(false,c.get_index(),cur_drag_item)
@@ -398,8 +397,7 @@ func _on_Upgrade_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed==true:
 			if cur_sel_chara!="":
-				var my_chara_info = Global.get_my_chara_info(cur_sel_chara)
-				var chara_lv=my_chara_info["lv"]
+				var chara_lv = Global.get_my_chara_info(cur_sel_chara)
 				var upgrade_price=Global.get_upgrade_price(cur_sel_chara, chara_lv)
 				if upgrade_price<0:
 					return
@@ -457,22 +455,23 @@ func change_diamond(val):
 	update_status()
 
 func on_upgrade_result(result, response_code, headers, body):
-	if response_code!=200:
-		print("on_upgrade_result network error!")
-		return
-	http.queue_free()
-	http=null
-	var re_json = JSON.parse(body.get_string_from_utf8()).result
-	if re_json["ret"]=="ok":
-		var chara_name=re_json["data"]["name"]
-		var lv=re_json["data"]["lv"]
-		var cost=re_json["data"]["cost"]
-		for chara in Global.user_data["characters"]:
-			if chara["name"]==chara_name:
-				chara["lv"]=lv
-				change_gold(-cost)
-				update_characters_ui()
-				break
+	pass
+	# if response_code!=200:
+	# 	print("on_upgrade_result network error!")
+	# 	return
+	# http.queue_free()
+	# http=null
+	# var re_json = JSON.parse(body.get_string_from_utf8()).result
+	# if re_json["ret"]=="ok":
+	# 	var chara_name=re_json["data"]["name"]
+	# 	var lv=re_json["data"]["lv"]
+	# 	var cost=re_json["data"]["cost"]
+	# 	for chara in Global.user_data["characters"]:
+	# 		if chara==chara_name:
+	# 			chara["lv"]=lv
+	# 			change_gold(-cost)
+	# 			update_characters_ui()
+	# 			break
 
 func on_buy_result(result, response_code, headers, body):
 	if response_code!=200:
@@ -494,21 +493,22 @@ func on_buy_result(result, response_code, headers, body):
 				break
 
 func on_draw_result(result, response_code, headers, body):
-	if response_code!=200:
-		print("on_draw_result network error!")
-		return
-	http.queue_free()
-	http=null
-	var re_json = JSON.parse(body.get_string_from_utf8()).result
-	if re_json["data"]["type"]=="chara":
-		Global.user_data["characters"]=re_json["data"]["info"]
-		update_characters_ui()
-		set_icon(get_node(lottory_item_path), false, re_json["data"]["name"])
-	else:
-		Global.user_data["items"]=re_json["data"]["info"]
-		update_items_ui()
-		set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
-	change_diamond(-Global.global_data["lottery_price"])
+	pass
+	# if response_code!=200:
+	# 	print("on_draw_result network error!")
+	# 	return
+	# http.queue_free()
+	# http=null
+	# var re_json = JSON.parse(body.get_string_from_utf8()).result
+	# if re_json["data"]["type"]=="chara":
+	# 	Global.user_data["characters"]=re_json["data"]["info"]
+	# 	update_characters_ui()
+	# 	set_icon(get_node(lottory_item_path), false, re_json["data"]["name"])
+	# else:
+	# 	Global.user_data["items"]=re_json["data"]["info"]
+	# 	update_items_ui()
+	# 	set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
+	# change_diamond(-Global.global_data["lottery_price"])
 
 func _on_TryBtn_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:

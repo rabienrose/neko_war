@@ -1,5 +1,6 @@
 .DS_Store
 binary
+addons
 # Godot-specific ignores
 .import/
 export.cfg

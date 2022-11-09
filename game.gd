@@ -261,12 +261,11 @@ func update_hk_mask():
 		c.set_mask(!check_chara_build(c.custom_val, find_local_team_id()))
 
 func update_hotkey_ui(_local_team_id):
-	for i in range(len(Global.user_data["equip"]["chara"])):
-		var chara_name=Global.user_data["equip"]["chara"][i]
+	for i in range(len(Global.user_data["equip"][0])):
+		var chara_name=Global.user_data["equip"][0][i]
 		if chara_name=="":
 			continue
-		var my_chara_info = Global.get_my_chara_info(chara_name)
-		var lv=my_chara_info["lv"]
+		var lv = Global.get_my_chara_info(chara_name)
 		var build_cost=Global.chara_tb[chara_name]["build_cost"]
 		var build_time=Global.chara_tb[chara_name]["build_time"]
 		var icon_file_path=Global.char_img_file_path+chara_name+".png"
@@ -278,13 +277,12 @@ func update_hotkey_ui(_local_team_id):
 		hk_info["lv"]=lv
 		hk_info["name"]=chara_name
 		chara_hotkey[_local_team_id][i]=hk_info
-	for i in range(len(Global.user_data["equip"]["item"])):
-		var item_name=Global.user_data["equip"]["item"][i]
+	for i in range(len(Global.user_data["equip"][1])):
+		var item_name=Global.user_data["equip"][1][i]
 		if item_name=="":
 			continue
-		var my_item_info = Global.get_my_item_info(item_name)
+		var num = Global.get_my_item_info(item_name)
 		var item_db=Global.items_tb[item_name]
-		var num=my_item_info["num"]
 		var icon_file_path=Global.item_img_file_path+item_name+".png"
 		var icon_texture=load(icon_file_path)
 		var click_cb = funcref(self, "use_item_cb")

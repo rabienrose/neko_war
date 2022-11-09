@@ -9,7 +9,7 @@
 [ext_resource path="res://home.gd" type="Script" id=7]
 [ext_resource path="res://ui/texture/s_bg_gray.tres" type="Texture" id=8]
 [ext_resource path="res://ui/game_status_ui.tscn" type="PackedScene" id=9]
-[ext_resource path="res://binary/images/items/hp_recover/icon.png" type="Texture" id=10]
+[ext_resource path="res://binary/images/icons/red_potion.png" type="Texture" id=10]
 [ext_resource path="res://ui/texture/tab_arrow_left.tres" type="Texture" id=11]
 [ext_resource path="res://ui/texture/tab_arrow_right.tres" type="Texture" id=12]
 [ext_resource path="res://ui/tab_dot.tscn" type="PackedScene" id=13]
@@ -937,7 +937,7 @@ visible = false
 position = Vector2( 1964, 699 )
 rotation = 1.5708
 scale = Vector2( 0.5, 1 )
-frame = 2
+frame = 1
 
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Left" to="." method="_on_Left_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Right" to="." method="_on_Right_gui_input"]

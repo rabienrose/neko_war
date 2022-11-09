@@ -8,18 +8,17 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var email = "super2@heroes.com"
-	var password = "batsignal2"
-	var session : NakamaSession = yield(Global.client.authenticate_email_async(email, password,"chamo"), "completed")
-	print(session)
+	var email = "283136745@qq.com"
+	var password = "la009296"
+	var session : NakamaSession = yield(Global.client.authenticate_email_async(email, password), "completed")
 	if session.is_exception():
 		print("login error!!!!")
 		print(session)
 		return
 	
 	var payload={"sdfsd":[1,2,3],"aaa":1}
-	var world: NakamaAPI.ApiRpc = yield(Global.client.rpc_async(session, "level_battle_summary", JSON.print(payload)), "completed")
-	print(world)
+	var ret = yield(Global.client.rpc_async(session, "request_a_draw", JSON.print(payload)), "completed")
+	print(ret.payload)
 	# var global_userid="00000000-0000-0000-0000-000000000000"
 	# var unlocks_object_list = yield(Global.client.list_storage_objects_async(session, "global_data", global_userid, 3), "completed")
 	# print(unlocks_object_list)

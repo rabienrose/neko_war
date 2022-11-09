@@ -268,7 +268,7 @@ func update_hotkey_ui(_local_team_id):
 		var lv = Global.get_my_chara_info(chara_name)
 		var build_cost=Global.chara_tb[chara_name]["build_cost"]
 		var build_time=Global.chara_tb[chara_name]["build_time"]
-		var icon_file_path=Global.char_img_file_path+chara_name+".png"
+		var icon_file_path=Global.icon_img_file_path+chara_name+".png"
 		var icon_texture=load(icon_file_path)
 		var click_cb = funcref(self, "start_chara_cb")
 		chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i)
@@ -283,7 +283,7 @@ func update_hotkey_ui(_local_team_id):
 			continue
 		var num = Global.get_my_item_info(item_name)
 		var item_db=Global.items_tb[item_name]
-		var icon_file_path=Global.item_img_file_path+item_name+".png"
+		var icon_file_path=Global.icon_img_file_path+item_name+".png"
 		var icon_texture=load(icon_file_path)
 		var click_cb = funcref(self, "use_item_cb")
 		item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)

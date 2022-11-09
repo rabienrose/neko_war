@@ -2,7 +2,7 @@
 
 [ext_resource path="res://binary/font/Acme-Regular.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/texture/level_unlock_bg.tres" type="Texture" id=2]
-[ext_resource path="res://binary/images/items/hp_recover/icon.png" type="Texture" id=3]
+[ext_resource path="res://binary/images/icons/red_potion.png" type="Texture" id=3]
 [ext_resource path="res://ui/shader/outline.tres" type="Shader" id=4]
 [ext_resource path="res://ui/drag_box_item.gd" type="Script" id=5]
 

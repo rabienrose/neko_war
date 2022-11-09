@@ -158,7 +158,7 @@ func clear_grid_highlight(grid_node):
 
 func set_chara_hk_slot(slot_id, chara_name):
 	var item = chara_hotkey.get_child(slot_id)
-	var icon_file_path=Global.char_img_file_path+chara_name+".png"
+	var icon_file_path=Global.icon_img_file_path+chara_name+".png"
 	var icon_texture=load(icon_file_path)
 	item.set_icon(icon_texture)
 	var lv = Global.get_my_chara_info(chara_name)
@@ -175,7 +175,7 @@ func clear_item_hk_slot(slot_id):
 
 func set_item_hk_slot(slot_id, item_name):
 	var item = item_hotkey.get_child(slot_id)
-	var icon_file_path=Global.item_img_file_path+item_name+".png"
+	var icon_file_path=Global.icon_img_file_path+item_name+".png"
 	var icon_texture=load(icon_file_path)
 	item.set_icon(icon_texture)
 	var num = Global.get_my_item_info(item_name)
@@ -220,7 +220,7 @@ func update_characters_ui():
 	for chara in Global.user_data["characters"]:
 		var lv=Global.user_data["characters"][chara]
 		var item = drop_item_res.instance()
-		var icon_file_path=Global.char_img_file_path+chara+".png"
+		var icon_file_path=Global.icon_img_file_path+chara+".png"
 		var icon_texture=load(icon_file_path)
 		item.set_icon(icon_texture)
 		item.set_num(lv)
@@ -245,7 +245,7 @@ func update_items_ui():
 		var num=Global.user_data["items"][item]
 		var item_name=item
 		var itemitem = drop_item_res.instance()
-		var icon_file_path=Global.item_img_file_path+item_name+"/icon.png"
+		var icon_file_path=Global.icon_img_file_path+item_name+".png"
 		var icon_texture=load(icon_file_path)
 		itemitem.set_icon(icon_texture)
 		itemitem.set_num(num)
@@ -279,21 +279,19 @@ func update_pvp_ui():
 func drag_chara_icon_cb(chara_name, pos):
 	if cur_drag_chara=="":
 		cur_drag_chara=chara_name
-		set_icon(drag_icon, false, chara_name)
+		set_icon(drag_icon, chara_name)
 		drag_icon_bg.visible=true
 	drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
-func set_icon(icon_node, b_item, name):
-	var icon_file_path=Global.item_img_file_path+name+"/icon.png"
-	if b_item==false:
-		icon_file_path=Global.char_img_file_path+name+"/icon.png"
+func set_icon(icon_node, name):
+	var icon_file_path=Global.icon_img_file_path+name+".png"
 	var icon_texture=load(icon_file_path)
 	icon_node.texture=icon_texture
 
 func drag_item_icon_cb(item_name, pos):
 	if cur_drag_item=="":
 		cur_drag_item=item_name
-		set_icon(drag_icon, true, item_name)
+		set_icon(drag_icon, item_name)
 		drag_icon_bg.visible=true
 	drag_icon_bg.set_global_position(pos+Vector2(-90,-90))
 
@@ -384,15 +382,6 @@ func on_tab_button(btn_name, event):
 			hide_all_tabs()
 			show_tab(btn_name)
 
-func _on_Buy_gui_input(event:InputEvent):
-	if event is InputEventScreenTouch:
-		if event.pressed==true:
-			if cur_sel_item!="":
-				var item_sell_price=Global.items_tb[cur_sel_item]["price"]
-				if Global.user_data["diamond"]<item_sell_price:
-					return
-				request_a_buy(cur_sel_item)
-
 func _on_Upgrade_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed==true:
@@ -406,31 +395,18 @@ func _on_Upgrade_gui_input(event:InputEvent):
 				request_a_upgrade(cur_sel_chara)
 
 func request_a_draw():
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "on_draw_result")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=Global.token
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/draw_a_lottery", headers, false, HTTPClient.METHOD_POST, query)
-
-func request_a_buy(item_name):
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "on_buy_result")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=Global.token
-	query_info["item_name"]=item_name
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/buy_item", headers, false, HTTPClient.METHOD_POST, query)
+	var ret = yield(Global.client.rpc_async(Global.session, "request_a_draw"), "completed")
+	var ret_obj=JSON.parse(ret.payload).result
+	if "error" in ret_obj:
+		print(ret_obj["error"])
+	var item_name=ret_obj["item"]
+	if item_name in Global.user_data["items"]:
+		Global.user_data["items"][item_name]=Global.user_data["items"][item_name]+1
+	else:
+		Global.user_data["items"][item_name]=1
+	update_items_ui()
+	set_icon(get_node(lottory_item_path), item_name)
+	change_gold(-Global.global_data["lottery_price"])
 
 func request_a_upgrade(chara_name):
 	if http!=null:
@@ -448,10 +424,6 @@ func request_a_upgrade(chara_name):
 
 func change_gold(val):
 	Global.user_data["gold"]=Global.user_data["gold"]+val
-	update_status()
-
-func change_diamond(val):
-	Global.user_data["diamond"]=Global.user_data["diamond"]+val
 	update_status()
 
 func on_upgrade_result(result, response_code, headers, body):
@@ -473,47 +445,10 @@ func on_upgrade_result(result, response_code, headers, body):
 	# 			update_characters_ui()
 	# 			break
 
-func on_buy_result(result, response_code, headers, body):
-	if response_code!=200:
-		print("on_buy_result network error!")
-		return
-	http.queue_free()
-	http=null
-	var re_json = JSON.parse(body.get_string_from_utf8()).result
-	if re_json["ret"]=="ok":
-		var chara_name=re_json["data"]["name"]
-		var num=re_json["data"]["num"]
-		var cost=re_json["data"]["cost"]
-		for chara in Global.user_data["items"]:
-			print(chara["name"])
-			if chara["name"]==chara_name:
-				chara["num"]=num
-				change_diamond(-cost)
-				update_items_ui()
-				break
-
-func on_draw_result(result, response_code, headers, body):
-	pass
-	# if response_code!=200:
-	# 	print("on_draw_result network error!")
-	# 	return
-	# http.queue_free()
-	# http=null
-	# var re_json = JSON.parse(body.get_string_from_utf8()).result
-	# if re_json["data"]["type"]=="chara":
-	# 	Global.user_data["characters"]=re_json["data"]["info"]
-	# 	update_characters_ui()
-	# 	set_icon(get_node(lottory_item_path), false, re_json["data"]["name"])
-	# else:
-	# 	Global.user_data["items"]=re_json["data"]["info"]
-	# 	update_items_ui()
-	# 	set_icon(get_node(lottory_item_path), true, re_json["data"]["name"])
-	# change_diamond(-Global.global_data["lottery_price"])
-
 func _on_TryBtn_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed==true:
-			if Global.global_data["lottery_price"]>Global.user_data["diamond"]:
+			if Global.global_data["lottery_price"]>Global.user_data["gold"]:
 				return
 			request_a_draw()
 	

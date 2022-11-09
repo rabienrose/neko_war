@@ -4,17 +4,16 @@ signal money_change(val)
 signal request_battle(lv)
 signal show_level_info(lv)
 
-var char_tb_file_path="res://configs/characters.json"
+var char_tb_file_path="res://nakama/configs/characters.json"
 var user_data_path="user://user.json"
-var global_data_path="res://configs/global.json"
+var global_data_path="res://nakama/configs/global.json"
 var token_path="user://token.txt"
 var device_id_path="user://device_id.txt"
-var levels_info_path="res://configs/levels.json"
-var items_info_path="res://configs/items.json"
-var skills_info_path="res://configs/skills.json"
-var atk_bufs_info_path="res://configs/atk_buf.json"
-var char_img_file_path="res://binary/images/icons/"
-var item_img_file_path="res://binary/images/items/"
+var levels_info_path="res://nakama/configs/levels.json"
+var items_info_path="res://nakama/configs/items.json"
+var skills_info_path="res://nakama/configs/skills.json"
+var atk_bufs_info_path="res://nakama/configs/atk_buf.json"
+var icon_img_file_path="res://binary/images/icons/"
 var chara_file_path="res://objects/"
 
 var game_scene="res://game.tscn"
@@ -112,6 +111,7 @@ func fetch_user_remote():
 	var read_object_id = NakamaStorageObjectId.new("user", "basic", Global.session.user_id)
 	var result = yield(Global.client.read_storage_objects_async(Global.session, [read_object_id]), "completed")
 	if result.is_exception():
+		print(result)
 		return
 	else:
 		for o in result.objects:

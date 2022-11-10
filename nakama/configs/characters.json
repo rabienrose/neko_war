@@ -61,7 +61,7 @@
             "2": {
                 "hp": 40,
                 "atk": 6,
-                "mov_spd": 50,
+                "mov_spd": 300,
                 "atk_spd": 0.5,
                 "range": 200,
                 "upgrade_cost": 300

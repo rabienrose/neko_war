@@ -49,5 +49,6 @@ func _on_Next_gui_input(event):
 func _on_Home_gui_input(event):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			Global.leave_match()
-			Global.fetch_user_and_go_home()
+			if Global.battle_mode!="replay":
+				Global.leave_match()
+				Global.fetch_user_and_go_home()

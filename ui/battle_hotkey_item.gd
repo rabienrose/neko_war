@@ -19,6 +19,7 @@ var in_gen=false
 var custom_val
 var click_cb=null
 var index
+var not_interactive=false
 
 func _ready():
     cost_label_node=get_node(cost_label_path)
@@ -26,7 +27,8 @@ func _ready():
     progress_node=get_node(progress_path)
     avia_mask_node=get_node(cost_mask_path)
 
-func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb,_index):
+func on_create(icon_tex, _delay_time, val, _custom_info, _click_cb,_index, b_not_interactive):
+    not_interactive=b_not_interactive
     index=_index
     delay_time=_delay_time
     set_val(val)
@@ -52,6 +54,8 @@ func set_done():
 func _on_CharaUIItem_gui_input(event:InputEvent):
     if event is InputEventScreenTouch:
         if event.pressed:
+            if not_interactive:
+                return
             if has_item and avia_mask_node.visible==false and progress_node.value==0:
                 var go_on=true
                 if click_cb!=null:

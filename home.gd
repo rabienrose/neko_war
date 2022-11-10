@@ -487,3 +487,4 @@ func _on_Replay_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			Global.battle_mode="replay"
+			get_tree().change_scene(Global.game_scene)

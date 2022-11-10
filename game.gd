@@ -27,7 +27,6 @@ var keyframe_p_s=int(fps/keyframe_step)
 var scene_min=0
 var scene_max=2364
 var frame_id=0
-var stop=false
 
 var master_id=0
 var input_queue=[]
@@ -41,6 +40,7 @@ var chara_count=[0,0]
 var chara_hotkey=[[null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null]]
 
 var coin_num=[0,0]
+var init_coin_num=[0,0]
 var user_id_2_index={}
 
 var my_inputs=[]
@@ -50,18 +50,47 @@ var spawn_nodes=[]
 var game_start=false
 
 func _ready():
+	Global.rng=RandomNumberGenerator.new()
+	Global.rng.seed=0
+	fx_mgr=get_node("FxMgr")
+	spawn_nodes.append(get_node(spawn1_path))
+	spawn_nodes.append(get_node(spawn2_path))
+	char_root=get_node(char_root_path)
+	chara_gen_ui=get_node(chara_gen_ui_path)
+	item_use_ui=get_node(item_use_ui_path)
 	Global.connect("battle_frame_recv", self, "recv_sync_frame")
 	if Global.battle_mode=="level":
 		get_node(coin1_label_path).get_parent().visible=true
 		get_node(coin2_label_path).get_parent().visible=false
 		coin_num[0]=Global.user_data["gold"]
-		coin_num[1]=100
+		coin_num[1]=1000
+		init_coin_num=coin_num.duplicate()
 		ai_node=Node.new()
 		ai_node.set_script(load("res://ai/ai.gd"))
 		add_child(ai_node)
 		ai_node.init(self, Global.levels_tb[Global.sel_level])
+		for i in range(len(Global.user_data["equip"][0])):
+			var chara_name=Global.user_data["equip"][0][i]
+			if chara_name=="":
+				continue
+			var lv = Global.get_my_chara_info(chara_name)
+			var hk_info={}
+			hk_info["countdown"]=0
+			hk_info["lv"]=lv
+			hk_info["name"]=chara_name
+			chara_hotkey[0][i]=hk_info
+		for i in range(len(Global.user_data["equip"][1])):
+			var item_name=Global.user_data["equip"][1][i]
+			if item_name=="":
+				continue
+			var num = Global.get_my_item_info(item_name)
+			var hk_info={}
+			hk_info["countdown"]=0
+			hk_info["num"]=num
+			hk_info["name"]=item_name
+			chara_hotkey[0][i+5]=hk_info
+		update_hk_slot_ui(false)
 		start_battle()
-		update_hotkey_ui(0)
 	elif Global.battle_mode=="pvp":
 		var t_count=0
 		for user_id in Global.battle_players:
@@ -91,37 +120,60 @@ func _ready():
 		else:
 			get_node(coin1_label_path).get_parent().visible=false
 			get_node(coin2_label_path).get_parent().visible=true
+		init_coin_num=coin_num
+		update_hk_slot_ui(false)
 		start_battle()
-		update_hotkey_ui(0)
 		Global.send_ready_msg()
 	elif Global.battle_mode=="replay":
-		pass
-		# input_queue=replay_data["ops"]
-		# coin_num=replay_data["init_meat_num"]
-		# chara_hotkey=replay_data["hotkeys"]
-		# for i in range(0,2):
-		# 	for item in chara_hotkey[i]:
-		# 		if item!=null:
-		# 			item["countdown"]=0
-		# start_battle()
+		get_node(coin1_label_path).get_parent().visible=true
+		get_node(coin2_label_path).get_parent().visible=false
+		var replay_data=JSON.parse(Marshalls.base64_to_utf8(Global.total_level_data[Global.sel_level]["record"])).result 
+		var kf_count=replay_data["kf_count"]
+		input_queue=[]
+		var ops=replay_data["ops"]
+		for i in range(kf_count):
+			var input=[[],[]]
+			for j in range(2):
+				var cmds=check_kf_exist(ops[j], i)
+				if cmds!=null:
+					input[j]=cmds
+			input_queue.append(input)
+		coin_num=replay_data["coin"]
+		chara_hotkey=[[],[]]
+		for j in range(2):
+			var hk_slots=replay_data["hotkeys"][j]
+			for i in range(hk_slots.size()):
+				var slot=hk_slots[i]
+				var hk_info=null
+				if slot[0]!="":
+					hk_info={}
+					if i<5:
+						hk_info["countdown"]=0
+						hk_info["lv"]=slot[1]
+						hk_info["name"]=slot[0]
+					else:
+						hk_info["countdown"]=0
+						hk_info["num"]=slot[1]
+						hk_info["name"]=slot[0]
+				chara_hotkey[j].append(hk_info)
+		update_hk_slot_ui(true)
+		start_battle()
+
+func check_kf_exist(info, kf):
+	for item in info:
+		if item[0]==kf:
+			return item[1]
+	return null
 
 func start_battle():
-	Global.rng=RandomNumberGenerator.new()
-	Global.rng.seed=0
-	fx_mgr=get_node("FxMgr")
-	spawn_nodes.append(get_node(spawn1_path))
-	spawn_nodes.append(get_node(spawn2_path))
-	char_root=get_node(char_root_path)
-	chara_gen_ui=get_node(chara_gen_ui_path)
-	item_use_ui=get_node(item_use_ui_path)
 	spawn_building("base", 0)
 	spawn_building("base", 1)
 	var cancel_cb = funcref(self, "cancel_cb")
 	var go_home_cb = funcref(self, "go_home_cb")
 	get_node(comfirm_path).set_btn1("Cancel", cancel_cb)
 	get_node(comfirm_path).set_btn2("Ok", go_home_cb)     
-	game_start=true
 	update_stats_ui()
+	game_start=true
 
 func cancel_cb():
 	if Global.level_mode:
@@ -244,39 +296,29 @@ func update_hk_mask():
 			continue
 		c.set_mask(!check_chara_build(c.custom_val, master_id))
 
-func update_hotkey_ui(_local_team_id):
-	for i in range(len(Global.user_data["equip"][0])):
-		var chara_name=Global.user_data["equip"][0][i]
-		if chara_name=="":
-			continue
-		var lv = Global.get_my_chara_info(chara_name)
-		var build_cost=Global.chara_tb[chara_name]["build_cost"]
-		var build_time=Global.chara_tb[chara_name]["build_time"]
-		var icon_file_path=Global.icon_img_file_path+chara_name+".png"
-		var icon_texture=load(icon_file_path)
-		var click_cb = funcref(self, "start_chara_cb")
-		chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i)
-		var hk_info={}
-		hk_info["countdown"]=0
-		hk_info["lv"]=lv
-		hk_info["name"]=chara_name
-		chara_hotkey[_local_team_id][i]=hk_info
-	for i in range(len(Global.user_data["equip"][1])):
-		var item_name=Global.user_data["equip"][1][i]
-		if item_name=="":
-			continue
-		var num = Global.get_my_item_info(item_name)
-		var item_db=Global.items_tb[item_name]
-		var icon_file_path=Global.icon_img_file_path+item_name+".png"
-		var icon_texture=load(icon_file_path)
-		var click_cb = funcref(self, "use_item_cb")
-		item_use_ui.get_child(i).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i)
-		var hk_info={}
-		hk_info["countdown"]=0
-		hk_info["num"]=num
-		hk_info["name"]=item_name
-		chara_hotkey[_local_team_id][i+5]=hk_info
-
+func update_hk_slot_ui(b_not_interactive):
+	var i=0
+	for item in chara_hotkey[master_id]:
+		if item!=null:
+			if i<5:
+				var chara_name=item["name"]
+				var lv=item["lv"]
+				var build_cost=Global.chara_tb[chara_name]["build_cost"]
+				var build_time=Global.chara_tb[chara_name]["build_time"]
+				var icon_file_path=Global.icon_img_file_path+chara_name+".png"
+				var icon_texture=load(icon_file_path)
+				var click_cb = funcref(self, "start_chara_cb")
+				chara_gen_ui.get_child(i).on_create(icon_texture, build_time, build_cost, {"name":chara_name, "lv":lv}, click_cb,i,b_not_interactive)
+			else:
+				var item_name=item["name"]
+				var num=item["num"]
+				var item_db=Global.items_tb[item_name]
+				var icon_file_path=Global.icon_img_file_path+item_name+".png"
+				var icon_texture=load(icon_file_path)
+				var click_cb = funcref(self, "use_item_cb")
+				item_use_ui.get_child(i-5).on_create(icon_texture, item_db["delay"], num, {"name":item_name},click_cb,i,b_not_interactive)
+		i=i+1
+		
 func process_frame():
 	for _team_id in range(0,2):
 		for item in chara_hotkey[_team_id]:
@@ -370,6 +412,8 @@ func get_recording_data():
 		t=t+1
 	recording_data["ops"]=ops
 	recording_data["hotkeys"]=[[],[]]
+	recording_data["coin"]=init_coin_num
+	recording_data["kf_count"]=input_queue.size()
 	for i in range(2):
 		for item in chara_hotkey[i]:
 			if item != null:

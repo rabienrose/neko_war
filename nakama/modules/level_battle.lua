@@ -70,6 +70,8 @@ local function proc_battle_result(state, b_win, battle_record, time)
             level_data["user_id"]=state.user_id
             level_data["record"]=battle_record
             level_data["time"] = time
+            user_info.gold=user_info.gold+level_data.coin_pool
+            level_data.coin_pool=0
             util.update_level_data(state.level_name, level_data)
         end
         user_info.last_level=state.level_name

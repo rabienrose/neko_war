@@ -360,6 +360,23 @@ func _on_Return_gui_input(event):
 
 func get_recording_data():
 	var recording_data={}
-	recording_data["ops"]=input_queue
-	recording_data["hotkeys"]=chara_hotkey
-	return JSON.print(recording_data) 
+	var ops=[[],[]]
+	var t=0
+	for item in input_queue:
+		if item[0].size()!=0:
+			ops[0].append([t,item[0]])
+		if item[1].size()!=0:
+			ops[1].append([t,item[1]])
+		t=t+1
+	recording_data["ops"]=ops
+	recording_data["hotkeys"]=[[],[]]
+	for i in range(2):
+		for item in chara_hotkey[i]:
+			if item != null:
+				if "lv" in item:
+					recording_data["hotkeys"][i].append([item["name"],item["lv"]])
+				else:
+					recording_data["hotkeys"][i].append([item["name"],item["num"]])
+			else:
+				recording_data["hotkeys"][i].append(["",-1])
+	return Marshalls.utf8_to_base64(JSON.print(recording_data)) 

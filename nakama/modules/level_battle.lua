@@ -7,6 +7,7 @@ function level_battle.match_init(_, params)
         frame_id = 0,
         player_info=nil,
         user_id="",
+        username="",
         ready=false,
         cost=0,
         items={},
@@ -30,6 +31,7 @@ function level_battle.match_join(_, dispatcher, _, state, presences)
         state.player_info = util.get_user_slots(presence.user_id)
         state.ready=true
         state.user_id=presence.user_id
+        state.username=presence.username
     end
     return state
 end
@@ -56,9 +58,15 @@ local function proc_battle_result(state, b_win, battle_record, time)
                 time=time,
                 cost=state.cost
             }
+        else
+            if state.cost<user_info.levels[state.level_name].cost then
+                user_info.levels[state.level_name].cost=state.cost
+                user_info.levels[state.level_name].time=time
+            end
         end
         if level_data.min_cost==-1 or level_data.min_cost>state.cost then
             level_data.min_cost=state.cost
+            level_data["username"]=state.username
             level_data["user_id"]=state.user_id
             level_data["record"]=battle_record
             level_data["time"] = time

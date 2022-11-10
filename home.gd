@@ -93,24 +93,21 @@ func _ready():
 	update_pvp_ui()
 
 func on_show_level_info(lv_name):
-#    if not "start_level" in Global.user_data["tips"]:
-#        get_node(tip_start_battle_arrow_path).visible=true
 	Global.sel_level=lv_name
-	var level_name=Global.sel_level
 	var str_temp=""
-	str_temp=str_temp+"Name: "+Global.levels_tb[level_name]["name"]+"\n"
-	# if "record" in Global.level_data and stat_name in Global.level_data["record"]:
-	# 	get_node(replay_btn_path).visible=true
-	# else:
-	# 	get_node(replay_btn_path).visible=false
-	if lv_name in Global.level_data:
-		str_temp=str_temp+"Record: "+Global.level_data[lv_name]["stats"]["user"]+" ("+str(Global.level_data[lv_name]["stats"]["cost"])+" gold)\n"
-	# if Global.sel_level in Global.user_data["levels"]:
-	# 	str_temp=str_temp+"My Record: "+str(Global.user_data["levels"][Global.sel_level]["time"])+" s\n"
-	# 	str_temp=str_temp+"Count: "+str(Global.user_data["levels"][Global.sel_level]["num"])+"\n"
-	# str_temp=str_temp+"\n"
-	# for chara_t in Global.level_data["battle_data"]["args"]["hotkey"]:
-	# 	str_temp=str_temp+chara_t+" "
+	str_temp=str_temp+Global.levels_tb[lv_name]["name"]+"\n"
+	str_temp=str_temp+"固定奖励: "+str(Global.levels_tb[lv_name]["reward"])+" 金\n"
+	if lv_name in Global.total_level_data:
+		str_temp=str_temp+"奖池: "+str(Global.total_level_data[lv_name]["coin_pool"])+" 金\n"
+	if lv_name in Global.total_level_data and "record" in Global.total_level_data[lv_name]:
+		get_node(replay_btn_path).visible=true
+	else:
+		get_node(replay_btn_path).visible=false
+	if lv_name in Global.total_level_data and "min_cost" in Global.total_level_data[lv_name]:
+		str_temp=str_temp+"最小花费: "+str(Global.total_level_data[lv_name]["min_cost"])+" 金 ("+str(Global.total_level_data[lv_name]["username"])+")\n"
+	if lv_name in Global.user_data["levels"]:
+		str_temp=str_temp+"我的花费: "+str(Global.user_data["levels"][lv_name]["cost"])+" 金\n"
+		str_temp=str_temp+"日期: "+Global.user_data["levels"][lv_name]["time"]+"\n"
 	get_node(level_info_path).text=str_temp
 
 func chara_item_click_cb(chara_name):
@@ -118,9 +115,9 @@ func chara_item_click_cb(chara_name):
 	var str_temp=""
 	var lv = Global.get_my_chara_info(chara_name)
 	cur_sel_chara=chara_name
-	var t_attr_info=chara_db["attrs"][str(lv+1)]
+	var t_attr_info=chara_db["attrs"][str(lv)]
 	var t_attr_info_next=null
-	if lv<chara_db["max_lv"]:
+	if str(lv+1) in chara_db["attrs"]:
 		t_attr_info_next=chara_db["attrs"][str(lv+1)]
 	for key in t_attr_info:
 		if key == "upgrade_cost":
@@ -310,7 +307,7 @@ func _input(event):
 					if check_in_control(t_pos, c):
 						if cur_drag_chara!="":
 							set_chara_hk_slot(c.get_index(), cur_drag_chara)
-							Global.save_equip_info(true,c.get_index(),cur_drag_chara)
+							save_equip_info(true,c.get_index(),cur_drag_chara)
 				for c in item_hotkey.get_children():
 					var t_pos=Vector2(event.position.x, event.position.y)
 					if check_in_control(t_pos, c):
@@ -319,10 +316,17 @@ func _input(event):
 								if Global.user_data["equip"][1][i]==cur_drag_item:
 									clear_item_hk_slot(i)
 							set_item_hk_slot(c.get_index(), cur_drag_item)
-							Global.save_equip_info(false,c.get_index(),cur_drag_item)
+							save_equip_info(false,c.get_index(),cur_drag_item)
 				cur_drag_chara=""
 				cur_drag_item=""
 				hide_drag_icon()
+
+func save_equip_info(b_chara, index, name):
+	var payload={}
+	payload["pos"]=index
+	payload["b_chara"]=b_chara
+	payload["name"]=name
+	Global.client.rpc_async(Global.session, "update_equip_slot", JSON.print(payload))
 
 func init_tab_dots(num):
 	var tab_dots=get_node(tab_dots_path)
@@ -409,41 +413,22 @@ func request_a_draw():
 	change_gold(-Global.global_data["lottery_price"])
 
 func request_a_upgrade(chara_name):
-	if http!=null:
-		return
-	http=HTTPRequest.new()
-	http.pause_mode=Node.PAUSE_MODE_PROCESS
-	http.connect("request_completed", self, "on_upgrade_result")
-	add_child(http)
-	var query_info={}
-	query_info["token"]=Global.token
-	query_info["chara_name"]=chara_name
-	var query = JSON.print(query_info)
-	var headers = ["Content-Type: application/json"]
-	http.request(Global.server_url+"/upgrade_chara", headers, false, HTTPClient.METHOD_POST, query)
+	var char_info=Global.chara_tb[chara_name]
+	var my_lv=Global.user_data["characters"][chara_name]
+	var upgrade_cost=char_info["attrs"][str(my_lv)]["upgrade_cost"]
+	if upgrade_cost<=Global.user_data["gold"]:
+		var ret = yield(Global.client.rpc_async(Global.session, "request_a_upgrade", chara_name), "completed")
+		var ret_obj=JSON.parse(ret.payload).result
+		if "error" in ret_obj:
+			print(ret_obj["error"])
+		else:
+			Global.user_data["characters"][chara_name]=my_lv+1
+			change_gold(-upgrade_cost)
+			update_characters_ui()
 
 func change_gold(val):
 	Global.user_data["gold"]=Global.user_data["gold"]+val
 	update_status()
-
-func on_upgrade_result(result, response_code, headers, body):
-	pass
-	# if response_code!=200:
-	# 	print("on_upgrade_result network error!")
-	# 	return
-	# http.queue_free()
-	# http=null
-	# var re_json = JSON.parse(body.get_string_from_utf8()).result
-	# if re_json["ret"]=="ok":
-	# 	var chara_name=re_json["data"]["name"]
-	# 	var lv=re_json["data"]["lv"]
-	# 	var cost=re_json["data"]["cost"]
-	# 	for chara in Global.user_data["characters"]:
-	# 		if chara==chara_name:
-	# 			chara["lv"]=lv
-	# 			change_gold(-cost)
-	# 			update_characters_ui()
-	# 			break
 
 func _on_TryBtn_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
@@ -471,7 +456,7 @@ func _on_Start_gui_input(event):
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			if Global.sel_level!="":
-				Global.emit_signal("request_battle",Global.sel_level)
+				Global.request_level_battle(Global.sel_level)
 
 func _on_Left_gui_input(event):
 	if event is InputEventScreenTouch:
@@ -501,7 +486,4 @@ func _on_GoBtn_gui_input(event:InputEvent):
 func _on_Replay_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			Global.set_game_mode("replay")
-			# var recording_name=str(lv_info["chara_lv"])+"_"+str(lv_info["difficulty"])
-			# Global.replay_data=JSON.parse(Global.level_data["record"][recording_name]).result
-			# get_tree().change_scene(Global.game_scene)
+			Global.battle_mode="replay"

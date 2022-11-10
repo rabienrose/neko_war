@@ -33,11 +33,6 @@ local function new_account_cb(context, payload)
     end
 end
 
-local function level_battle_summary(context, payload)
-    local json = nk.json_decode(payload)
-    return payload
-end
-
 local function request_match(context, payload)
     local limit = 1
     local isAuthoritative = true
@@ -57,8 +52,25 @@ local function request_level_battle(context, payload)
 end
 
 local function request_a_upgrade(context, payload)
-    local json = nk.json_decode(payload)
-    return payload
+    local ret={}
+    local chara_name = payload
+    local user_id=context.user_id
+    local user_info=util.get_user_info(user_id)
+    local char_info=Chara_tb[chara_name]
+	local my_lv=user_info["characters"][chara_name]
+	local upgrade_cost=char_info["attrs"][tostring(my_lv)]["upgrade_cost"]
+    if char_info["attrs"][tostring(my_lv+1)]~= nil then
+        if upgrade_cost<=user_info["gold"] then
+            user_info["gold"]=user_info["gold"]-upgrade_cost
+            user_info["characters"][chara_name]=user_info["characters"][chara_name]+1
+            util.update_user_info(user_id, user_info)
+        else
+            ret["error"]="gold_not_enough"
+        end
+    else
+        ret["error"]="max_lv"
+    end
+    return nk.json_encode(ret)
 end
 
 local function request_a_draw(context, payload)
@@ -99,11 +111,20 @@ local function request_a_draw(context, payload)
 end
 
 local function update_equip_slot(context, payload)
+    local user_id=context.user_id
     local json = nk.json_decode(payload)
+    local user_info=util.get_user_info(user_id)
+    if json["b_chara"]==true then
+        user_info.equip[1][json["pos"]+1]=json["name"]
+    else
+        user_info.equip[2][json["pos"]+1]=json["name"]
+    end
+    util.update_user_info(user_id, user_info)
     return payload
 end
 
 -- Charas_tb = util.load_json("../configs/characters.json")
+Chara_tb = util.load_json("../configs/characters.json")
 Items_tb = util.load_json("../configs/items.json")
 Global_tb = util.load_json("../configs/global.json")
 
@@ -113,5 +134,4 @@ nk.register_rpc(request_match, "request_match")
 nk.register_rpc(update_equip_slot, "update_equip_slot")
 nk.register_rpc(request_a_upgrade, "request_a_upgrade")
 nk.register_rpc(request_a_draw, "request_a_draw")
-nk.register_rpc(level_battle_summary, "level_battle_summary")
 nk.register_req_after(new_account_cb, "AuthenticateEmail")

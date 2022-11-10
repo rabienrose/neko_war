@@ -22,7 +22,7 @@ var home_scene="res://home.tscn"
 var login_scene="res://ui/login.tscn"
 
 var rank_data=[]
-var level_data={}
+var total_level_data={}
 var user_data={}
 var chara_tb={}
 var levels_tb={}
@@ -93,17 +93,6 @@ func _ready():
 		server_url="http://"+global_data["flask_ip"]+":9100"
 	connect("request_battle",self,"on_request_start_battle")
 
-func set_game_mode(mode):
-	Global.replay_mode=false
-	Global.pvp_mode=false
-	Global.level_mode=false
-	if mode=="pvp":
-		Global.pvp_mode=true
-	elif mode=="replay":
-		Global.replay_mode=true
-	elif mode=="level":
-		Global.level_mode=true
-
 func check_update():
 	pass
 
@@ -116,7 +105,6 @@ func fetch_user_remote():
 	else:
 		for o in result.objects:
 			user_data=JSON.parse(o.value).result
-			level_data=user_data["levels"]
 			var account = yield(client.get_account_async(Global.session), "completed")
 			var username = account.user.username
 			var avatar_url = account.user.avatar_url
@@ -130,52 +118,6 @@ func get_enmey_team_id(team_id):
 	if team_id==1:
 		ret=[1,0]
 	return ret
-
-func upload_pvp_summery(recording,token1,token2,diamond1,diamond2):
-	pass
-	# if http!=null:
-	#     return
-	# http=HTTPRequest.new()
-	# http.pause_mode=Node.PAUSE_MODE_PROCESS
-	# http.connect("request_completed", self, "default_http_cb")
-	# add_child(http)
-	# var query_info={}
-	# query_info["token1"]=token1
-	# query_info["token2"]=token2
-	# query_info["diamond1"]=diamond1
-	# query_info["diamond2"]=diamond2
-	# query_info["recording"]=recording
-	# var query = JSON.print(query_info)
-	# var headers = ["Content-Type: application/json"]
-	# http.request(server_url+"/pvp_summary", headers, false, HTTPClient.METHOD_POST, query)
-
-func upload_level_summery(recording, time, level_id, chara_lv, difficulty):
-	var query_info={}
-	query_info["recording"]=recording
-	query_info["level_id"]=level_id
-	var payload = JSON.print(query_info)
-	yield(client.rpc_async(session, "level_battle_summary", JSON.print(payload)), "completed")
-
-func save_battle_record(data):
-	var f=File.new()
-	f.open("user://temp_battle_record.json", File.WRITE)
-	var temp_json_str=JSON.print(data)
-	f.store_string(temp_json_str)
-	f.close()
-
-func load_battle_record():
-	var f=File.new()
-	f.open("user://temp_battle_record.json", File.READ)
-	var out_str = f.get_as_text()
-	var data = JSON.parse(out_str).result
-	f.close()
-	return data
-
-func get_char_anim(char_name, type):
-	var anim_file = chara_tb[char_name]["appearance"]
-	if not anim_file in chara_anim:
-		chara_anim[anim_file]=load("res://anim_sprite/"+type+"/"+char_name+".tres")
-	return chara_anim[anim_file]
 
 func get_fx_frame_anim(fx_name):
 	return load("res://anim_sprite/effect/"+fx_name+".tres")
@@ -197,7 +139,7 @@ func delete_children(node):
 
 func get_upgrade_price(chara_name, cur_lv):
 	var next_lv=cur_lv+1
-	if next_lv>chara_tb[chara_name]["max_lv"]:
+	if not str(next_lv) in chara_tb[chara_name]["attrs"]:
 		return -1
 	return Global.chara_tb[chara_name]["attrs"][str(next_lv)]["upgrade_cost"]
 
@@ -327,6 +269,19 @@ func leave_match():
 	battle_id=""
 
 func fetch_user_and_go_home():
-	yield(Global.fetch_user_remote(), "completed") 
+	yield(Global.fetch_all_data(), "completed") 
 	get_tree().change_scene(home_scene)
 	get_tree().paused=false
+
+func fetch_level_data():
+	var querys=[]
+	for level_name in levels_tb:
+		querys.append(NakamaStorageObjectId.new("level", level_name))
+	var result = yield(Global.client.read_storage_objects_async(session, querys), "completed")
+	total_level_data={}
+	for item in result.objects:
+		total_level_data[item.key]=JSON.parse(item.value).result
+
+func fetch_all_data():
+	yield(fetch_level_data(), "completed")
+	yield(fetch_user_remote(), "completed")

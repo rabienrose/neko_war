@@ -19,8 +19,9 @@ func _ready():
 	var succ = yield(Global.login_remote(email, "", password, false), "completed")
 	if succ:
 		print("login succ")
-		yield(Global.fetch_user_remote(), "completed")
-		yield(Global.request_level_battle("1"), "completed") 
+		Global.fetch_level_data()
+		# yield(Global.fetch_user_remote(), "completed")
+		# yield(Global.request_level_battle("1"), "completed") 
 
 
 

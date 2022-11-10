@@ -1,8 +1,29 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://objects/character.tscn" type="PackedScene" id=1]
 [ext_resource path="res://objects/building.gd" type="Script" id=2]
 [ext_resource path="res://binary/images/bg/flag.png" type="Texture" id=3]
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+
+[sub_resource type="Animation" id=2]
+resource_name = "atk"
+length = 2.0
+loop = true
+
+[sub_resource type="Animation" id=3]
+resource_name = "die"
+length = 0.5
+
+[sub_resource type="Animation" id=4]
+resource_name = "hit"
+length = 0.4
+
+[sub_resource type="Animation" id=5]
+resource_name = "walk"
+length = 2.0
+loop = true
 
 [node name="Chara" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
@@ -13,3 +34,11 @@ scale = Vector2( 0.3, 0.3 )
 [node name="Flag" type="Sprite" parent="Appearance" index="0"]
 position = Vector2( 30, -56 )
 texture = ExtResource( 3 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="7"]
+playback_process_mode = 0
+anims/RESET = SubResource( 1 )
+anims/atk = SubResource( 2 )
+anims/die = SubResource( 3 )
+anims/hit = SubResource( 4 )
+anims/walk = SubResource( 5 )

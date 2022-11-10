@@ -9,6 +9,8 @@ func _ready():
 	else:
 		var ret= Global.check_token()
 		if ret!=null:
-			Global.login_remote(ret[0],"",ret[1],false)
+			var succ = yield(Global.login_remote(ret[0],"",ret[1],false), "completed") 
+			if succ:
+				Global.fetch_user_and_go_home()
 		else:
 			get_tree().change_scene(Global.login_scene)

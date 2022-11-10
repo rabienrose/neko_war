@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=17 format=2]
 
 [ext_resource path="res://game.gd" type="Script" id=1]
 [ext_resource path="res://binary/images/bg/bg.jpg" type="Texture" id=2]
@@ -8,7 +8,6 @@
 [ext_resource path="res://ui/realtime_chara_list_ui.tscn" type="PackedScene" id=19]
 [ext_resource path="res://sys/fx_mgr.tscn" type="PackedScene" id=20]
 [ext_resource path="res://ui/texture/icon_home.tres" type="Texture" id=21]
-[ext_resource path="res://sys/server.tscn" type="PackedScene" id=22]
 [ext_resource path="res://ui/comfirm_box.tscn" type="PackedScene" id=23]
 [ext_resource path="res://ui/texture/l_bg_gray.tres" type="Texture" id=24]
 [ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=25]
@@ -45,7 +44,6 @@ chara1_list_path = NodePath("CanvasLayer/CharaList1")
 chara2_list_path = NodePath("CanvasLayer/CharaList2")
 coin1_label_path = NodePath("CanvasLayer/SelfCoin/SelfCoinLabel")
 coin2_label_path = NodePath("CanvasLayer/OtherCoin/AiCoinLabel")
-server_path = NodePath("Server")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 anchor_right = 1.0
@@ -144,7 +142,7 @@ expand = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_fonts/font = SubResource( 1 )
-text = "Meat: 100"
+text = "Coin: 30"
 align = 1
 valign = 1
 __meta__ = {
@@ -228,8 +226,6 @@ __meta__ = {
 }
 
 [node name="Timer" type="Timer" parent="."]
-
-[node name="Server" parent="." instance=ExtResource( 22 )]
 
 [connection signal="gui_input" from="CanvasLayer/Return" to="." method="_on_Return_gui_input"]
 [connection signal="gui_input" from="CanvasLayer/Lobby/CenterContainer/Join" to="." method="_on_Join_gui_input"]

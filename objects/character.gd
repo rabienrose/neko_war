@@ -7,7 +7,6 @@ export (NodePath) var appearance_path
 
 #node
 var appearance
-var anima_player
 var appear_player
 var fct_mgr
 var fx_pos_node
@@ -24,7 +23,7 @@ var lv
 
 #static status
 var team_id=0
-var is_local=true
+var is_master=true
 var mov_dir=1
 var chara_index=-1
 
@@ -51,12 +50,14 @@ func _ready():
 
 func on_anim_done(anim_name):
 	if anim_name=="hit":
+		# print("e_hit ",chara_index,"  ",game.frame_id)
 		if dead==false:
 			play_continue()
 	if anim_name=="die":
 		game.remove_chara(self)
 
 func on_atk_cb_from_anim():
+	# print("e_atk ",chara_index,"  ",game.frame_id)
 	if dead==false:
 		var atk_targets = update_atk_targets()
 		attack(atk_targets)
@@ -95,7 +96,7 @@ func play_hit(source_fx_info):
 	change_animation("hit","hit")
 
 func show_miss():
-	if is_local:
+	if is_master:
 		fct_mgr.show_value("Miss!", Color.red)
 	else:
 		fct_mgr.show_value("Miss!", Color.white)
@@ -165,6 +166,10 @@ func on_shoot_timeout():
 	apply_attck()
 
 func change_animation(anim_name, _status):
+	# if anim_name=="hit":
+	# 	print("s_hit ",chara_index,"  ",game.frame_id)
+	# if anim_name=="atk":
+	# 	print("s_atk ",chara_index,"  ",game.frame_id)
 	if anim_player:
 		anim_player.play(anim_name)
 		anim_player.seek(0)
@@ -172,7 +177,7 @@ func change_animation(anim_name, _status):
 
 func set_team(_team_id, _is_local):
 	team_id=_team_id
-	is_local=_is_local
+	is_master=_is_local
 	name=chara_name+"_"+str(team_id)+"_"+str(chara_index)
 	if team_id==1:
 		mov_dir=-1
@@ -189,15 +194,15 @@ func set_x_pos(pos, b_rand_y):
 func play_move():
 	change_animation("walk","mov")
 	var coef=50
-	anim_player.playback_speed=attr["mov_spd"]/coef
+	anim_player.playback_speed=stepify(attr["mov_spd"]/coef,0.01)
 
 func play_atk():
 	change_animation("atk", "atk")
 	var anim_length = anim_player.get_animation("atk").length
-	var atk_period=stepify(1/attr["atk_spd"],0.01)
+	var atk_period=1/attr["atk_spd"]
 	if atk_period<0.2:
 		atk_period=0.2
-	anim_player.playback_speed=anim_length/atk_period
+	anim_player.playback_speed=stepify(anim_length/atk_period,0.01)
 
 func check_if_outside(x):
 	if team_id==1 and x<game.scene_min or team_id==0 and x>game.scene_max:
@@ -206,8 +211,6 @@ func check_if_outside(x):
 		return false
 
 func _physics_process(delta):
-	if Global.paused:
-		return
 	if status=="mov":
 		if attr["mov_spd"]>0:
 			position.x = position.x + mov_dir*delta*attr["mov_spd"] 
@@ -222,7 +225,8 @@ func get_hit_pos(fx):
 	return hit_pos_node.global_position
 
 func on_die(_chara):
-	if is_local==false:
+	# print("die ",chara_index," ",game.frame_id)
+	if is_master==false:
 		var coin = info["build_cost"]
 		var coin_ef_num=int(coin/10)+1
 		if coin_ef_num>10:
@@ -249,7 +253,7 @@ func change_hp(val, chara, b_critical=false):
 	if actual_val==0:
 		return
 	if val<0:
-		if is_local==false:
+		if is_master==false:
 			fct_mgr.show_value(str(actual_val), Color.white,b_critical)
 		else:
 			fct_mgr.show_value(str(actual_val), Color.red,b_critical)

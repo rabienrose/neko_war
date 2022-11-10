@@ -3,6 +3,7 @@ extends Node
 signal money_change(val)
 signal request_battle(lv)
 signal show_level_info(lv)
+signal battle_frame_recv(frame_data)
 
 var char_tb_file_path="res://nakama/configs/characters.json"
 var user_data_path="user://user.json"
@@ -36,7 +37,6 @@ var replay_data={}
 
 var sel_level=""
 
-var local_mode=false
 var device_id
 
 var http
@@ -44,12 +44,8 @@ var server_url=""
 
 var rng 
 
-var replay_mode=false
-var pvp_mode=false
-var level_mode=true
-var server_mode=false
 
-var paused=false
+var battle_mode="level" #level, pvp, replay
 
 var scheme = "http"
 var host = "127.0.0.1"
@@ -57,6 +53,10 @@ var port = 7350
 var server_key = "nakama_nekowar"
 var client 
 var session
+var socket
+var battle_id=""
+var battle_players
+var level_battle_id=""
 
 func _ready():
 	client= Nakama.create_client(server_key, host, port, scheme,3,NakamaLogger.LOG_LEVEL.ERROR)
@@ -124,19 +124,6 @@ func fetch_user_remote():
 			user_data["nickname"]=username
 			user_data["avatar_url"]=avatar_url
 			user_data["user_id"]=user_id
-		get_tree().change_scene(home_scene)
-
-func save_equip_info(b_chara, index, name):
-	if local_mode:
-		return
-
-func save_user_data():
-	if local_mode:
-		var f=File.new()
-		f.open(user_data_path, File.WRITE)
-		var temp_json_str=JSON.print(user_data)
-		f.store_string(temp_json_str)
-		f.close()        
 
 func get_enmey_team_id(team_id):
 	var ret=[0,1]
@@ -147,7 +134,7 @@ func get_enmey_team_id(team_id):
 func upload_pvp_summery(recording,token1,token2,diamond1,diamond2):
 	pass
 	# if http!=null:
-	# 	return
+	#     return
 	# http=HTTPRequest.new()
 	# http.pause_mode=Node.PAUSE_MODE_PROCESS
 	# http.connect("request_completed", self, "default_http_cb")
@@ -256,10 +243,90 @@ func login_remote(email, account, pw, b_reg):
 	if Global.session.is_exception():
 		print("login error!!!!")
 		print(Global.session)
-		return
+		return false
 	store_token(email, pw)
-	Global.fetch_user_remote()
+	return true
 
-func get_cur_level_info():
-	var vec_s=sel_level.split("_")
-	return {"id":vec_s[0], "chara_lv":int(vec_s[1]), "difficulty":int(vec_s[2])}
+func _on_NakamaSocket_received_match_presence(new_presences: NakamaRTAPI.MatchPresenceEvent):
+	pass
+	
+func battle_frame_receive(match_state: NakamaRTAPI.MatchData):
+	var code = match_state.op_code
+	var raw = match_state.data
+	if code ==0: #frame data
+		var decoded= JSON.parse(raw).result
+		emit_signal("battle_frame_recv", decoded)
+	elif code ==1: #match ready
+		battle_players= JSON.parse(raw).result
+		battle_mode="pvp"
+		get_tree().change_scene(game_scene)
+		# emit_signal("match_ready", decoded)
+
+func _on_NakamaSocket_connection_error(error: int) -> void:
+	var error_message = "Unable to connect with code %s" % error
+	print(error_message)
+	socket = null
+
+func _on_NakamaSocket_received_error(error: NakamaRTAPI.Error) -> void:
+	var error_message = str(error)
+	print("battle recv error: ", error_message)
+	socket = null
+
+func connect_to_server_async():
+	socket = Nakama.create_socket_from(client)
+	var result= yield(socket.connect_async(session), "completed")
+	socket.connect("received_match_presence", self, "_on_NakamaSocket_received_match_presence")
+	socket.connect("received_match_state", self, "battle_frame_receive")
+	socket.connect("connection_error", self, "_on_NakamaSocket_connection_error")
+	socket.connect("received_error", self, "_on_NakamaSocket_received_error")
+
+func battle_frame_send(frame_data):
+	yield(socket.send_match_state_async(battle_id, 0, JSON.print(frame_data)), "completed")
+
+func request_end_battle():
+	yield(socket.send_match_state_async(battle_id, 99, JSON.print({})), "completed")
+
+func send_battle_result(b_win):
+	var msg={}
+	if b_win:
+		msg["re"]="winner"
+	else:
+		msg["re"]="loser"
+	yield(socket.send_match_state_async(battle_id, 2, JSON.print(msg)), "completed")
+
+func send_ready_msg():
+	yield(socket.send_match_state_async(battle_id, 1, JSON.print({})), "completed")
+
+func send_level_battle_inputs(inputs):
+	socket.send_match_state_async(level_battle_id, 0, JSON.print(inputs))
+
+func end_level_battle(b_win, record):
+	socket.send_match_state_async(level_battle_id, 2, JSON.print({"b_win":b_win, "record": record, "time":Time.get_date_string_from_system()}))
+
+func request_level_battle(level_name):
+	if socket==null or socket.is_connected_to_host()==false:
+		yield(connect_to_server_async(), "completed")
+	if level_battle_id=="":
+		var ret = yield(Global.client.rpc_async(session, "request_level_battle", level_name), "completed")
+		level_battle_id=ret.payload
+		yield(socket.join_match_async(level_battle_id), "completed")
+		battle_mode="level"
+		sel_level=level_name
+		get_tree().change_scene(game_scene)
+
+func join_battle_async():
+	if socket==null or socket.is_connected_to_host()==false:
+		yield(connect_to_server_async(), "completed")
+	if battle_id=="":
+		var ret = yield(client.rpc_async(session, "request_match"), "completed")
+		battle_id=ret.payload
+		yield(socket.join_match_async(battle_id), "completed")
+
+func leave_match():
+	yield(socket.leave_match_async(battle_id), "completed")
+	battle_id=""
+
+func fetch_user_and_go_home():
+	yield(Global.fetch_user_remote(), "completed") 
+	get_tree().change_scene(home_scene)
+	get_tree().paused=false

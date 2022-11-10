@@ -1,27 +1,14 @@
 local nk = require("nakama")
-
-local function print_table(data)
-    for k,v in pairs(data) do
-        print(k,v)
-    end
-end
-
-local function count_table(data)
-    local n=0
-    for _,_ in pairs(data) do
-        n=n+1
-    end
-    return n
-end
+local util = require("util")
 
 
-local function new_count_cb(context, payload)
+local function new_account_cb(context, payload)
     local user_id = context.user_id
     local object_ids = {
         { collection = "user", key = "basic", user_id = user_id },
     }
     local objects = nk.storage_read(object_ids)
-    if count_table(objects)==0 then
+    if #objects==0 then
         local new_user_data={}
         new_user_data["gold"]=100
         new_user_data["characters"]={["sword"]=1}
@@ -47,51 +34,36 @@ local function new_count_cb(context, payload)
 end
 
 local function level_battle_summary(context, payload)
-    print(payload)
     local json = nk.json_decode(payload)
-    print_table(json)
     return payload
 end
 
-local function upload_pvp_summery(context, payload)
-    print(payload)
-    local json = nk.json_decode(payload)
-    print_table(json)
-    return payload
+local function request_match(context, payload)
+    local limit = 1
+    local isAuthoritative = true
+    local min_size = 0
+    local max_size = 1
+    local matches = nk.match_list(limit, isAuthoritative,"PVP",min_size, max_size)
+    local current_match = matches[1]
+    if current_match == nil then
+        return nk.match_create("pvp_battle", {})
+    else
+        return current_match.match_id
+    end
+end
+
+local function request_level_battle(context, payload)
+    return nk.match_create("level_battle", {level_name=payload})
 end
 
 local function request_a_upgrade(context, payload)
-    print(payload)
     local json = nk.json_decode(payload)
-    print_table(json)
     return payload
-end
-
-local function get_user_info(user_id)
-    local object_ids = {
-        { collection = "user", key = "basic", user_id = user_id },
-    }
-    local objects = nk.storage_read(object_ids)
-    return objects[1].value
-end
-
-local function update_user_info(user_id, info)
-    local new_objects = {
-        {
-            collection = "user",
-            key = "basic",
-            value = info,
-            permission_read = 1,
-            permission_write = 0,
-            user_id=user_id
-        }
-    }
-    nk.storage_write(new_objects)
 end
 
 local function request_a_draw(context, payload)
     local user_id=context.user_id
-    local user_info = get_user_info(user_id)
+    local user_info = util.get_user_info(user_id)
     local lottery_cost=Global_tb["lottery_price"]
     if lottery_cost>user_info["gold"] then
         local ret_load={}
@@ -120,33 +92,26 @@ local function request_a_draw(context, payload)
     else
         user_info["items"][draw_item_name]=user_info["items"][draw_item_name]+1
     end
-    update_user_info(user_id, user_info)
+    util.update_user_info(user_id, user_info)
     local ret_load={}
     ret_load["item"]=draw_item_name
     return nk.json_encode(ret_load)
 end
 
 local function update_equip_slot(context, payload)
-    print(payload)
     local json = nk.json_decode(payload)
-    print_table(json)
     return payload
 end
 
-local function load_json(file_path)
-    local contents = nk.file_read(file_path)
-    return nk.json_decode(contents)
-end
-
-print("Loading game data")
-Items_tb = load_json("../configs/items.json")
-Global_tb = load_json("../configs/global.json")
-print("Loading done")
+-- Charas_tb = util.load_json("../configs/characters.json")
+Items_tb = util.load_json("../configs/items.json")
+Global_tb = util.load_json("../configs/global.json")
 
 
+nk.register_rpc(request_level_battle, "request_level_battle")
+nk.register_rpc(request_match, "request_match")
 nk.register_rpc(update_equip_slot, "update_equip_slot")
 nk.register_rpc(request_a_upgrade, "request_a_upgrade")
-nk.register_rpc(upload_pvp_summery, "upload_pvp_summery")
 nk.register_rpc(request_a_draw, "request_a_draw")
 nk.register_rpc(level_battle_summary, "level_battle_summary")
-nk.register_req_after(new_count_cb, "AuthenticateEmail")
+nk.register_req_after(new_account_cb, "AuthenticateEmail")

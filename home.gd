@@ -496,9 +496,7 @@ func _on_Right_gui_input(event):
 func _on_GoBtn_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if Global.user_data["diamond"]>=Global.global_data["pvp_price"]:
-				Global.set_game_mode("pvp")
-				get_tree().change_scene(Global.game_scene)
+			yield(Global.join_battle_async(), "completed") 			
 			
 func _on_Replay_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:

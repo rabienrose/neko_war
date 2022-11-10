@@ -8,17 +8,22 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var email = "283136745@qq.com"
-	var password = "la009296"
-	var session : NakamaSession = yield(Global.client.authenticate_email_async(email, password), "completed")
-	if session.is_exception():
-		print("login error!!!!")
-		print(session)
-		return
-	
-	var payload={"sdfsd":[1,2,3],"aaa":1}
-	var ret = yield(Global.client.rpc_async(session, "request_a_draw", JSON.print(payload)), "completed")
-	print(ret.payload)
+	var cmds=OS.get_cmdline_args()
+	var email = cmds[1]
+	var password = cmds[2]
+	print(email)
+	# var email = "12345678@qq.com"
+	# var password = "la009296"
+	# var email = "283136745@qq.com"
+	# var password = "la009296"
+	var succ = yield(Global.login_remote(email, "", password, false), "completed")
+	if succ:
+		print("login succ")
+		yield(Global.fetch_user_remote(), "completed")
+		yield(Global.request_level_battle("1"), "completed") 
+
+
+
 	# var global_userid="00000000-0000-0000-0000-000000000000"
 	# var unlocks_object_list = yield(Global.client.list_storage_objects_async(session, "global_data", global_userid, 3), "completed")
 	# print(unlocks_object_list)
@@ -29,16 +34,16 @@ func _ready():
 	# var w_objs=[NakamaWriteStorageObject.new("global", "ssss", can_read, can_write,serialized,"")]
 	# var acks : NakamaAPI.ApiStorageObjectAcks = yield(Global.client.write_storage_objects_async(session, w_objs), "completed")
 	# if acks.is_exception():
-	# 	print("An error occurred")
-	# 	return
+	#     print("An error occurred")
+	#     return
 	# var read_object_id = NakamaStorageObjectId.new("hats", "favorite_hats", session.user_id)
 	# var result = yield(Global.client.read_storage_objects_async(session, [read_object_id]), "completed")
 
 	# print("Unlocked hats: ")
 	# for o in result.objects:
-	# 	print("%s" % o)
+	#     print("%s" % o)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
-#	pass
+#    pass

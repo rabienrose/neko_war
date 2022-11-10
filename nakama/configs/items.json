@@ -10,7 +10,7 @@
     "cd_zero":{
         "name":"疯狂制造",
         "desc":"己方建造时间变为0",
-        "chance":5000,
+        "chance":1000,
         "delay":1,
         "val":0,
         "type":"player"

@@ -69,7 +69,10 @@ func login(b_reg):
 		show_alert("email format wrong!")
 		return
 	if email!="" and pw!="":
-		Global.login_remote(email, account, pw, b_reg)
+		var succ = yield(Global.login_remote(email, account, pw, b_reg), "completed") 
+		if succ:
+			   
+			
 
 func _on_LoginBtn_gui_input(event):
 	if event is InputEventScreenTouch:

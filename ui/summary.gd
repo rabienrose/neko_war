@@ -49,7 +49,5 @@ func _on_Next_gui_input(event):
 func _on_Home_gui_input(event):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if b_win:
-				Global.fetch_user_remote()
-			else:
-				Global.fetch_user_remote()
+			Global.leave_match()
+			Global.fetch_user_and_go_home()

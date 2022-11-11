@@ -14,6 +14,7 @@ export (NodePath) var chara1_list_path
 export (NodePath) var chara2_list_path
 export (NodePath) var coin1_label_path
 export (NodePath) var coin2_label_path
+export (NodePath) var coin_pool_path
 
 var fx_mgr
 var char_root
@@ -27,6 +28,7 @@ var keyframe_p_s=int(fps/keyframe_step)
 var scene_min=0
 var scene_max=2364
 var frame_id=0
+var item_mgr
 
 var master_id=0
 var input_queue=[]
@@ -39,6 +41,7 @@ var live_chara_count=[0,0]
 var chara_count=[0,0]
 var chara_hotkey=[[null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null]]
 
+var coin_pool=0
 var coin_num=[0,0]
 var init_coin_num=[0,0]
 var user_id_2_index={}
@@ -58,6 +61,9 @@ func _ready():
 	char_root=get_node(char_root_path)
 	chara_gen_ui=get_node(chara_gen_ui_path)
 	item_use_ui=get_node(item_use_ui_path)
+	item_mgr=get_node("ItemMgr")
+	item_mgr.on_create(self)
+	get_node(coin_pool_path).visible=false
 	Global.connect("battle_frame_recv", self, "recv_sync_frame")
 	if Global.battle_mode=="level":
 		get_node(coin1_label_path).get_parent().visible=true
@@ -89,10 +95,12 @@ func _ready():
 			hk_info["num"]=num
 			hk_info["name"]=item_name
 			chara_hotkey[0][i+5]=hk_info
+		coin_pool=Global.levels_tb[Global.sel_level]["reward"]
 		update_hk_slot_ui(false)
 		start_battle()
 	elif Global.battle_mode=="pvp":
 		var t_count=0
+		get_node(coin_pool_path).visible=true
 		for user_id in Global.battle_players:
 			user_id_2_index[user_id]=t_count
 			var player_info=Global.battle_players[user_id]
@@ -103,12 +111,20 @@ func _ready():
 				if item[0]=="":    
 					pass
 				else:
-					var char_name=item[0]
-					var char_lv=item[1]
-					hk_info={}
-					hk_info["countdown"]=0
-					hk_info["lv"]=char_lv
-					hk_info["name"]=char_name
+					if i<5:
+						var char_name=item[0]
+						var char_lv=item[1]
+						hk_info={}
+						hk_info["countdown"]=0
+						hk_info["lv"]=char_lv
+						hk_info["name"]=char_name
+					else:
+						var item_name=item[0]
+						var num=item[1]
+						hk_info={}
+						hk_info["countdown"]=0
+						hk_info["num"]=num
+						hk_info["name"]=item_name
 				chara_hotkey[t_count][i]=hk_info
 				i=i+1
 			if user_id==Global.user_data["user_id"]:
@@ -176,26 +192,25 @@ func start_battle():
 	game_start=true
 
 func cancel_cb():
-	if Global.level_mode:
+	if Global.battle_mode!="pvp":
 		get_tree().paused = false
-		get_node(comfirm_path).visible=false
+	get_node(comfirm_path).visible=false
 
 func go_home_cb():
-	if Global.level_mode:
-		get_tree().paused = false
+	if Global.battle_mode=="level":
 		stop_game(false)
-	elif Global.pvp_mode:
+	elif Global.battle_mode=="pvp":
 		my_inputs.append(-1)
-	elif Global.replay_mode:
+	elif Global.battle_mode=="replay":
 		get_tree().change_scene(Global.home_scene)
 	get_node(comfirm_path).visible=false
 
-func stop_game(b_win, force_summary=false):
+func stop_game(b_win):
 	if Global.battle_mode=="pvp":
 		Global.send_battle_result(b_win)
 	elif Global.battle_mode=="level":
 		Global.end_level_battle(b_win, get_recording_data())
-	get_node(summary_path).show_summary(b_win, true, 100, false)
+	get_node(summary_path).show_summary(b_win, true, coin_pool, false)
 
 func spawn_building(build_name, team_id):
 	var new_char = build_res.instance()
@@ -218,9 +233,6 @@ func init_object(res, spawn_pos, chara_name, lv, team_id, b_rand_y):
 	res.set_x_pos(spawn_pos,b_rand_y)
 	update_chara_list_ui()
 
-func use_item(item_name, team_id):
-	pass
-
 func remove_chara(chara):
 	chara.queue_free()    
 	
@@ -230,6 +242,8 @@ func change_coin(change_val, team_id):
 	else:
 		if -change_val<=coin_num[team_id]:
 			coin_num[team_id]=coin_num[team_id]+change_val
+			if team_id!=master_id:
+				coin_pool=coin_pool-change_val
 	update_stats_ui()
 
 func check_chara_build(chara_cost, team_id):
@@ -272,13 +286,14 @@ func update_chara_list_ui():
 func update_stats_ui():
 	get_node(coin1_label_path).text="Coin: "+str(coin_num[0])
 	get_node(coin2_label_path).text="Coin: "+str(coin_num[1])
+	get_node(coin_pool_path).text="Reward: "+str(coin_pool)
 	update_hk_mask()
 
 func use_item_cb(item):
 	if item.custom_val-1<0:
 		return false
 	if not item.index in my_inputs:
-		my_inputs.append(item.index+5)
+		my_inputs.append(item.index)
 	return true
 
 func start_chara_cb(item):
@@ -383,7 +398,7 @@ func process_keyframe():
 					else:
 						var item_name=chara_hotkey[_team_id][key]["name"]
 						chara_hotkey[_team_id][key]["num"]=chara_hotkey[_team_id][key]["num"]-1
-						use_item(item_name, _team_id)
+						item_mgr.use_item(item_name, _team_id)
 						if _team_id==master_id:
 							var ui_item=item_use_ui.get_child(key-5)
 							ui_item.set_val(chara_hotkey[_team_id][key]["num"])
@@ -395,10 +410,8 @@ func _on_Return_gui_input(event):
 		if event.pressed:
 			if get_node(comfirm_path).visible==false:
 				get_node(comfirm_path).visible=true
-				if Global.pvp_mode!=true:
+				if Global.battle_mode!="pvp":
 					get_tree().paused = true
-				if Global.replay_mode:
-					get_node(comfirm_path).hide_btn(1)
 
 func get_recording_data():
 	var recording_data={}

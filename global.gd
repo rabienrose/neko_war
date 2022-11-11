@@ -55,7 +55,7 @@ var client
 var session
 var socket
 var battle_id=""
-var battle_players
+var battle_players=null
 var level_battle_id=""
 
 func _ready():
@@ -267,6 +267,7 @@ func join_battle_async():
 func leave_match():
 	yield(socket.leave_match_async(battle_id), "completed")
 	battle_id=""
+	level_battle_id=""
 
 func fetch_user_and_go_home():
 	yield(Global.fetch_all_data(), "completed") 
@@ -285,3 +286,14 @@ func fetch_level_data():
 func fetch_all_data():
 	yield(fetch_level_data(), "completed")
 	yield(fetch_user_remote(), "completed")
+	yield(fetch_rank_data(), "completed")
+
+func fetch_rank_data():
+	var limit = 20
+	var leaderboard_name = "coin_rank"
+	var result  = yield(client.list_leaderboard_records_async(session, leaderboard_name, null, null, limit, null), "completed")
+	rank_data=[]
+	for record in result.records:
+		var date = record.update_time.split("T")[0]
+		var meta_obj=JSON.parse(record.metadata).result
+		rank_data.append({"coin":record.score, "name":record.username, "note":meta_obj["note"],"date":date})

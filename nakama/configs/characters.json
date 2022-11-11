@@ -44,6 +44,7 @@
     "sword": {
         "name": "sword",
         "type": "chara",
+        "chinese_name": "小蜜蜂",
         "desc": "La la la la la.",
         "build_cost": 20,
         "build_time": 0.5,

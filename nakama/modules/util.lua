@@ -133,4 +133,8 @@ function util.update_level_data(level_name, data)
     nk.storage_write(new_objects)
 end
 
+function util.submit_coin_record(user_id, user_name, coin, note)
+    nk.leaderboard_record_write(util.coin_rank_id, user_id, user_name, coin, 0, {note=note})
+end
+util.coin_rank_id = "coin_rank"
 return util

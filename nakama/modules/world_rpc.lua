@@ -128,6 +128,16 @@ Chara_tb = util.load_json("../configs/characters.json")
 Items_tb = util.load_json("../configs/items.json")
 Global_tb = util.load_json("../configs/global.json")
 
+local leaderboard_ids = {util.coin_rank_id}
+local leaderboards = nk.leaderboards_get_id(leaderboard_ids)
+if #leaderboards ==0 then
+    local authoritative = true
+    local sort = "desc"
+    local operator = "set"
+    local reset = "0 0 * * 1"
+    nk.leaderboard_create(util.coin_rank_id, authoritative, sort, operator, "", {})
+end
+
 
 nk.register_rpc(request_level_battle, "request_level_battle")
 nk.register_rpc(request_match, "request_match")

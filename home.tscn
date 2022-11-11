@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=2]
+[gd_scene load_steps=34 format=2]
 
 [ext_resource path="res://ui/texture/s_bg_yellow.tres" type="Texture" id=1]
 [ext_resource path="res://ui/texture/big_panel_bg.tres" type="Texture" id=2]
@@ -26,14 +26,11 @@
 [ext_resource path="res://ui/user_setting.tscn" type="PackedScene" id=24]
 [ext_resource path="res://ui/anima_arrow.tscn" type="PackedScene" id=25]
 [ext_resource path="res://ui/font/chinese.tres" type="DynamicFont" id=26]
+[ext_resource path="res://binary/font/SourceHanSerifSC-Regular.otf" type="DynamicFontData" id=27]
 
 [sub_resource type="DynamicFont" id=3]
 size = 70
 font_data = ExtResource( 3 )
-
-[sub_resource type="DynamicFont" id=2]
-size = 40
-font_data = ExtResource( 15 )
 
 [sub_resource type="DynamicFont" id=4]
 size = 80
@@ -43,9 +40,17 @@ font_data = ExtResource( 3 )
 size = 160
 font_data = ExtResource( 3 )
 
+[sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 15 )
+
 [sub_resource type="DynamicFont" id=1]
 size = 60
 font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=6]
+size = 80
+font_data = ExtResource( 27 )
 
 [node name="Home" type="Control"]
 anchor_right = 1.0
@@ -83,6 +88,7 @@ pvp_cost_label_path = NodePath("NinePatchRect/VBoxContainer/MidContent/PVP/Contr
 user_stats_path = NodePath("NinePatchRect/VBoxContainer/Status")
 replay_btn_path = NodePath("NinePatchRect/VBoxContainer/MidContent/Levels/LevelInfo/VBoxContainer/HBoxContainer/Replay")
 user_setting_path = NodePath("Setting")
+matching_label_path = NodePath("NinePatchRect/MatchingLabel")
 tip_start_battle_arrow_path = NodePath("TipStart")
 level_item_res = ExtResource( 16 )
 drop_item_res = ExtResource( 19 )
@@ -115,9 +121,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 20.0
 margin_bottom = -20.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Status" parent="NinePatchRect/VBoxContainer" instance=ExtResource( 9 )]
 anchor_left = 0.0
@@ -369,7 +372,7 @@ __meta__ = {
 margin_right = 560.0
 margin_bottom = 624.0
 size_flags_vertical = 7
-custom_fonts/font = SubResource( 2 )
+custom_fonts/font = ExtResource( 26 )
 autowrap = true
 __meta__ = {
 "_edit_use_anchors_": false
@@ -493,15 +496,12 @@ margin_top = 40.0
 margin_right = -40.0
 margin_bottom = -40.0
 custom_constants/separation = 10
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Label" type="Label" parent="NinePatchRect/VBoxContainer/MidContent/Items/LevelInfo/VBoxContainer"]
 margin_right = 560.0
 margin_bottom = 754.0
 size_flags_vertical = 7
-custom_fonts/font = SubResource( 2 )
+custom_fonts/font = ExtResource( 26 )
 autowrap = true
 __meta__ = {
 "_edit_use_anchors_": false
@@ -926,6 +926,16 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="MatchingLabel" type="Label" parent="NinePatchRect"]
+visible = false
+margin_left = 851.0
+margin_top = 31.0
+margin_right = 1221.0
+margin_bottom = 147.0
+custom_colors/font_color = Color( 0.956863, 0.301961, 0.301961, 1 )
+custom_fonts/font = SubResource( 6 )
+text = "匹配中....."
+
 [node name="Setting" parent="." instance=ExtResource( 24 )]
 visible = false
 
@@ -934,7 +944,7 @@ visible = false
 position = Vector2( 1964, 699 )
 rotation = 1.5708
 scale = Vector2( 0.5, 1 )
-frame = 1
+frame = 3
 
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Left" to="." method="_on_Left_gui_input"]
 [connection signal="gui_input" from="NinePatchRect/VBoxContainer/MidContent/Levels/LevelGrid/Right" to="." method="_on_Right_gui_input"]

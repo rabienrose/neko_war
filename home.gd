@@ -32,6 +32,7 @@ export (NodePath) var pvp_cost_label_path
 export (NodePath) var user_stats_path
 export (NodePath) var replay_btn_path
 export (NodePath) var user_setting_path
+export (NodePath) var matching_label_path
 
 export (NodePath) var tip_start_battle_arrow_path
 
@@ -113,7 +114,10 @@ func on_show_level_info(lv_name):
 func chara_item_click_cb(chara_name):
 	var chara_db = Global.chara_tb[chara_name]
 	var str_temp=""
+	str_temp=str_temp+chara_db["chinese_name"]+"\n"
 	var lv = Global.get_my_chara_info(chara_name)
+	str_temp=str_temp+"等级: "+str(lv)+"\n"
+	str_temp=str_temp+"属性: \n"
 	cur_sel_chara=chara_name
 	var t_attr_info=chara_db["attrs"][str(lv)]
 	var t_attr_info_next=null
@@ -143,8 +147,7 @@ func item_item_click_cb(item_name):
 	var str_temp=""
 	cur_sel_item=item_name
 	str_temp=str_temp+item_db["name"]+"\n\n"
-	str_temp=str_temp+"Price: "+str(item_db["price"])+"\n\n"
-	str_temp=str_temp+"Description:\n"+item_db["desc"]+"\n\n"
+	str_temp=str_temp+item_db["desc"]+"\n\n"
 	item_info.text=str_temp
 	clear_grid_highlight(item_grid)
 	clear_grid_highlight(item_hotkey)
@@ -182,32 +185,37 @@ func set_item_hk_slot(slot_id, item_name):
 	item.set_data(item_name)
 	Global.user_data["equip"][1][slot_id]=item_name
 
-func add_lv_grid_item(lv_name):
+func add_lv_grid_item(lv_name, default_lv):
 	var level_item = level_item_res.instance()
 	level_item.container=level_grid
 	if lv_name in Global.user_data["levels"]:
 		level_item.set_lock(false, lv_name)
 	else:
 		level_item.set_lock(true, lv_name)
+	if default_lv==lv_name:
+		level_item.set_highlight(true)
+	else:
+		level_item.set_highlight(false)
 	level_grid.add_child(level_item)
 
 func update_levels_ui():
 	Global.delete_children(level_grid)
 	var first_lv=""
+	var default_lv=first_lv
+	if Global.user_data["last_level"]!="":
+		default_lv=Global.user_data["last_level"]
 	for lv_key in Global.user_data["levels"]:
-		add_lv_grid_item(lv_key)
+		add_lv_grid_item(lv_key, default_lv)
 	for lv_key in Global.levels_tb:
 		var pre_level=Global.levels_tb[lv_key]["pre_level"]
 		if pre_level=="":
 			first_lv=lv_key
 			if not lv_key in Global.user_data["levels"]:
-				add_lv_grid_item(lv_key)
+				add_lv_grid_item(lv_key, default_lv)
 		else:
 			if pre_level in Global.user_data["levels"] and (not lv_key in Global.user_data["levels"]):
-				add_lv_grid_item(lv_key)
-	var default_lv=first_lv
-	if Global.user_data["last_level"]!="":
-		default_lv=Global.user_data["last_level"]
+				add_lv_grid_item(lv_key, default_lv)
+	
 	on_show_level_info(default_lv)
 
 func update_characters_ui(): 
@@ -267,10 +275,7 @@ func update_pvp_ui():
 	Global.delete_children(get_node(rank_list_path))
 	for item in Global.rank_data:
 		var new_item = rank_item_res.instance()
-		var note=""
-		if "setting" in item and "not" in item["setting"]:
-			note=item["setting"]["note"]
-		new_item.set_data(item["nickname"],item["gold"],item["last_pvp"],note)
+		new_item.set_data(item["name"],item["coin"],item["date"],item["note"])
 		get_node(rank_list_path).add_child(new_item)
 
 func drag_chara_icon_cb(chara_name, pos):
@@ -481,7 +486,8 @@ func _on_Right_gui_input(event):
 func _on_GoBtn_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			yield(Global.join_battle_async(), "completed") 			
+			yield(Global.join_battle_async(), "completed")
+			get_node(matching_label_path).visible=true	
 			
 func _on_Replay_gui_input(event:InputEvent):
 	if event is InputEventScreenTouch:

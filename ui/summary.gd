@@ -28,10 +28,12 @@ func show_summary(_b_win, b_show, gold, b_show_repeat):
 		if _b_win:
 			get_node(ske_head_path).visible=false
 			get_node(title_text_path).text="YOU WIN!"
+			get_node(gold_head_path).text=str(gold)
 		else:
+			get_node(gold_head_path).visible=false
 			get_node(ske_head_path).visible=true
 			get_node(title_text_path).text="DEFEAT"
-		get_node(gold_head_path).text=str(gold)
+		
 
 
 func _on_Replay_gui_input(event):

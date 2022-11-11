@@ -3,32 +3,24 @@
         "name":"红药水",
         "desc":"所有角色atk+1",
         "chance":10000,
-        "delay":1,
-        "val":0,
-        "type":"player"
+        "delay":1
     },
     "cd_zero":{
         "name":"疯狂制造",
         "desc":"己方建造时间变为0",
         "chance":1000,
-        "delay":1,
-        "val":0,
-        "type":"player"
+        "delay":1
     },
     "cost_zero":{
         "name":"无限制造",
         "desc":"己方建造成本变为0",
         "chance":5000,
-        "delay":1,
-        "val":0,
-        "type":"player"
+        "delay":1
     },
     "range_char_slow":{
         "name":"远程靠后",
         "desc":"己方所有远程角色移动速度减少一半",
         "chance":5000,
-        "delay":1,
-        "val":0,
-        "type":"player"
+        "delay":1
     }
 }

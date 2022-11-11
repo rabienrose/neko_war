@@ -10,6 +10,7 @@ function pvp_battle.match_init(_, _)
         winner="",
         loser="",
         cost={},
+        items={},
         all_ready=false,
         sent_4_ready=false
     }
@@ -27,18 +28,34 @@ function pvp_battle.match_join(_, dispatcher, _, state, presences)
         state.presences[presence.user_id] = util.get_user_slots(presence.user_id)
         state.ready[presence.user_id]=false
         state.cost[presence.user_id]=0
+        state.items[presence.user_id]={}
     end
     return state
 end
 
+local function proc_a_user(user_id, state, b_win, cost)
+    
+    local user_info = util.get_user_info(user_id)
+    if b_win then
+        user_info.gold=user_info.gold+cost
+    else
+        user_info.gold=user_info.gold-cost
+    end
+    
+    for k,v in pairs(state.items[user_id]) do
+        if user_info.items[v]~=nil and user_info.items[v]>0 then
+            user_info.items[v]=user_info.items[v]-1
+        end
+    end
+    util.update_user_info(user_id, user_info)
+    local account = nk.account_get_id(user_id)
+    util.submit_coin_record(user_id, account.user.username, user_info.gold, "lalala")
+end
+
 local function proc_battle_result(state, winner, loser)
     local lose_cost=state.cost[loser]
-    local user_info = util.get_user_info(winner)
-    user_info.gold=user_info.gold+lose_cost
-    util.update_user_info(winner, user_info)
-    user_info = util.get_user_info(loser)
-    user_info.gold=user_info.gold-lose_cost
-    util.update_user_info(loser, user_info)
+    proc_a_user(winner, state, true, lose_cost)
+    proc_a_user(loser, state, false, lose_cost)
 end
 
 function pvp_battle.match_leave(_, _, _, state, presences)
@@ -97,13 +114,16 @@ function pvp_battle.match_loop(_, dispatcher, tick, state, messages)
         elseif op_code==0 then -- new frame
             temp_inputs[msg_user_id]=decoded
             for k,v in pairs(decoded) do
-                if v<5 then --chara
-                    local chara_name=state.presences[msg_user_id].hk_slot[v+1][1]
-                    local cost = Charas_tb[chara_name].build_cost
-                    state.cost[msg_user_id]=state.cost[msg_user_id]+cost
-                else
-                    
-                end
+                if v>=0 then
+                    if v<5 then --chara
+                        local chara_name=state.presences[msg_user_id].hk_slot[v+1][1]
+                        local cost = Charas_tb[chara_name].build_cost
+                        state.cost[msg_user_id]=state.cost[msg_user_id]+cost
+                    else
+                        local item_name=state.presences[msg_user_id].hk_slot[v+1][1]
+                        table.insert(state.items[msg_user_id], item_name)
+                    end
+                end 
             end
         elseif op_code==1 then -- ready
             state.ready[msg_user_id]=true

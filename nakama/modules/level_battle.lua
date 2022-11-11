@@ -38,6 +38,12 @@ end
 
 local function proc_battle_result(state, b_win, battle_record, time)
     local user_info = util.get_user_info(state.user_id)
+    for k,v in pairs(state.items) do
+        if user_info.items[v]~=nil and user_info.items[v]>0 then
+            user_info.items[v]=user_info.items[v]-1
+        end
+    end
+
     local level_data = util.get_level_data(state.level_name)
     if level_data==nil then
         level_data={
@@ -74,8 +80,8 @@ local function proc_battle_result(state, b_win, battle_record, time)
             level_data.coin_pool=0
             util.update_level_data(state.level_name, level_data)
         end
-        user_info.last_level=state.level_name
     end
+    user_info.last_level=state.level_name
     util.update_user_info(state.user_id, user_info)
 end
 
@@ -100,7 +106,8 @@ function level_battle.match_loop(_, dispatcher, tick, state, messages)
                     local cost = Charas_tb[chara_name].build_cost
                     state.cost=state.cost+cost
                 else
-                    
+                    local item_name=state.player_info.hk_slot[v+1][1]
+                    table.insert(state.items, item_name)
                 end
             end
         elseif op_code==2 then -- battle done

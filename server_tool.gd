@@ -8,20 +8,20 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var cmds=OS.get_cmdline_args()
-	var email = cmds[1]
-	var password = cmds[2]
-	print(email)
-	# var email = "12345678@qq.com"
-	# var password = "la009296"
+	# var cmds=OS.get_cmdline_args()
+	# var email = cmds[1]
+	# var password = cmds[2]
+	# print(email)
+	var email = "12345678@qq.com"
+	var password = "la009296"
 	# var email = "283136745@qq.com"
 	# var password = "la009296"
 	var succ = yield(Global.login_remote(email, "", password, false), "completed")
 	if succ:
 		print("login succ")
-		Global.fetch_level_data()
-		# yield(Global.fetch_user_remote(), "completed")
-		# yield(Global.request_level_battle("1"), "completed") 
+		# Global.fetch_level_data()
+		yield(Global.fetch_user_remote(), "completed")
+		yield(Global.request_level_battle("1"), "completed") 
 
 
 

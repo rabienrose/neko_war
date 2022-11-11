@@ -36,6 +36,7 @@ var game
 var shoot_timer
 var attr
 var info
+var debug_sycn=false
 
 func _ready():
 	appearance=get_node(appearance_path)
@@ -50,14 +51,16 @@ func _ready():
 
 func on_anim_done(anim_name):
 	if anim_name=="hit":
-		# print("e_hit ",chara_index,"  ",game.frame_id)
+		if debug_sycn:
+			print("e_hit ",chara_index,"  ",game.frame_id)
 		if dead==false:
 			play_continue()
 	if anim_name=="die":
 		game.remove_chara(self)
 
 func on_atk_cb_from_anim():
-	# print("e_atk ",chara_index,"  ",game.frame_id)
+	if debug_sycn:
+		print("e_atk ",chara_index,"  ",game.frame_id)
 	if dead==false:
 		var atk_targets = update_atk_targets()
 		attack(atk_targets)
@@ -166,10 +169,11 @@ func on_shoot_timeout():
 	apply_attck()
 
 func change_animation(anim_name, _status):
-	# if anim_name=="hit":
-	# 	print("s_hit ",chara_index,"  ",game.frame_id)
-	# if anim_name=="atk":
-	# 	print("s_atk ",chara_index,"  ",game.frame_id)
+	if debug_sycn:
+		if anim_name=="hit":
+			print("s_hit ",chara_index,"  ",game.frame_id)
+		if anim_name=="atk":
+			print("s_atk ",chara_index,"  ",game.frame_id)
 	if anim_player:
 		anim_player.play(anim_name)
 		anim_player.seek(0)
@@ -225,7 +229,8 @@ func get_hit_pos(fx):
 	return hit_pos_node.global_position
 
 func on_die(_chara):
-	# print("die ",chara_index," ",game.frame_id)
+	if debug_sycn:
+		print("die ",chara_index," ",game.frame_id)
 	if is_master==false:
 		var coin = info["build_cost"]
 		var coin_ef_num=int(coin/10)+1
@@ -248,7 +253,6 @@ func change_hp(val, chara, b_critical=false):
 		on_die(chara)
 		new_hp=0
 	var actual_val=new_hp-hp
-	# print("damage: ",actual_val,"  ",chara.name,"  ",game.frame_id)
 	hp=new_hp
 	if actual_val==0:
 		return

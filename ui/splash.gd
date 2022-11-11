@@ -1,16 +1,19 @@
 extends TextureRect
 
+func start_with_account(email, pw):
+	var succ = yield(Global.login_remote(email,"",pw,false), "completed") 
+	if succ:
+		Global.fetch_user_and_go_home()
+
 func _ready():
 	var cmds=OS.get_cmdline_args()
 	if len(cmds)>=1:
-		if cmds[0]=="server":
-			Global.rng.randomize()
-			get_tree().change_scene(Global.game_scene)
+		var email = cmds[0]
+		var password = cmds[1]
+		start_with_account(email, password)
 	else:
 		var ret= Global.check_token()
 		if ret!=null:
-			var succ = yield(Global.login_remote(ret[0],"",ret[1],false), "completed") 
-			if succ:
-				Global.fetch_user_and_go_home()
+			start_with_account(ret[0], ret[1])
 		else:
 			get_tree().change_scene(Global.login_scene)
